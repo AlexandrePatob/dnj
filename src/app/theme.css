@@ -1,0 +1,313 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* ── Brand Palette ── */
+  --color-orange: #e87425;
+  --color-red: #db3a2e;
+  --color-lime: #b2d64d;
+  --color-teal: #34d1d1;
+
+  /* ── Typography ── */
+  --font-size: 16px;
+  --font-sans: 'Poppins', sans-serif;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ── Brand / Fixed Tokens (same in both modes) ── */
+  --primary: #e87425;
+  --primary-foreground: #ffffff;
+  --primary-light: #f59332;
+  --primary-lighter: #fbb55a;
+
+  --secondary: #db3a2e;
+  --secondary-foreground: #ffffff;
+
+  --accent: #b2d64d;
+
+  --destructive: #db3a2e;
+  --destructive-foreground: #ffffff;
+
+  --ring: #e87425;
+
+  /* ── Alpha Utility Tokens ── */
+  --primary-alpha-5:  color-mix(in srgb, var(--primary)   5%, transparent);
+  --primary-alpha-10: color-mix(in srgb, var(--primary)  10%, transparent);
+  --primary-alpha-15: color-mix(in srgb, var(--primary)  15%, transparent);
+  --primary-alpha-20: color-mix(in srgb, var(--primary)  20%, transparent);
+  --primary-alpha-40: color-mix(in srgb, var(--primary)  40%, transparent);
+  --accent-alpha-10:  color-mix(in srgb, var(--accent)   10%, transparent);
+  --accent-alpha-15:  color-mix(in srgb, var(--accent)   15%, transparent);
+  --accent-alpha-20:  color-mix(in srgb, var(--accent)   20%, transparent);
+  --accent-alpha-30:  color-mix(in srgb, var(--accent)   30%, transparent);
+  --teal-alpha-15:    color-mix(in srgb, var(--chart-2)  15%, transparent);
+  --red-alpha-12:     color-mix(in srgb, var(--secondary) 12%, transparent);
+
+  /* ── Data Viz ── */
+  --chart-1: #e87425;
+  --chart-2: #34d1d1;
+  --chart-3: #b2d64d;
+  --chart-4: #db3a2e;
+  --chart-5: #f5a855;
+
+  /* ── Radius ── */
+  --radius: 1rem;
+
+  /* ── Sidebar Fixed ── */
+  --sidebar-primary: #e87425;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-ring: #e87425;
+
+  /* ── Light Mode Surface Tokens (default) ── */
+  --background: #f9f9f9;
+  --foreground: #111c1c;
+
+  --card: #ffffff;
+  --card-foreground: #111c1c;
+
+  --popover: #ffffff;
+  --popover-foreground: #111c1c;
+
+  --muted: #efefef;
+  --muted-foreground: #5a8585;
+
+  --accent-foreground: #111c1c;
+
+  --border: rgba(0, 50, 50, 0.10);
+  --input: rgba(0, 50, 50, 0.06);
+  --input-background: #f0f0f0;
+  --switch-background: #d4d4d4;
+
+  --sidebar: #f9f9f9;
+  --sidebar-foreground: #111c1c;
+  --sidebar-accent: #efefef;
+  --sidebar-accent-foreground: #111c1c;
+  --sidebar-border: rgba(0, 50, 50, 0.10);
+}
+
+/* ── Dark Mode Surface Tokens ── */
+.dark {
+  --background: #0d1a1a;
+  --foreground: #f0f8f8;
+
+  --card: #162626;
+  --card-foreground: #f0f8f8;
+
+  --popover: #1f3333;
+  --popover-foreground: #f0f8f8;
+
+  --muted: #1f3333;
+  --muted-foreground: #6aadad;
+
+  --accent-foreground: #0d1a1a;
+
+  --border: rgba(52, 209, 209, 0.15);
+  --input: rgba(52, 209, 209, 0.08);
+  --input-background: #1f3333;
+  --switch-background: #2a4444;
+
+  --sidebar: #0d1a1a;
+  --sidebar-foreground: #f0f8f8;
+  --sidebar-accent: #1f3333;
+  --sidebar-accent-foreground: #f0f8f8;
+  --sidebar-border: rgba(52, 209, 209, 0.15);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* ── Keyframes ── */
+
+@keyframes scanLine {
+  0%   { top: 16px;              opacity: 0; }
+  8%   {                         opacity: 1; }
+  92%  {                         opacity: 1; }
+  100% { top: calc(100% - 16px); opacity: 0; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(32px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-32px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes dotPop {
+  0%   { transform: scale(0);   }
+  65%  { transform: scale(1.4); }
+  100% { transform: scale(1);   }
+}
+
+@keyframes haloPulse {
+  0%, 100% { box-shadow: 0 0 0 0   color-mix(in srgb, var(--primary) 40%, transparent),
+                         0 0 0 0   color-mix(in srgb, var(--primary) 20%, transparent); }
+  50%       { box-shadow: 0 0 0 12px color-mix(in srgb, var(--primary) 20%, transparent),
+                         0 0 0 24px color-mix(in srgb, var(--primary) 8%, transparent);  }
+}
+
+@keyframes otpPulse {
+  0%   { box-shadow: 0 0 0 0   color-mix(in srgb, var(--accent) 60%, transparent); }
+  70%  { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 0%,  transparent); }
+  100% { box-shadow: 0 0 0 0   color-mix(in srgb, var(--accent) 0%,  transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Scrollbar Styling ── */
+
+@layer base {
+  /* Light mode — track claro, barra cinza claro */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cccccc #f9f9f9;
+  }
+  *::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  *::-webkit-scrollbar-track {
+    background: #f9f9f9;
+    border-radius: 99px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: #cccccc;
+    border-radius: 99px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: #b0b0b0;
+  }
+
+  /* Dark mode override */
+  .dark * {
+    scrollbar-color: #2a4444 #0d1a1a;
+  }
+  .dark *::-webkit-scrollbar-track {
+    background: #0d1a1a;
+  }
+  .dark *::-webkit-scrollbar-thumb {
+    background: #2a4444;
+  }
+  .dark *::-webkit-scrollbar-thumb:hover {
+    background: #3a5555;
+  }
+}
+
+/* ── Base ── */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    font-family: var(--font-sans);
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-bold);
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.4;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+    text-wrap: balance;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.5;
+    font-family: var(--font-sans);
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+    font-family: var(--font-sans);
+  }
+}
+
+
