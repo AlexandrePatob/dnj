@@ -2,6 +2,14 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { authApi } from "@/lib/api/auth";
+import { ApiError } from "@/lib/api/client";
+import { groupsApi } from "@/lib/api/groups";
+import { mapApiUser } from "@/lib/api/mappers";
+import type { ApiGroup } from "@/lib/api/contracts";
+import { env } from "@/lib/env";
+import { storage } from "@/lib/storage";
 import heroLogo from "../assets/brand/DNJ_geral.png";
 import internalLogoLight from "../assets/brand/DNJGAME_02.png";
 import internalLogoDark from "../assets/brand/DNJGAME_DARK.png";
@@ -47,6 +55,10 @@ interface UserData {
   group: string;
   points: number;
   rankPosition: number;
+}
+
+function requestErrorMessage(error: unknown) {
+  return error instanceof ApiError ? error.message : "Não foi possível concluir a solicitação.";
 }
 
 // ─── Screen transition logic ──────────────────────────────────────────────────
@@ -256,6 +268,25 @@ function useCountUp(target: number, duration = 800) {
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
+function GameIcon({ children, active = false }: { children: React.ReactNode; active?: boolean }) {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <motion.span
+      className="inline-flex items-center justify-center"
+      initial={reduceMotion ? false : { opacity: 0, scale: 0.55, rotate: -14 }}
+      animate={reduceMotion ? undefined : active ? { opacity: 1, scale: [1, 1.14, 1], rotate: 0 } : { opacity: 1, scale: 1, rotate: 0 }}
+      whileHover={reduceMotion ? undefined : { scale: 1.16, rotate: -7 }}
+      whileTap={reduceMotion ? undefined : { scale: 0.84, rotate: 7 }}
+      transition={active
+        ? { duration: 0.38, times: [0, 0.55, 1], ease: [0.22, 1, 0.36, 1] }
+        : { type: "spring", stiffness: 430, damping: 20 }}
+    >
+      {children}
+    </motion.span>
+  );
+}
+
 function PointIcon({ type }: { type: string }) {
   const map: Record<string, React.ReactNode> = {
     qr:    <QrCode  size={16} />,
@@ -264,7 +295,7 @@ function PointIcon({ type }: { type: string }) {
     zap:   <Zap     size={16} />,
     users: <Users   size={16} />,
   };
-  return <>{map[type] ?? <Star size={16} />}</>;
+  return <GameIcon>{map[type] ?? <Star size={16} />}</GameIcon>;
 }
 
 const TOP3_MEDAL: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
@@ -289,14 +320,17 @@ function PrimaryButton({
   onClick?: () => void; disabled?: boolean; children: React.ReactNode; className?: string;
 }) {
   return (
-    <button
+    <motion.button
       onClick={onClick}
       disabled={disabled}
       className={`w-full py-4 rounded-2xl font-semibold text-base transition-all active:scale-95 disabled:opacity-40 ${className}`}
       style={{ background: "var(--primary)", color: "white" }}
+      whileHover={disabled ? undefined : { y: -2, boxShadow: "0 12px 28px var(--primary-alpha-40)" }}
+      whileTap={disabled ? undefined : { scale: 0.97 }}
+      transition={{ type: "spring", stiffness: 420, damping: 24 }}
     >
       {children}
-    </button>
+    </motion.button>
   );
 }
 
@@ -316,23 +350,44 @@ function BackButton({ onClick }: { onClick: () => void }) {
 function FieldInput({
   label, ...props
 }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+  const [focused, setFocused] = useState(false);
+  const filled = props.value !== undefined && String(props.value).length > 0;
+
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-semibold" style={{ color: "var(--muted-foreground)" }}>
+    <motion.div
+      className="flex flex-col gap-1.5"
+      animate={focused ? { y: -2, scale: 1.01 } : { y: 0, scale: 1 }}
+      transition={{ type: "spring", stiffness: 420, damping: 28 }}
+    >
+      <motion.label
+        className="text-xs font-semibold"
+        animate={{ color: focused ? "var(--primary)" : "var(--muted-foreground)", x: focused ? 3 : 0 }}
+        transition={{ duration: 0.18 }}
+      >
         {label}
-      </label>
-      <input
-        {...props}
-        className="w-full px-4 py-3.5 rounded-xl text-sm outline-none transition-all"
-        style={{
-          background: "var(--input-background)",
-          color:      "var(--foreground)",
-          border:     "1.5px solid var(--border)",
-        }}
-        onFocus={(e) => { e.currentTarget.style.borderColor = "var(--primary)"; props.onFocus?.(e); }}
-        onBlur={(e)  => { e.currentTarget.style.borderColor = "var(--border)";  props.onBlur?.(e);  }}
-      />
-    </div>
+      </motion.label>
+      <div className="relative">
+        <input
+          {...props}
+          className="w-full px-4 py-3.5 rounded-xl text-sm outline-none transition-all"
+          style={{
+            background: "var(--input-background)",
+            color:      "var(--foreground)",
+            border:     `1.5px solid ${focused ? "var(--primary)" : filled ? "var(--accent-alpha-30)" : "var(--border)"}`,
+            boxShadow:  focused ? "0 8px 24px var(--primary-alpha-15)" : "none",
+          }}
+          onFocus={(e) => { setFocused(true); props.onFocus?.(e); }}
+          onBlur={(e)  => { setFocused(false); props.onBlur?.(e); }}
+        />
+        <motion.span
+          className="pointer-events-none absolute bottom-0 left-4 right-4 h-0.5 origin-left rounded-full"
+          style={{ background: "linear-gradient(90deg, var(--primary), var(--accent))" }}
+          initial={false}
+          animate={{ scaleX: focused ? 1 : 0, opacity: focused ? 1 : 0 }}
+          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+        />
+      </div>
+    </motion.div>
   );
 }
 
@@ -358,14 +413,20 @@ function AccordionItem({ question, answer }: { question: string; answer: string 
           }}
         />
       </button>
+      <AnimatePresence initial={false}>
       {open && (
-        <div
+        <motion.div
           className="px-4 pb-4 text-sm leading-relaxed"
-          style={{ color: "var(--muted-foreground)", animation: "fadeUp 180ms ease both" }}
+          style={{ color: "var(--muted-foreground)", overflow: "hidden" }}
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
           {answer}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -400,14 +461,20 @@ function SpaceItem({ name, desc }: { name: string; desc: string }) {
           }}
         />
       </button>
+      <AnimatePresence initial={false}>
       {open && (
-        <div
+        <motion.div
           className="px-4 pb-4 text-sm leading-relaxed"
-          style={{ color: "var(--muted-foreground)", animation: "fadeUp 180ms ease both" }}
+          style={{ color: "var(--muted-foreground)", overflow: "hidden" }}
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
           {desc}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -446,9 +513,13 @@ function CrossLogo({ large = false }: { large?: boolean }) {
 
 function QRModal({ onClose }: { onClose: () => void }) {
   return (
-    <div
+    <motion.div
       className="absolute inset-0 z-50 flex flex-col items-center justify-center px-6"
-      style={{ background: "var(--background)", animation: "fadeUp 200ms ease-out both" }}
+      style={{ background: "var(--background)" }}
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
       <button
         onClick={onClose}
@@ -517,7 +588,7 @@ function QRModal({ onClose }: { onClose: () => void }) {
       <p className="text-sm text-center" style={{ color: "var(--muted-foreground)" }}>
         Posicione o QR Code dentro da área demarcada
       </p>
-    </div>
+    </motion.div>
   );
 }
 
@@ -527,7 +598,7 @@ function TopBar({ theme }: { theme: "light" | "dark" }) {
   const isLight = theme === "light";
   const internalLogo = isLight ? internalLogoLight : internalLogoDark;
   return (
-    <div
+    <motion.div
       style={{
         position:     "absolute",
         top:          0,
@@ -544,6 +615,9 @@ function TopBar({ theme }: { theme: "light" | "dark" }) {
         paddingRight: "16px",
         gap:          "12px",
       }}
+      initial={{ y: -48 }}
+      animate={{ y: 0 }}
+      transition={{ type: "spring", stiffness: 260, damping: 25 }}
     >
       <img
         src={internalLogo.src}
@@ -564,7 +638,7 @@ function TopBar({ theme }: { theme: "light" | "dark" }) {
       >
         Vai, jovem, e reconstrói a minha igreja!
       </p>
-    </div>
+    </motion.div>
   );
 }
 
@@ -583,33 +657,41 @@ function BottomNav({
   ];
 
   return (
-    <nav
+    <motion.nav
       className="absolute bottom-0 left-0 right-0 flex items-stretch z-40"
       style={{
         background: "var(--card)",
         borderTop:  "1px solid var(--border)",
         height:     "68px",
       }}
+      initial={{ y: 68 }}
+      animate={{ y: 0 }}
+      transition={{ type: "spring", stiffness: 260, damping: 26 }}
     >
       {items.map(({ screen, icon, label }) => {
         const isActive = active === screen;
         return (
-          <button
+          <motion.button
             key={screen}
             onClick={() => onNavigate(screen)}
-            className="flex-1 flex flex-col items-center justify-center gap-1"
-            style={{
-              color:        isActive ? "white" : "var(--muted-foreground)",
-              background:   isActive ? "var(--primary)" : "transparent",
-              borderRadius: isActive ? "16px 16px 0 0" : "0",
-            }}
+            className="relative z-0 flex-1 flex flex-col items-center justify-center gap-1 overflow-hidden"
+            style={{ color: isActive ? "white" : "var(--muted-foreground)", position: "relative" }}
+            whileTap={{ scale: 0.9 }}
           >
-            {icon}
-            <span className="text-xs font-semibold leading-none">{label}</span>
-          </button>
+            {isActive && (
+              <motion.span
+                layoutId="active-nav"
+                className="absolute inset-1 z-0 rounded-2xl"
+                style={{ background: "var(--primary)", boxShadow: "0 6px 20px var(--primary-alpha-40)" }}
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
+            <motion.span className="relative z-10" animate={isActive ? { y: -2, scale: 1.06 } : { y: 0, scale: 1 }}>{icon}</motion.span>
+            <span className="relative z-10 text-xs font-semibold leading-none">{label}</span>
+          </motion.button>
         );
       })}
-    </nav>
+    </motion.nav>
   );
 }
 
@@ -618,10 +700,13 @@ function BottomNav({
 function LoginScreen({
   onNext, onRegister, animDir,
 }: {
-  onNext: (email: string, cpf: string) => void; onRegister: () => void; animDir: AnimDir;
+  onNext: (email: string, cpf: string) => Promise<void>; onRegister: () => void; animDir: AnimDir;
 }) {
   const [cpf, setCpf]     = useState("");
   const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const reduceMotion = useReducedMotion();
 
   function formatCPF(raw: string) {
     const d = raw.replace(/\D/g, "").slice(0, 11);
@@ -632,6 +717,19 @@ function LoginScreen({
   }
 
   const valid = cpf.replace(/\D/g, "").length === 11 && email.includes("@");
+
+  async function submitLogin() {
+    if (!valid || submitting) return;
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      await onNext(email, cpf);
+    } catch (error) {
+      setSubmitError(requestErrorMessage(error));
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <div
@@ -651,12 +749,32 @@ function LoginScreen({
             backgroundSize: "24px 24px",
           }}
         />
-        <img
-          src={heroLogo.src}
-          alt="DNJ GAME 2026"
+        <motion.div
           className="relative z-10"
-          style={{ width: "72%", maxWidth: "280px", height: "auto" }}
-        />
+          style={{ width: "72%", maxWidth: "280px" }}
+          initial={reduceMotion ? false : { opacity: 0, scale: 0.72, rotate: -5, y: 18 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0, y: 0 }}
+          transition={{ type: "spring", stiffness: 240, damping: 18 }}
+        >
+          <motion.img
+            src={heroLogo.src}
+            alt="DNJ GAME 2026"
+            style={{ width: "100%", height: "auto", transformOrigin: "50% 100%" }}
+            animate={reduceMotion ? undefined : {
+              y:      [0, -15, 0, -5, 0],
+              scaleX: [1, 0.97, 1.04, 0.99, 1],
+              scaleY: [1, 1.05, 0.96, 1.02, 1],
+              rotate: [0, -1.2, 0, 0.7, 0],
+            }}
+            transition={{
+              duration: 1.05,
+              times: [0, 0.28, 0.55, 0.76, 1],
+              ease: [0.22, 1, 0.36, 1],
+              repeat: Infinity,
+              repeatDelay: 2.1,
+            }}
+          />
+        </motion.div>
         <p
           className="text-sm text-center relative z-10 mt-4 font-medium"
           style={{ color: "rgba(0,0,0,0.55)" }}
@@ -695,8 +813,9 @@ function LoginScreen({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <PrimaryButton onClick={() => onNext(email, cpf)} disabled={!valid} className="mt-1">
-            Entrar
+          {submitError ? <p className="text-sm" style={{ color: "var(--secondary)" }}>{submitError}</p> : null}
+          <PrimaryButton onClick={submitLogin} disabled={!valid || submitting} className="mt-1">
+            {submitting ? "Enviando código..." : "Entrar"}
           </PrimaryButton>
         </div>
 
@@ -801,27 +920,34 @@ function RegisterScreen({
           Grupo de Jovens
         </p>
 
+        <AnimatePresence>
         {group && !adding && (
-          <div
+          <motion.div
             className="rounded-xl p-3 mb-3 flex items-center gap-3"
             style={{ background: "var(--accent-alpha-10)", border: "1.5px solid var(--accent-alpha-30)" }}
+            initial={{ opacity: 0, scale: 0.96, y: -6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97 }}
           >
-            <Check size={15} style={{ color: "var(--accent)", flexShrink: 0 }} />
+            <GameIcon active><Check size={15} style={{ color: "var(--accent)", flexShrink: 0 }} /></GameIcon>
             <span className="text-sm font-semibold flex-1 truncate" style={{ color: "var(--foreground)" }}>
               {group}
             </span>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
 
         <div className="relative mb-2">
           <Search size={15} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--muted-foreground)", pointerEvents: "none" }} />
-          <input
+          <motion.input
             type="text"
             placeholder="Buscar grupo..."
             value={query}
             onChange={(e) => { setQuery(e.target.value); setAdding(false); }}
             className="w-full rounded-xl py-3 pr-4 text-sm outline-none"
             style={{ paddingLeft: "38px", background: "var(--input-background)", color: "var(--foreground)", border: "1px solid var(--border)" }}
+            whileFocus={{ scale: 1.015, y: -1, borderColor: "var(--primary)", boxShadow: "0 8px 22px var(--primary-alpha-15)" }}
+            transition={{ type: "spring", stiffness: 420, damping: 28 }}
           />
         </div>
 
@@ -853,13 +979,16 @@ function RegisterScreen({
 
         {adding ? (
           <div className="flex flex-col gap-2">
-            <input
+            <motion.input
               type="text"
               placeholder="Nome do seu grupo"
               value={newGroup}
               onChange={(e) => setNewGroup(e.target.value)}
               className="w-full rounded-xl px-4 py-3 text-sm outline-none"
               style={{ background: "var(--input-background)", color: "var(--foreground)", border: "1.5px solid var(--primary)" }}
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileFocus={{ scale: 1.015, boxShadow: "0 8px 22px var(--primary-alpha-15)" }}
             />
             <div className="flex gap-2">
               <button onClick={() => setAdding(false)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: "var(--muted)", color: "var(--foreground)" }}>Cancelar</button>
@@ -904,12 +1033,14 @@ function RegisterScreen({
 function VerifyScreen({
   email, onNext, onBack, animDir,
 }: {
-  email: string; onNext: () => void; onBack: () => void; animDir: AnimDir;
+  email: string; onNext: (code: string) => Promise<void>; onBack: () => void; animDir: AnimDir;
 }) {
   const masked = email.replace(/^(.)(.*)(@.*)$/, (_, a, _b, c) => a + "***" + c);
   const [digits, setDigits]       = useState(["", "", "", "", "", ""]);
   const [timer, setTimer]         = useState(60);
   const [allFilled, setAllFilled] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -930,6 +1061,19 @@ function VerifyScreen({
   function handleKeyDown(index: number, e: React.KeyboardEvent) {
     if (e.key === "Backspace" && !digits[index] && index > 0) {
       inputs.current[index - 1]?.focus();
+    }
+  }
+
+  async function submitCode() {
+    if (!allFilled || verifying) return;
+    setVerifying(true);
+    setVerifyError("");
+    try {
+      await onNext(digits.join(""));
+    } catch (error) {
+      setVerifyError(requestErrorMessage(error));
+    } finally {
+      setVerifying(false);
     }
   }
 
@@ -957,7 +1101,7 @@ function VerifyScreen({
         style={allFilled ? { animation: "otpPulse 400ms ease-out" } : undefined}
       >
         {digits.map((digit, i) => (
-          <input
+          <motion.input
             key={i}
             ref={(el) => { inputs.current[i] = el; }}
             type="text"
@@ -971,9 +1115,11 @@ function VerifyScreen({
               background: digit ? "var(--primary-alpha-15)" : "var(--input-background)",
               color:      digit ? "var(--primary)"          : "var(--foreground)",
               border:     `2px solid ${digit ? "var(--primary)" : "var(--border)"}`,
-              transition: "background 150ms ease, border-color 150ms ease, transform 100ms ease",
-              transform:  digit ? "scale(1.04)" : "scale(1)",
+              transition: "background 150ms ease, border-color 150ms ease",
             }}
+            animate={digit ? { scale: [1, 1.16, 1.04], y: [0, -3, 0] } : { scale: 1, y: 0 }}
+            whileFocus={{ scale: 1.08, y: -2, boxShadow: "0 8px 20px var(--primary-alpha-20)" }}
+            transition={{ duration: 0.28, times: [0, 0.55, 1], ease: [0.22, 1, 0.36, 1] }}
           />
         ))}
       </div>
@@ -994,7 +1140,8 @@ function VerifyScreen({
         )}
       </div>
 
-      <PrimaryButton onClick={onNext} disabled={!allFilled}>
+      {verifyError ? <p className="text-sm text-center mb-3" style={{ color: "var(--secondary)" }}>{verifyError}</p> : null}
+      <PrimaryButton onClick={submitCode} disabled={!allFilled || verifying}>
         Verificar código
       </PrimaryButton>
     </div>
@@ -1004,18 +1151,65 @@ function VerifyScreen({
 // ─── GROUP SCREEN ─────────────────────────────────────────────────────────────
 
 function GroupScreen({
-  onNext, onBack, animDir,
+  onNext, onBack, animDir, initialGroup = "",
 }: {
-  onNext: (group: string) => void; onBack: () => void; animDir: AnimDir;
+  onNext: (group: string, groupId?: string) => Promise<void>;
+  onBack: () => void;
+  animDir: AnimDir;
+  initialGroup?: string;
 }) {
   const [query, setQuery]       = useState("");
-  const [selected, setSelected] = useState("Grupo Chama Viva – Bairro Alto");
+  const [selected, setSelected] = useState(env.useMocks ? "Grupo Chama Viva – Bairro Alto" : initialGroup);
   const [adding, setAdding]     = useState(false);
   const [newGroup, setNewGroup] = useState("");
+  const [apiGroups, setApiGroups] = useState<ApiGroup[]>([]);
+  const [groupsError, setGroupsError] = useState("");
+  const [confirming, setConfirming] = useState(false);
 
-  const filtered = YOUTH_GROUPS.filter((g) =>
-    g.toLowerCase().includes(query.toLowerCase())
-  );
+  useEffect(() => {
+    if (env.useMocks) return;
+    const search = query.trim();
+    if (!search) return;
+    const session = storage.getSession();
+    if (!session) return;
+
+    let active = true;
+    const timer = window.setTimeout(() => {
+      groupsApi.search(search, session.identityToken)
+        .then((groups) => {
+          if (active) {
+            setApiGroups(groups);
+            setGroupsError("");
+          }
+        })
+        .catch((error) => {
+          if (active) setGroupsError(requestErrorMessage(error));
+        });
+    }, 400);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [query]);
+
+  const filtered = env.useMocks
+    ? YOUTH_GROUPS.filter((g) => g.toLowerCase().includes(query.toLowerCase()))
+    : query.trim() ? apiGroups.map((group) => group.groupName) : [];
+
+  async function confirmGroup() {
+    if (!selected || confirming) return;
+    setConfirming(true);
+    setGroupsError("");
+    try {
+      const groupId = apiGroups.find((group) => group.groupName === selected)?.id;
+      await onNext(selected, groupId);
+    } catch (error) {
+      setGroupsError(requestErrorMessage(error));
+    } finally {
+      setConfirming(false);
+    }
+  }
 
   return (
     <div
@@ -1034,27 +1228,39 @@ function GroupScreen({
         </p>
       </div>
 
+      <AnimatePresence>
       {selected && !adding && (
-        <div
+        <motion.div
           className="rounded-xl p-3 mb-4 flex items-center gap-3"
           style={{ background: "var(--accent-alpha-10)", border: "1.5px solid var(--accent-alpha-30)" }}
+          initial={{ opacity: 0, scale: 0.96, y: -6 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.97 }}
         >
-          <Check size={15} style={{ color: "var(--accent)", flexShrink: 0 }} />
+          <GameIcon active><Check size={15} style={{ color: "var(--accent)", flexShrink: 0 }} /></GameIcon>
           <span className="text-sm font-semibold flex-1 truncate" style={{ color: "var(--foreground)" }}>
             {selected}
           </span>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       <div className="relative mb-2">
         <Search size={15} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--muted-foreground)", pointerEvents: "none" }} />
-        <input
+        <motion.input
           type="text"
           placeholder="Buscar grupo..."
           value={query}
-          onChange={(e) => { setQuery(e.target.value); setAdding(false); }}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setApiGroups([]);
+            setGroupsError("");
+            setAdding(false);
+          }}
           className="w-full rounded-xl py-3 pr-4 text-sm outline-none"
           style={{ paddingLeft: "38px", background: "var(--input-background)", color: "var(--foreground)", border: "1px solid var(--border)" }}
+          whileFocus={{ scale: 1.015, y: -1, borderColor: "var(--primary)", boxShadow: "0 8px 22px var(--primary-alpha-15)" }}
+          transition={{ type: "spring", stiffness: 420, damping: 28 }}
         />
       </div>
 
@@ -1062,6 +1268,7 @@ function GroupScreen({
         className="rounded-2xl overflow-hidden mb-4"
         style={{ background: "var(--card)", border: "1px solid var(--border)", maxHeight: "240px", overflowY: "auto" }}
       >
+        {groupsError ? <p className="px-4 py-3 text-sm" style={{ color: "var(--secondary)" }}>{groupsError}</p> : null}
         {filtered.map((group, i) => (
           <button
             key={group}
@@ -1086,13 +1293,16 @@ function GroupScreen({
 
       {adding ? (
         <div className="mb-4 flex flex-col gap-2">
-          <input
+          <motion.input
             type="text"
             placeholder="Nome do seu grupo"
             value={newGroup}
             onChange={(e) => setNewGroup(e.target.value)}
             className="w-full rounded-xl px-4 py-3 text-sm outline-none"
             style={{ background: "var(--input-background)", color: "var(--foreground)", border: "1.5px solid var(--primary)" }}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileFocus={{ scale: 1.015, boxShadow: "0 8px 22px var(--primary-alpha-15)" }}
           />
           <div className="flex gap-2">
             <button onClick={() => setAdding(false)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: "var(--muted)", color: "var(--foreground)" }}>Cancelar</button>
@@ -1123,14 +1333,53 @@ function GroupScreen({
         </div>
       )}
 
-      <PrimaryButton onClick={() => onNext(selected)} disabled={!selected}>
-        Confirmar grupo
+      <PrimaryButton onClick={confirmGroup} disabled={!selected || confirming}>
+        {confirming ? "Salvando..." : "Confirmar grupo"}
       </PrimaryButton>
     </div>
   );
 }
 
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
+
+function MissionPulse({ points }: { points: number }) {
+  const reduceMotion = useReducedMotion();
+  const progress = Math.min((points / 200) * 100, 100);
+
+  return (
+    <motion.section
+      className="mission-pulse"
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={reduceMotion ? undefined : { y: -3 }}
+    >
+      <div className="mission-copy">
+        <div className="mission-live"><span /> MISSÃO ATIVA</div>
+        <h2>Reconstrua.<br /><em>Um passo por vez.</em></h2>
+        <p>Explore os espaços, escaneie desafios e fortaleça seu grupo.</p>
+        <div className="mission-progress-label">
+          <span>Nível Peregrino</span><strong>{points}/200 XP</strong>
+        </div>
+        <div className="mission-progress"><motion.span initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ delay: 0.45, duration: 0.8, ease: [0.22, 1, 0.36, 1] }} /></div>
+      </div>
+
+      <div className="mission-orbit" aria-hidden="true">
+        <motion.div className="orbit orbit-one" animate={reduceMotion ? undefined : { rotate: 360 }} transition={{ duration: 16, repeat: Infinity, ease: "linear" }}>
+          <span className="orbit-node node-orange" />
+        </motion.div>
+        <motion.div className="orbit orbit-two" animate={reduceMotion ? undefined : { rotate: -360 }} transition={{ duration: 11, repeat: Infinity, ease: "linear" }}>
+          <span className="orbit-node node-teal" />
+        </motion.div>
+        <motion.div className="mission-core" animate={reduceMotion ? undefined : { scale: [1, 1.06, 1], rotate: [0, 2, 0] }} transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}>
+          <Zap size={26} fill="currentColor" />
+          <small>ENERGIA</small>
+          <strong>{points}</strong>
+        </motion.div>
+      </div>
+    </motion.section>
+  );
+}
 
 function HomeScreen({ user, animDir }: { user: UserData; animDir: AnimDir }) {
   return (
@@ -1157,14 +1406,20 @@ function HomeScreen({ user, animDir }: { user: UserData; animDir: AnimDir }) {
 
       <div className="px-5 pt-5 flex flex-col gap-5">
 
+        <MissionPulse points={user.points} />
+
         {/* Cronograma */}
-        <div
+        <motion.div
           className="rounded-2xl flex items-center gap-4"
           style={{
             background: "var(--card)",
             border: "1px solid var(--border)",
             padding: "16px 18px",
           }}
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.22, duration: 0.42 }}
+          whileHover={{ y: -2, borderColor: "var(--accent)" }}
         >
           <div
             style={{
@@ -1173,7 +1428,7 @@ function HomeScreen({ user, animDir }: { user: UserData; animDir: AnimDir }) {
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
           >
-            <Calendar size={20} style={{ color: "var(--accent)" }} />
+            <GameIcon active><Calendar size={20} style={{ color: "var(--accent)" }} /></GameIcon>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold leading-tight" style={{ color: "var(--foreground)" }}>
@@ -1189,7 +1444,7 @@ function HomeScreen({ user, animDir }: { user: UserData; animDir: AnimDir }) {
           >
             Acessar
           </button>
-        </div>
+        </motion.div>
 
         {/* Espaços */}
         <div>
@@ -1246,8 +1501,8 @@ function HomeScreen({ user, animDir }: { user: UserData; animDir: AnimDir }) {
               </svg>
 
               {/* Pins */}
-              {MAP_PINS.map((pin) => (
-                <div
+              {MAP_PINS.map((pin, index) => (
+                <motion.div
                   key={pin.id}
                   style={{
                     position:  "absolute",
@@ -1255,6 +1510,11 @@ function HomeScreen({ user, animDir }: { user: UserData; animDir: AnimDir }) {
                     top:       `${pin.y}%`,
                     transform: "translate(-50%, -100%)",
                   }}
+                  initial={{ opacity: 0, y: -18, scale: 0.5 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.08, type: "spring", stiffness: 320, damping: 18 }}
+                  whileHover={{ scale: 1.25, y: -4, zIndex: 3 }}
                 >
                   <div
                     style={{
@@ -1266,7 +1526,7 @@ function HomeScreen({ user, animDir }: { user: UserData; animDir: AnimDir }) {
                   >
                     <MapPin size={12} color="white" style={{ transform: "rotate(45deg)" }} />
                   </div>
-                </div>
+                </motion.div>
               ))}
 
               {/* Legend */}
@@ -1446,7 +1706,7 @@ function GameScreen({ user, animDir }: { user: UserData; animDir: AnimDir }) {
                     marginBottom: "16px",
                   }}
                 >
-                  <QrCode size={26} style={{ color: "var(--primary)" }} />
+                  <GameIcon active><QrCode size={26} style={{ color: "var(--primary)" }} /></GameIcon>
                 </div>
                 <p
                   className="font-bold mb-2"
@@ -1678,11 +1938,11 @@ function GameScreen({ user, animDir }: { user: UserData; animDir: AnimDir }) {
             animation:    showQrTooltip ? "haloPulse 2s ease-in-out infinite" : "none",
           }}
         >
-          <QrCode size={26} color="white" />
+          <GameIcon active={showQrTooltip}><QrCode size={26} color="white" /></GameIcon>
         </button>
       </div>
 
-      {qrOpen && <QRModal onClose={() => setQrOpen(false)} />}
+      <AnimatePresence>{qrOpen && <QRModal onClose={() => setQrOpen(false)} />}</AnimatePresence>
     </div>
   );
 }
@@ -1743,7 +2003,7 @@ function QueueScreen({ animDir }: { animDir: AnimDir }) {
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}
               >
-                <BookOpen size={22} style={{ color: "var(--primary)" }} />
+                <GameIcon><BookOpen size={22} style={{ color: "var(--primary)" }} /></GameIcon>
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-base font-bold mb-0.5" style={{ color: "var(--foreground)" }}>
@@ -1778,7 +2038,7 @@ function QueueScreen({ animDir }: { animDir: AnimDir }) {
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}
               >
-                <Heart size={22} style={{ color: "var(--chart-2)" }} />
+                <GameIcon><Heart size={22} style={{ color: "var(--chart-2)" }} /></GameIcon>
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-base font-bold mb-0.5" style={{ color: "var(--foreground)" }}>
@@ -1958,7 +2218,7 @@ function AccountScreen({
               style={{ borderBottom: "1px solid var(--border)" }}
             >
               <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: item.bg, color: item.color }}>
-                {item.icon}
+                <GameIcon>{item.icon}</GameIcon>
               </div>
               <span className="flex-1 text-sm font-medium text-left" style={{ color: "var(--foreground)" }}>{item.label}</span>
               <ChevronRight size={16} style={{ color: "var(--muted-foreground)" }} />
@@ -1972,7 +2232,7 @@ function AccountScreen({
             style={{ borderBottom: "1px solid var(--border)" }}
           >
             <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "var(--primary-alpha-10)", color: "var(--primary)" }}>
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              <GameIcon active>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</GameIcon>
             </div>
             <span className="flex-1 text-sm font-medium text-left" style={{ color: "var(--foreground)" }}>
               {theme === "dark" ? "Modo claro" : "Modo escuro"}
@@ -2002,7 +2262,7 @@ function AccountScreen({
             className="w-full flex items-center gap-3 px-4 py-3.5 transition-opacity hover:opacity-80"
           >
             <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "var(--red-alpha-12)", color: "var(--secondary)" }}>
-              <LogOut size={18} />
+              <GameIcon><LogOut size={18} /></GameIcon>
             </div>
             <span className="flex-1 text-sm font-medium text-left" style={{ color: "var(--secondary)" }}>Sair da conta</span>
           </button>
@@ -2019,6 +2279,7 @@ function AccountScreen({
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 
 export function DnjApp() {
+  const reduceMotion = useReducedMotion();
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     try { return (localStorage.getItem("dnj_theme") as "light" | "dark") || "light"; } catch { return "light"; }
   });
@@ -2045,14 +2306,52 @@ export function DnjApp() {
     setScreen(next);
   }, [screen]);
 
-  const handleLogin = useCallback((email: string, cpf: string) => {
+  const handleLogin = useCallback(async (email: string, cpf: string) => {
     setEmailVal(email);
     setUser((u) => ({ ...u, email, cpf }));
+    if (!env.useMocks) {
+      await authApi.requestCode(email, cpf.replace(/\D/g, ""));
+    }
     navigate("verify");
   }, [navigate]);
 
-  const handleGroupConfirm = useCallback((group: string) => {
-    setUser((u) => ({ ...u, group }));
+  const handleVerification = useCallback(async (code: string) => {
+    if (env.useMocks) {
+      navigate("group");
+      return;
+    }
+
+    const response = await authApi.verifyCode(emailVal, code);
+    const apiUser = mapApiUser(response);
+    storage.setSession({ user: apiUser, identityToken: response.identityToken });
+    setUser({
+      name: apiUser.name,
+      cpf: apiUser.document,
+      email: apiUser.email,
+      group: apiUser.group?.groupName ?? "",
+      points: apiUser.points,
+      rankPosition: apiUser.rankPosition,
+    });
+    navigate("group");
+  }, [emailVal, navigate]);
+
+  const handleGroupConfirm = useCallback(async (group: string, groupId?: string) => {
+    let confirmedGroup = group;
+    if (!env.useMocks) {
+      const session = storage.getSession();
+      if (!session) throw new ApiError("Sessão não encontrada. Entre novamente.", 401);
+      const updatedUser = await groupsApi.updateUserGroup(
+        session.user.id,
+        groupId ? { groupId } : { groupName: group },
+        session.identityToken,
+      );
+      confirmedGroup = updatedUser.group?.groupName ?? group;
+      storage.setSession({
+        identityToken: session.identityToken,
+        user: { ...session.user, group: updatedUser.group },
+      });
+    }
+    setUser((current) => ({ ...current, group: confirmedGroup }));
     navigate("home");
   }, [navigate]);
 
@@ -2065,18 +2364,30 @@ export function DnjApp() {
       style={{ minHeight: "100dvh", background: theme === "dark" ? "#050e0e" : "#e8e8e8", display: "flex", justifyContent: "center", alignItems: "flex-start" }}
     >
       <div
-        className="relative w-full max-w-md overflow-hidden"
+        className="game-shell relative w-full max-w-md overflow-hidden"
         style={{ minHeight: "100dvh", background: "var(--background)" }}
       >
-        {screen === "login"           && <LoginScreen    onNext={handleLogin} onRegister={() => navigate("register")} animDir={animDir} />}
-        {screen === "register"        && <RegisterScreen onBack={() => navigate("login")} onDone={(em) => { setRegisterEmail(em); navigate("register-verify"); }} animDir={animDir} />}
-        {screen === "register-verify" && <VerifyScreen  email={registerEmail} onNext={() => navigate("home")} onBack={() => navigate("register")} animDir={animDir} />}
-        {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={() => navigate("group")} onBack={() => navigate("login")}  animDir={animDir} />}
-        {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm}    onBack={() => navigate("verify")} animDir={animDir} />}
-        {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} />}
-        {screen === "game"    && <GameScreen    user={user}                    animDir={animDir} />}
-        {screen === "queue"   && <QueueScreen                                  animDir={animDir} />}
-        {screen === "account" && <AccountScreen user={user} onLogout={() => navigate("login")} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
+        <div className="game-atmosphere" aria-hidden="true"><span /><span /><span /></div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={screen}
+            className={isMain ? "absolute inset-0" : "relative min-h-dvh"}
+            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: animDir === "left" ? -28 : animDir === "right" ? 28 : 0, y: animDir === "up" ? 18 : 0, scale: 0.985 }}
+            animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -10, scale: 0.99 }}
+            transition={{ duration: reduceMotion ? 0.01 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {screen === "login"           && <LoginScreen    onNext={handleLogin} onRegister={() => navigate("register")} animDir={animDir} />}
+            {screen === "register"        && <RegisterScreen onBack={() => navigate("login")} onDone={(em) => { setRegisterEmail(em); navigate("register-verify"); }} animDir={animDir} />}
+            {screen === "register-verify" && <VerifyScreen  email={registerEmail} onNext={async () => { navigate("home"); }} onBack={() => navigate("register")} animDir={animDir} />}
+            {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onBack={() => navigate("login")}  animDir={animDir} />}
+            {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("verify")} animDir={animDir} initialGroup={user.group} />}
+            {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} />}
+            {screen === "game"    && <GameScreen    user={user}                    animDir={animDir} />}
+            {screen === "queue"   && <QueueScreen                                  animDir={animDir} />}
+            {screen === "account" && <AccountScreen user={user} onLogout={() => { storage.clearSession(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
+          </motion.div>
+        </AnimatePresence>
 
         {isMain && <TopBar theme={theme} />}
         {isMain && <BottomNav active={screen} onNavigate={navigate} />}
