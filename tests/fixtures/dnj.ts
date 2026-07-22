@@ -38,6 +38,7 @@ export async function openDnj(page: Page, theme: DnjTheme) {
   }, theme);
   await page.clock.setFixedTime(new Date("2026-07-22T15:00:00-03:00"));
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.waitForLoadState("networkidle");
 }
 
 export async function enterMainExperience(page: Page) {

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { PwaRegistrar } from "../components/pwa/pwa-registrar";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -20,6 +21,9 @@ export const metadata: Metadata = {
     title: "DNJ Game",
     statusBarStyle: "black-translucent",
   },
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
@@ -36,7 +40,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={poppins.variable}>
-        {children}
+        <PwaRegistrar>{children}</PwaRegistrar>
         <Analytics />
         <SpeedInsights />
       </body>
