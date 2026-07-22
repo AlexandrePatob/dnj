@@ -2376,10 +2376,17 @@ export function DnjApp() {
     restoredSnapshot.current = true;
     const snapshot = readOfflineSnapshot();
     if (!snapshot) return;
-    setUser({ ...snapshot.user, cpf: "", email: "" });
-    setPrevScreen("login");
-    setScreen(snapshot.lastMainScreen);
-    setOfflineSnapshotCapturedAt(snapshot.capturedAt);
+    let disposed = false;
+    queueMicrotask(() => {
+      if (disposed) return;
+      setUser({ ...snapshot.user, cpf: "", email: "" });
+      setPrevScreen("login");
+      setScreen(snapshot.lastMainScreen);
+      setOfflineSnapshotCapturedAt(snapshot.capturedAt);
+    });
+    return () => {
+      disposed = true;
+    };
   }, [network.isOnline, screen]);
 
   useEffect(() => {

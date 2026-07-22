@@ -1,7 +1,7 @@
 "use client";
 
 import { RefreshCw, Wifi, WifiOff } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 import type { PwaStatus } from "./pwa-registrar";
 
@@ -18,9 +18,18 @@ export function ConnectivityStatus({
   onRetry,
   onApplyUpdate,
 }: ConnectivityStatusProps) {
-  const wasOffline = useRef(!isOnline);
+  const [connectivityHistory, setConnectivityHistory] = useState({
+    isOnline,
+    wasOffline: !isOnline,
+  });
   const [reconnectionAcknowledged, setReconnectionAcknowledged] = useState(false);
-  if (!isOnline) wasOffline.current = true;
+  if (connectivityHistory.isOnline !== isOnline) {
+    setConnectivityHistory({
+      isOnline,
+      wasOffline: connectivityHistory.wasOffline || !isOnline,
+    });
+    if (!isOnline && reconnectionAcknowledged) setReconnectionAcknowledged(false);
+  }
 
   let content: React.ReactNode = null;
 
@@ -41,7 +50,7 @@ export function ConnectivityStatus({
         </button>
       </>
     );
-  } else if (wasOffline.current && !reconnectionAcknowledged) {
+  } else if (connectivityHistory.wasOffline && !reconnectionAcknowledged) {
     content = (
       <>
         <Wifi aria-hidden="true" size={17} />

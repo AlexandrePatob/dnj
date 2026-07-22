@@ -65,13 +65,17 @@ export function PwaRegistrar({
   }, []);
 
   useEffect(() => {
+    let disposed = false;
     if (!("serviceWorker" in navigator) || !navigator.serviceWorker || !window.isSecureContext) {
-      setStatus("unsupported");
-      return;
+      queueMicrotask(() => {
+        if (!disposed) setStatus("unsupported");
+      });
+      return () => {
+        disposed = true;
+      };
     }
 
     const container = navigator.serviceWorker;
-    let disposed = false;
     let registration: ServiceWorkerRegistration | null = null;
     let installing: ServiceWorker | null = null;
 
@@ -83,10 +87,10 @@ export function PwaRegistrar({
     const onMessage = (event: MessageEvent) => {
       if (event.data?.type === "CACHE_READY") {
         setError(null);
-        setStatus("ready");
+        setStatus((current) => current === "update-available" ? current : "ready");
       } else if (event.data?.type === "CACHE_ERROR") {
         setError(SAFE_ERROR);
-        setStatus("error");
+        setStatus((current) => current === "update-available" ? current : "error");
       }
     };
     const onFocus = async () => {
@@ -115,7 +119,9 @@ export function PwaRegistrar({
     container.addEventListener("controllerchange", onControllerChange);
     container.addEventListener("message", onMessage);
     window.addEventListener("focus", onFocus);
-    setStatus("registering");
+    queueMicrotask(() => {
+      if (!disposed) setStatus((current) => current === "update-available" ? current : "registering");
+    });
 
     void container
       .register("/sw.js", { scope: "/" })

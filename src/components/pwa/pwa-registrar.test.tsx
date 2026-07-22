@@ -123,6 +123,8 @@ describe("PwaRegistrar", () => {
     registration.waiting = waiting;
     act(() => window.dispatchEvent(new Event("focus")));
     expect(await screen.findByTestId("status")).toHaveTextContent("update-available");
+    act(() => container.dispatch("message", new MessageEvent("message", { data: { type: "CACHE_READY" } })));
+    expect(screen.getByTestId("status")).toHaveTextContent("update-available");
     expect(container.getRegistrations).toHaveBeenCalledTimes(1);
     expect(reloadPage).not.toHaveBeenCalled();
   });

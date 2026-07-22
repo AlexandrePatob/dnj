@@ -1,44 +1,48 @@
 "use client";
 
-import { useCallback, useRef, useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 export interface NetworkStatus {
   isOnline: boolean;
   changedAt: number;
 }
 
-function getServerSnapshot(): boolean {
-  return true;
+const SERVER_SNAPSHOT: NetworkStatus = { isOnline: true, changedAt: 0 };
+
+function getServerSnapshot(): NetworkStatus {
+  return SERVER_SNAPSHOT;
 }
 
-export function useNetworkStatus(): NetworkStatus {
-  const isOnlineRef = useRef(true);
-  const changedAtRef = useRef(0);
+function createNetworkStore() {
+  let snapshot = SERVER_SNAPSHOT;
 
-  const subscribe = useCallback((notify: () => void) => {
-    if (isOnlineRef.current !== navigator.onLine) {
-      isOnlineRef.current = navigator.onLine;
-      changedAtRef.current = Date.now();
-    }
-    const updateOnline = () => {
-      isOnlineRef.current = true;
-      changedAtRef.current = Date.now();
+  const subscribe = (notify: () => void) => {
+    const update = (isOnline: boolean) => {
+      snapshot = { isOnline, changedAt: Date.now() };
       notify();
     };
+    const updateOnline = () => {
+      update(true);
+    };
     const updateOffline = () => {
-      isOnlineRef.current = false;
-      changedAtRef.current = Date.now();
-      notify();
+      update(false);
     };
     window.addEventListener("online", updateOnline);
     window.addEventListener("offline", updateOffline);
+    if (snapshot.isOnline !== navigator.onLine) update(navigator.onLine);
     return () => {
       window.removeEventListener("online", updateOnline);
       window.removeEventListener("offline", updateOffline);
     };
-  }, []);
+  };
 
-  const getSnapshot = useCallback(() => isOnlineRef.current, []);
-  const isOnline = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  return { isOnline, changedAt: changedAtRef.current };
+  return {
+    getSnapshot: () => snapshot,
+    subscribe,
+  };
+}
+
+export function useNetworkStatus(): NetworkStatus {
+  const store = useMemo(() => createNetworkStore(), []);
+  return useSyncExternalStore(store.subscribe, store.getSnapshot, getServerSnapshot);
 }
