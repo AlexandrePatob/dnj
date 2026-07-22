@@ -7,6 +7,11 @@ export const metadata: Metadata = {
   title: "DNJ Game 2K26",
   description: "Sua jornada no Dia Nacional da Juventude 2026.",
   applicationName: "DNJ Game",
+  appleWebApp: {
+    capable: true,
+    title: "DNJ Game",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
