@@ -19,6 +19,20 @@ describe("ConnectivityStatus", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it("renders idle content only when no operational message has priority", () => {
+    const idleContent = <div>Instalação disponível</div>;
+    const view = render(<ConnectivityStatus idleContent={idleContent} isOnline pwaStatus="ready" />);
+    expect(screen.getByText("Instalação disponível")).toBeVisible();
+
+    view.rerender(<ConnectivityStatus idleContent={idleContent} isOnline={false} pwaStatus="ready" />);
+    expect(screen.getByRole("status")).toHaveTextContent("Sem conexão");
+    expect(screen.queryByText("Instalação disponível")).not.toBeInTheDocument();
+
+    view.rerender(<ConnectivityStatus idleContent={idleContent} isOnline pwaStatus="update-available" />);
+    expect(screen.getByRole("status")).toHaveTextContent("Nova versão disponível");
+    expect(screen.queryByText("Instalação disponível")).not.toBeInTheDocument();
+  });
+
   it("offers retry after connectivity returns", async () => {
     const onRetry = vi.fn();
     const view = render(<ConnectivityStatus isOnline={false} pwaStatus="ready" onRetry={onRetry} />);
