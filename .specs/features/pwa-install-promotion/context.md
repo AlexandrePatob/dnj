@@ -41,6 +41,7 @@ Adicionar descoberta e acionamento de instalação ao PWA existente, com prompt 
 ### Declined / Undiscussed Gray Areas → Assumptions
 
 - Não houve entrevista adicional; as decisões registradas na especificação aplicam defaults conservadores compatíveis com a solicitação “implementar tudo isso”.
+- Por instrução explícita posterior, a validação não executará testes em browser; a evidência automatizada ficará em testes unitários, typecheck, lint e build.
 
 ---
 

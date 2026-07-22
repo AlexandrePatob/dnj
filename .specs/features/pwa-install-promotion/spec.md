@@ -30,6 +30,7 @@ O DNJ Game já é tecnicamente instalável, mas não comunica essa possibilidade
 | Superfície | Aviso compacto próximo à base do shell, acima da navegação quando presente | Reutiliza o padrão visual e preserva o conteúdo principal. | Assumido. |
 | Prioridade | Offline e atualização disponível ocultam temporariamente a promoção | Estados operacionais exigem atenção imediata. | Assumido. |
 | iOS/iPadOS | Instrução manual para Safari; em outros navegadores, orientar abertura no Safari | `beforeinstallprompt` não está disponível nessas plataformas. | Assumido. |
+| Validação automatizada | Testes unitários, typecheck, lint e build; nenhum teste em browser | Restrição explícita do usuário durante a implementação. | Sim. |
 
 **Open questions:** none — all resolved or logged above.
 
@@ -77,7 +78,7 @@ O DNJ Game já é tecnicamente instalável, mas não comunica essa possibilidade
 1. **PWAIP-08** — WHEN o app já estiver em modo standalone THEN o sistema SHALL manter a promoção oculta.
 2. **PWAIP-09** — WHEN instalação não for suportada nem houver instrução manual aplicável THEN o sistema SHALL manter a promoção oculta sem bloquear o conteúdo.
 3. **PWAIP-10** — WHEN o app estiver offline ou houver atualização disponível THEN o sistema SHALL ocultar temporariamente a promoção de instalação e preservar o aviso operacional.
-4. **PWAIP-11** — WHEN a promoção estiver visível THEN o sistema SHALL oferecer nome acessível, foco de teclado visível, texto além de cor e transição desativável por `prefers-reduced-motion`.
+4. **PWAIP-11** — WHEN a promoção estiver visível THEN o sistema SHALL expor a região com o nome acessível **Instalar DNJ Game**, foco de teclado visível, texto além de cor e transição desativável por `prefers-reduced-motion`.
 
 **Independent Test**: Renderizar cada estado e confirmar prioridade, ausência de bloqueio e semântica acessível.
 
@@ -107,6 +108,5 @@ O DNJ Game já é tecnicamente instalável, mas não comunica essa possibilidade
 ## Success Criteria
 
 - [ ] Os 11 requisitos possuem evidência automatizada com resultados precisos.
-- [ ] O build de produção e os testes PWA existentes continuam aprovados.
+- [ ] Testes unitários, typecheck, lint e build de produção continuam aprovados sem executar testes em browser.
 - [ ] A promoção cabe no shell mobile claro/escuro sem competir com navegação, offline ou atualização.
-
