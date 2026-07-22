@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/build-service-worker.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/build-service-worker.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
@@ -34,6 +36,7 @@
     "@types/react": "^19.0.3",
     "@types/react-dom": "^19.0.2",
     "@vitest/coverage-v8": "4.1.10",
+    "esbuild": "^0.27.2",
     "eslint": "^9.17.0",
     "eslint-config-next": "^16.2.10",
     "jsdom": "29.1.1",
