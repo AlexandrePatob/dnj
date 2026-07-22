@@ -7,7 +7,7 @@ export type PwaInstallStatus = "unavailable" | "available" | "installing" | "man
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+  userChoice: Promise<{ outcome: string; platform: string }>;
 }
 
 interface PwaContextValue {
@@ -116,6 +116,8 @@ export function PwaRegistrar({
   const [isIosSafari, setIsIosSafari] = useState(false);
   const waitingWorker = useRef<ServiceWorker | null>(null);
   const installPrompt = useRef<BeforeInstallPromptEvent | null>(null);
+  const installedThisSession = useRef(false);
+  const dismissedThisSession = useRef(false);
   const reloadRequested = useRef(false);
   const reloaded = useRef(false);
 
@@ -127,6 +129,7 @@ export function PwaRegistrar({
 
   const dismissInstall = useCallback(() => {
     installPrompt.current = null;
+    dismissedThisSession.current = true;
     snoozeInstallPromotion();
     setInstallStatus("unavailable");
   }, []);
@@ -140,13 +143,20 @@ export function PwaRegistrar({
       await promptEvent.prompt();
       const choice = await promptEvent.userChoice;
       if (choice.outcome === "accepted") {
+        installedThisSession.current = true;
+        dismissedThisSession.current = false;
         clearInstallPromotionSnooze();
         setInstallStatus("installed");
-      } else {
+      } else if (choice.outcome === "dismissed") {
+        dismissedThisSession.current = true;
         snoozeInstallPromotion();
+        setInstallStatus("unavailable");
+      } else {
+        dismissedThisSession.current = true;
         setInstallStatus("unavailable");
       }
     } catch {
+      dismissedThisSession.current = true;
       setInstallStatus("unavailable");
     }
   }, [installStatus]);
@@ -156,6 +166,7 @@ export function PwaRegistrar({
     const standalone = isStandalone();
     const iosDevice = isIosDevice();
     const iosSafari = iosDevice && isSafariOnIos();
+    installedThisSession.current = standalone;
 
     queueMicrotask(() => {
       if (disposed) return;
@@ -169,12 +180,19 @@ export function PwaRegistrar({
 
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
-      if (isStandalone() || isInstallPromotionSnoozed()) return;
+      if (
+        installedThisSession.current
+        || dismissedThisSession.current
+        || isStandalone()
+        || isInstallPromotionSnoozed()
+      ) return;
       installPrompt.current = event as BeforeInstallPromptEvent;
       setInstallStatus("available");
     };
     const onAppInstalled = () => {
       installPrompt.current = null;
+      installedThisSession.current = true;
+      dismissedThisSession.current = false;
       clearInstallPromotionSnooze();
       setInstallStatus("installed");
     };

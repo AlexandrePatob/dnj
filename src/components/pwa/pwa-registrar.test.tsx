@@ -64,7 +64,7 @@ function Probe() {
   );
 }
 
-function createInstallPrompt(outcome: "accepted" | "dismissed" = "accepted") {
+function createInstallPrompt(outcome: string = "accepted") {
   const event = new Event("beforeinstallprompt", { cancelable: true });
   const prompt = vi.fn().mockResolvedValue(undefined);
   Object.assign(event, {
@@ -121,6 +121,11 @@ describe("PwaRegistrar", () => {
     await userEvent.click(screen.getByRole("button", { name: "Instalar" }));
     expect(installPrompt.prompt).toHaveBeenCalledTimes(1);
     expect(await screen.findByTestId("install-status")).toHaveTextContent("installed");
+
+    const laterPrompt = createInstallPrompt();
+    act(() => window.dispatchEvent(laterPrompt.event));
+    expect(screen.getByTestId("install-status")).toHaveTextContent("installed");
+    expect(laterPrompt.prompt).not.toHaveBeenCalled();
   });
 
   it("snoozes a dismissed native prompt for exactly seven days", async () => {
@@ -136,6 +141,23 @@ describe("PwaRegistrar", () => {
     expect(localStorage.getItem("dnj.pwa.install-promotion.dismissed-until.v1")).toBe(
       String(now + 7 * 24 * 60 * 60 * 1000),
     );
+  });
+
+  it("snoozes Agora não for exactly seven days and respects it after remount", async () => {
+    const now = new Date("2026-07-22T12:00:00.000Z").getTime();
+    vi.spyOn(Date, "now").mockReturnValue(now);
+    const view = render(<PwaRegistrar><Probe /></PwaRegistrar>);
+    act(() => window.dispatchEvent(createInstallPrompt().event));
+    await userEvent.click(screen.getByRole("button", { name: "Agora não" }));
+    expect(screen.getByTestId("install-status")).toHaveTextContent("unavailable");
+    expect(localStorage.getItem("dnj.pwa.install-promotion.dismissed-until.v1")).toBe(
+      String(now + 7 * 24 * 60 * 60 * 1000),
+    );
+
+    view.unmount();
+    render(<PwaRegistrar><Probe /></PwaRegistrar>);
+    act(() => window.dispatchEvent(createInstallPrompt().event));
+    expect(screen.getByTestId("install-status")).toHaveTextContent("unavailable");
   });
 
   it("respects a current snooze and accepts a new prompt after it expires", () => {
@@ -197,6 +219,10 @@ describe("PwaRegistrar", () => {
     expect(screen.getByTestId("install-status")).toHaveTextContent("available");
     act(() => window.dispatchEvent(new Event("appinstalled")));
     expect(screen.getByTestId("install-status")).toHaveTextContent("installed");
+    const laterPrompt = createInstallPrompt();
+    act(() => window.dispatchEvent(laterPrompt.event));
+    expect(screen.getByTestId("install-status")).toHaveTextContent("installed");
+    expect(laterPrompt.prompt).not.toHaveBeenCalled();
   });
 
   it("uses only the latest browser prompt when eligibility is emitted repeatedly", async () => {
@@ -220,6 +246,18 @@ describe("PwaRegistrar", () => {
     await userEvent.click(screen.getByRole("button", { name: "Instalar" }));
     expect(await screen.findByTestId("install-status")).toHaveTextContent("unavailable");
     expect(localStorage.getItem("dnj.pwa.install-promotion.dismissed-until.v1")).toBeNull();
+    act(() => window.dispatchEvent(createInstallPrompt().event));
+    expect(screen.getByTestId("install-status")).toHaveTextContent("unavailable");
+  });
+
+  it("treats an invalid native choice as session-only dismissal", async () => {
+    render(<PwaRegistrar><Probe /></PwaRegistrar>);
+    act(() => window.dispatchEvent(createInstallPrompt("unknown").event));
+    await userEvent.click(screen.getByRole("button", { name: "Instalar" }));
+    expect(await screen.findByTestId("install-status")).toHaveTextContent("unavailable");
+    expect(localStorage.getItem("dnj.pwa.install-promotion.dismissed-until.v1")).toBeNull();
+    act(() => window.dispatchEvent(createInstallPrompt().event));
+    expect(screen.getByTestId("install-status")).toHaveTextContent("unavailable");
   });
 
   it("dismisses for the current session when local storage is unavailable", async () => {
@@ -230,6 +268,20 @@ describe("PwaRegistrar", () => {
     act(() => window.dispatchEvent(createInstallPrompt().event));
     await userEvent.click(screen.getByRole("button", { name: "Agora não" }));
     expect(screen.getByTestId("install-status")).toHaveTextContent("unavailable");
+    act(() => window.dispatchEvent(createInstallPrompt().event));
+    expect(screen.getByTestId("install-status")).toHaveTextContent("unavailable");
+  });
+
+  it("keeps accepted installation for the session when local storage cleanup fails", async () => {
+    vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
+      throw new DOMException("Storage unavailable");
+    });
+    render(<PwaRegistrar><Probe /></PwaRegistrar>);
+    act(() => window.dispatchEvent(createInstallPrompt("accepted").event));
+    await userEvent.click(screen.getByRole("button", { name: "Instalar" }));
+    expect(await screen.findByTestId("install-status")).toHaveTextContent("installed");
+    act(() => window.dispatchEvent(createInstallPrompt().event));
+    expect(screen.getByTestId("install-status")).toHaveTextContent("installed");
   });
 
   it("removes browser installation listeners on unmount", () => {
