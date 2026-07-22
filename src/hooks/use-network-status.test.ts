@@ -1,6 +1,9 @@
 // @vitest-environment jsdom
 
-import { act, renderHook } from "@testing-library/react";
+import { createElement } from "react";
+import { renderToString } from "react-dom/server";
+import { hydrateRoot } from "react-dom/client";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useNetworkStatus } from "./use-network-status";
@@ -10,10 +13,27 @@ describe("useNetworkStatus", () => {
     Object.defineProperty(navigator, "onLine", { configurable: true, value: true });
   });
 
-  it("initializes from navigator.onLine", () => {
-    Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
-    const { result } = renderHook(() => useNetworkStatus());
-    expect(result.current.isOnline).toBe(false);
+  it("hydrates with the server snapshot before synchronizing offline state after mount", async () => {
+    function Probe() {
+      const status = useNetworkStatus();
+      return createElement("output", null, status.isOnline ? "Online" : "Offline");
+    }
+
+    vi.stubGlobal("navigator", undefined);
+    const serverHtml = renderToString(createElement(Probe));
+    expect(serverHtml).toContain("Online");
+
+    vi.stubGlobal("navigator", { onLine: false });
+    const container = document.createElement("div");
+    container.innerHTML = serverHtml;
+    document.body.appendChild(container);
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const root = hydrateRoot(container, createElement(Probe));
+
+    await waitFor(() => expect(container.textContent).toContain("Offline"));
+    expect(consoleError.mock.calls.flat().join(" ")).not.toMatch(/hydration|did not match/i);
+    act(() => root.unmount());
+    container.remove();
   });
 
   it("updates connectivity and timestamp from browser events", () => {
