@@ -94,9 +94,11 @@ export function PwaRegistrar({
       waitingWorker.current = registration?.waiting ?? installing;
       setStatus("update-available");
     };
-    const onUpdateFound = () => {
+    const onUpdateFound = (event?: Event) => {
       installing?.removeEventListener("statechange", onStateChange);
-      installing = registration?.installing ?? null;
+      const currentRegistration = (event?.currentTarget as ServiceWorkerRegistration | null) ?? registration;
+      registration = currentRegistration;
+      installing = currentRegistration?.installing ?? null;
       installing?.addEventListener("statechange", onStateChange);
     };
 
