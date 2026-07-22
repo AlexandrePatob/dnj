@@ -90,7 +90,10 @@ export function PwaRegistrar({
       }
     };
     const onFocus = async () => {
-      const currentRegistration = await container.getRegistration();
+      const registrations = typeof container.getRegistrations === "function"
+        ? await container.getRegistrations()
+        : [await container.getRegistration()].filter((value): value is ServiceWorkerRegistration => Boolean(value));
+      const currentRegistration = registrations.find((value) => value.waiting);
       if (disposed || !currentRegistration?.waiting) return;
       registration = currentRegistration;
       waitingWorker.current = currentRegistration.waiting;

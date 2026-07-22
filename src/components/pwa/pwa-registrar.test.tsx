@@ -38,6 +38,7 @@ function installServiceWorker(registration = createRegistration()) {
     ready: Promise.resolve(registration),
     register: vi.fn().mockResolvedValue(registration),
     getRegistration: vi.fn().mockResolvedValue(registration),
+    getRegistrations: vi.fn().mockResolvedValue([registration]),
     addEventListener: vi.fn((type: string, listener: Listener) => listeners.set(type, listener)),
     removeEventListener: vi.fn((type: string) => listeners.delete(type)),
     dispatch(type: string, event?: Event | MessageEvent) {
@@ -91,7 +92,7 @@ describe("PwaRegistrar", () => {
   });
 
   it("warms only loaded same-origin Next static URLs", async () => {
-    const { registration } = installServiceWorker();
+    const { container, registration } = installServiceWorker();
     vi.spyOn(performance, "getEntriesByType").mockReturnValue([
       { name: `${location.origin}/_next/static/chunks/app.js` } as PerformanceResourceTiming,
       { name: `${location.origin}/v1/users` } as PerformanceResourceTiming,
@@ -116,12 +117,13 @@ describe("PwaRegistrar", () => {
   it("detects a worker that became waiting when the window regains focus without reloading", async () => {
     const reloadPage = vi.fn();
     const waiting = createWorker();
-    const { registration } = installServiceWorker();
+    const { container, registration } = installServiceWorker();
     render(<PwaRegistrar reloadPage={reloadPage}><Probe /></PwaRegistrar>);
     await waitFor(() => expect(registration.addEventListener).toHaveBeenCalled());
     registration.waiting = waiting;
     act(() => window.dispatchEvent(new Event("focus")));
     expect(await screen.findByTestId("status")).toHaveTextContent("update-available");
+    expect(container.getRegistrations).toHaveBeenCalledTimes(1);
     expect(reloadPage).not.toHaveBeenCalled();
   });
 
