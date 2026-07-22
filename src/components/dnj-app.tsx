@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useSyncExternalStore } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { authApi } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
@@ -20,8 +20,8 @@ import {
   writeOfflineSnapshot,
 } from "@/lib/pwa/offline-snapshot";
 import heroLogo from "../assets/brand/DNJ_geral.png";
-import internalLogoLight from "../assets/brand/DNJGAME_02.png";
-import internalLogoDark from "../assets/brand/DNJGAME_DARK.png";
+import gameLogoLight from "../assets/brand/DNJGAME_01.png";
+import gameLogoDark from "../assets/brand/DNJGAME_DARK.png";
 import {
   Home,
   QrCode,
@@ -56,6 +56,32 @@ type GameTab = "overview" | "ranking";
 type RankingTab = "individual" | "grupos";
 type QueueType = "confession" | "spiritual" | null;
 type AnimDir = "right" | "left" | "up";
+type Theme = "light" | "dark";
+
+const THEME_STORAGE_KEY = "dnj_theme";
+const THEME_CHANGE_EVENT = "dnj-theme-change";
+
+function getStoredTheme(): Theme {
+  try {
+    return localStorage.getItem(THEME_STORAGE_KEY) === "dark" ? "dark" : "light";
+  } catch {
+    return "light";
+  }
+}
+
+function getServerTheme(): Theme {
+  return "light";
+}
+
+function subscribeToTheme(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(THEME_CHANGE_EVENT, onStoreChange);
+
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(THEME_CHANGE_EVENT, onStoreChange);
+  };
+}
 
 interface UserData {
   name: string;
@@ -488,36 +514,6 @@ function SpaceItem({ name, desc }: { name: string; desc: string }) {
   );
 }
 
-// ─── CrossLogo ────────────────────────────────────────────────────────────────
-
-function CrossLogo({ large = false }: { large?: boolean }) {
-  const sz = large
-    ? { w: 36, h: 46, vw: 36, vh: 46, rx: 14, ry: 0, rw: 8, rh: 46, rx2: 0, ry2: 15, rw2: 36, rh2: 8 }
-    : { w: 22, h: 28, vw: 22, vh: 28, rx: 8.5, ry: 0, rw: 5, rh: 28, rx2: 0, ry2: 9, rw2: 22, rh2: 5 };
-  return (
-    <div className="flex items-center gap-3">
-      <svg width={sz.w} height={sz.h} viewBox={`0 0 ${sz.vw} ${sz.vh}`} fill="none">
-        <rect x={sz.rx} y={sz.ry} width={sz.rw} height={sz.rh} rx="2.5" fill="var(--primary)" />
-        <rect x={sz.rx2} y={sz.ry2} width={sz.rw2} height={sz.rh2} rx="2.5" fill="var(--primary)" />
-      </svg>
-      <div className="flex items-end gap-1">
-        <span
-          className="font-black leading-none"
-          style={{ fontSize: large ? "2rem" : "1.1rem", letterSpacing: "-0.03em", color: "var(--foreground)" }}
-        >
-          DNJ
-        </span>
-        <span
-          className="font-black leading-none"
-          style={{ fontSize: large ? "2rem" : "1.1rem", letterSpacing: "-0.03em", color: "var(--primary)", paddingBottom: "0.06em" }}
-        >
-          GAME
-        </span>
-      </div>
-    </div>
-  );
-}
-
 // ─── QR Modal ─────────────────────────────────────────────────────────────────
 
 function QRModal({ onClose }: { onClose: () => void }) {
@@ -603,9 +599,7 @@ function QRModal({ onClose }: { onClose: () => void }) {
 
 // ─── Top Bar ─────────────────────────────────────────────────────────────────
 
-function TopBar({ theme }: { theme: "light" | "dark" }) {
-  const isLight = theme === "light";
-  const internalLogo = isLight ? internalLogoLight : internalLogoDark;
+function TopBar() {
   return (
     <motion.div
       style={{
@@ -615,8 +609,7 @@ function TopBar({ theme }: { theme: "light" | "dark" }) {
         right:        0,
         height:       "48px",
         zIndex:       50,
-        background:   isLight ? "var(--primary)" : "var(--card)",
-        borderBottom: isLight ? "none" : "1px solid var(--border)",
+        background:   "var(--primary)",
         display:      "flex",
         alignItems:   "center",
         justifyContent: "space-between",
@@ -629,7 +622,7 @@ function TopBar({ theme }: { theme: "light" | "dark" }) {
       transition={{ type: "spring", stiffness: 260, damping: 25 }}
     >
       <img
-        src={internalLogo.src}
+        src={heroLogo.src}
         alt="DNJ 2026"
         style={{ height: "28px", width: "auto", objectFit: "contain", flexShrink: 0 }}
       />
@@ -638,7 +631,7 @@ function TopBar({ theme }: { theme: "light" | "dark" }) {
           fontSize:   "0.7rem",
           fontWeight: "var(--font-weight-bold)" as React.CSSProperties["fontWeight"],
           fontStyle:  "italic",
-          color:      isLight ? "rgba(255,255,255,0.85)" : "var(--muted-foreground)",
+          color:      "rgba(255,255,255,0.85)",
           textAlign:  "center",
           lineHeight: 1.3,
           flex:       1,
@@ -1626,7 +1619,7 @@ function UserPositionBanner({
   );
 }
 
-function GameScreen({ user, animDir }: { user: UserData; animDir: AnimDir }) {
+function GameScreen({ user, theme, animDir }: { user: UserData; theme: "light" | "dark"; animDir: AnimDir }) {
   const [tab, setTab]         = useState<GameTab>("overview");
   const [rankTab, setRankTab] = useState<RankingTab>("individual");
   const [qrOpen, setQrOpen]   = useState(false);
@@ -1658,7 +1651,11 @@ function GameScreen({ user, animDir }: { user: UserData; animDir: AnimDir }) {
         style={{ background: "var(--card)", borderBottom: "1px solid var(--border)" }}
       >
         <div className="flex items-center justify-between mb-4" style={{ marginTop: "20px" }}>
-          <CrossLogo />
+          <img
+            src={(theme === "light" ? gameLogoLight : gameLogoDark).src}
+            alt="DNJ Game 2026"
+            style={{ width: "146px", maxWidth: "52%", height: "auto", objectFit: "contain" }}
+          />
           <div className="text-right">
             <span
               className="font-black leading-none"
@@ -2429,7 +2426,7 @@ export function DnjApp() {
             {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onBack={() => navigate("login")}  animDir={animDir} />}
             {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("verify")} animDir={animDir} initialGroup={user.group} />}
             {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} />}
-            {screen === "game"    && <GameScreen    user={user}                    animDir={animDir} />}
+            {screen === "game"    && <GameScreen    user={user} theme={theme}      animDir={animDir} />}
             {screen === "queue"   && <QueueScreen                                  animDir={animDir} />}
             {screen === "account" && <AccountScreen user={user} onLogout={() => { storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
           </motion.div>
