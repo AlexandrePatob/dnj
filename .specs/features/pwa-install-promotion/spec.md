@@ -6,9 +6,9 @@ O DNJ Game já é tecnicamente instalável, mas não comunica essa possibilidade
 
 ## Goals
 
-- [ ] Oferecer uma chamada de instalação contextual, acessível e não bloqueante quando o navegador permitir a instalação.
-- [ ] Orientar usuários de iPhone e iPad pelo fluxo manual do Safari.
-- [ ] Respeitar instalação existente e recusas temporárias sem repetir a promoção de forma insistente.
+- [x] Oferecer uma chamada de instalação contextual, acessível e não bloqueante quando o navegador permitir a instalação.
+- [x] Orientar usuários de iPhone e iPad pelo fluxo manual do Safari.
+- [x] Respeitar instalação existente e recusas temporárias sem repetir a promoção de forma insistente.
 
 ## Out of Scope
 
@@ -97,9 +97,9 @@ O DNJ Game já é tecnicamente instalável, mas não comunica essa possibilidade
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| PWAIP-01–04 | Chromium | Execute | Pending |
-| PWAIP-05–07 | iOS/iPadOS | Execute | Pending |
-| PWAIP-08–11 | Melhoria progressiva | Execute | Pending |
+| PWAIP-01–04 | Chromium | Execute | Verified |
+| PWAIP-05–07 | iOS/iPadOS | Execute | Verified |
+| PWAIP-08–11 | Melhoria progressiva | Execute | Verified |
 
 **Coverage:** 11 total, 11 mapped to the inline execution plan, 0 unmapped.
 
@@ -107,6 +107,6 @@ O DNJ Game já é tecnicamente instalável, mas não comunica essa possibilidade
 
 ## Success Criteria
 
-- [ ] Os 11 requisitos possuem evidência automatizada com resultados precisos.
-- [ ] Testes unitários, typecheck, lint e build de produção continuam aprovados sem executar testes em browser.
-- [ ] A promoção cabe no shell mobile claro/escuro sem competir com navegação, offline ou atualização.
+- [x] Os 11 requisitos possuem evidência automatizada com resultados precisos.
+- [x] Testes unitários, typecheck, lint e build de produção continuam aprovados sem executar testes em browser.
+- [x] A promoção usa os tokens claro/escuro e safe areas do shell sem competir com navegação, offline ou atualização.

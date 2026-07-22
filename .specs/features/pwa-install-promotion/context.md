@@ -2,7 +2,7 @@
 
 **Gathered:** 2026-07-22
 **Spec:** `.specs/features/pwa-install-promotion/spec.md`
-**Status:** Ready for implementation
+**Status:** Implemented and independently verified
 
 ---
 
