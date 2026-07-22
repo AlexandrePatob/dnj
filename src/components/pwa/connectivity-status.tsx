@@ -1,7 +1,7 @@
 "use client";
 
 import { RefreshCw, Wifi, WifiOff } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import type { PwaStatus } from "./pwa-registrar";
 
@@ -12,24 +12,38 @@ interface ConnectivityStatusProps {
   onApplyUpdate?: () => void;
 }
 
+const subscribeToHydration = () => () => undefined;
+const getClientHydrationSnapshot = () => true;
+const getServerHydrationSnapshot = () => false;
+
 export function ConnectivityStatus({
   isOnline,
   pwaStatus,
   onRetry,
   onApplyUpdate,
 }: ConnectivityStatusProps) {
-  const [connectivityHistory, setConnectivityHistory] = useState({
-    isOnline,
-    wasOffline: !isOnline,
-  });
+  const hasMounted = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydrationSnapshot,
+    getServerHydrationSnapshot,
+  );
+  const [wasOffline, setWasOffline] = useState(!isOnline);
   const [reconnectionAcknowledged, setReconnectionAcknowledged] = useState(false);
-  if (connectivityHistory.isOnline !== isOnline) {
-    setConnectivityHistory({
-      isOnline,
-      wasOffline: connectivityHistory.wasOffline || !isOnline,
+
+  useEffect(() => {
+    if (isOnline) return;
+    let disposed = false;
+    queueMicrotask(() => {
+      if (disposed) return;
+      setWasOffline(true);
+      setReconnectionAcknowledged(false);
     });
-    if (!isOnline && reconnectionAcknowledged) setReconnectionAcknowledged(false);
-  }
+    return () => {
+      disposed = true;
+    };
+  }, [isOnline]);
+
+  if (!hasMounted) return null;
 
   let content: React.ReactNode = null;
 
@@ -50,7 +64,7 @@ export function ConnectivityStatus({
         </button>
       </>
     );
-  } else if (connectivityHistory.wasOffline && !reconnectionAcknowledged) {
+  } else if (wasOffline && !reconnectionAcknowledged) {
     content = (
       <>
         <Wifi aria-hidden="true" size={17} />

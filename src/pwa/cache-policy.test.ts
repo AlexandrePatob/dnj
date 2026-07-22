@@ -22,6 +22,12 @@ describe("cache allowlist policy", () => {
     expect(classifyRequest(request("/_next/static/chunks/app.js"), APP_ORIGIN)).toBe("static-cache-first");
   });
 
+  it("keeps local development requests on the network", () => {
+    const localOrigin = "http://localhost:3000";
+    const localRequest = new Request(`${localOrigin}/_next/static/chunks/app.js`);
+    expect(classifyRequest(localRequest, localOrigin)).toBe("network-only");
+  });
+
   it("uses cache-first for an approved local image destination", () => {
     expect(classifyRequest(request("/icons/icon-192x192.png", { destination: "image" }), APP_ORIGIN)).toBe(
       "asset-cache-first",

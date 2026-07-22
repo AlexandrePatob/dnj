@@ -7,6 +7,11 @@ export type CacheStrategy =
 const IMAGE_EXTENSIONS = new Set([".avif", ".ico", ".jpeg", ".jpg", ".png", ".svg", ".webp"]);
 const FONT_EXTENSIONS = new Set([".woff", ".woff2"]);
 const MANIFEST_EXTENSIONS = new Set([".webmanifest"]);
+const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"]);
+
+export function isLocalDevelopmentOrigin(origin: string): boolean {
+  return LOCAL_HOSTNAMES.has(new URL(origin).hostname);
+}
 
 function extensionOf(pathname: string): string {
   const filename = pathname.slice(pathname.lastIndexOf("/") + 1);
@@ -28,6 +33,7 @@ export function classifyRequest(request: Request, appOrigin: string): CacheStrat
   const url = new URL(request.url);
 
   if (
+    isLocalDevelopmentOrigin(appOrigin) ||
     request.method !== "GET" ||
     url.origin !== appOrigin ||
     request.headers.has("Authorization") ||

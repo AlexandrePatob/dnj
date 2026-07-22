@@ -1,4 +1,9 @@
-import { classifyRequest, isCacheableResponse, type CacheStrategy } from "./cache-policy";
+import {
+  classifyRequest,
+  isCacheableResponse,
+  isLocalDevelopmentOrigin,
+  type CacheStrategy,
+} from "./cache-policy";
 
 declare const __PWA_REVISION__: string;
 
@@ -47,6 +52,10 @@ export function createServiceWorkerRuntime(environment: WorkerEnvironment, revis
   }
 
   async function install(): Promise<void> {
+    if (isLocalDevelopmentOrigin(environment.origin)) {
+      await environment.skipWaiting();
+      return;
+    }
     const cache = await environment.caches.open(names.shell);
 
     await Promise.all(

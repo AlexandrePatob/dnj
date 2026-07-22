@@ -79,6 +79,26 @@ describe("versioned service worker runtime", () => {
     expect(skipWaiting).not.toHaveBeenCalled();
   });
 
+  it("bypasses precaching and activates immediately during local development", async () => {
+    const localRuntime = createServiceWorkerRuntime(
+      {
+        caches: storage as unknown as CacheStorage,
+        fetch: fetcher as typeof fetch,
+        clients: { claim: async () => claim() },
+        skipWaiting: async () => skipWaiting(),
+        origin: "http://localhost:3000",
+      },
+      "rev-local",
+    );
+
+    await localRuntime.install();
+    await localRuntime.fetch(new Request("http://localhost:3000/_next/static/chunks/app.js"));
+
+    expect(await storage.keys()).toEqual([]);
+    expect(skipWaiting).toHaveBeenCalledOnce();
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
   it("keeps successful shell entries when one asset fails", async () => {
     fetcher.mockImplementation(async (request: RequestInfo | URL) => {
       const url = new Request(request).url;

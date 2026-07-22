@@ -63,10 +63,24 @@ export async function buildServiceWorker({
     absWorkingDir: root,
     stdin: {
       contents: inputs[0],
-      resolveDir: path.dirname(entry),
-      sourcefile: "sw.ts",
+      sourcefile: "src/pwa/sw.ts",
       loader: "ts",
     },
+    plugins: [
+      {
+        name: "pwa-cache-policy",
+        setup(buildContext) {
+          buildContext.onResolve({ filter: /^\.\/cache-policy$/ }, () => ({
+            path: "cache-policy.ts",
+            namespace: "pwa-cache-policy",
+          }));
+          buildContext.onLoad({ filter: /.*/, namespace: "pwa-cache-policy" }, () => ({
+            contents: inputs[1],
+            loader: "ts",
+          }));
+        },
+      },
+    ],
     bundle: true,
     write: false,
     platform: "browser",
