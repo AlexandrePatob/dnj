@@ -188,6 +188,7 @@ if (typeof scope.addEventListener === "function" && typeof scope.skipWaiting ===
     event.waitUntil(runtime.activate());
   }) as never);
   scope.addEventListener("fetch", ((event: { request: Request; respondWith(response: Promise<Response>): void }) => {
+    if (classifyRequest(event.request, scope.location.origin) === "network-only") return;
     event.respondWith(runtime.fetch(event.request));
   }) as never);
   scope.addEventListener(
