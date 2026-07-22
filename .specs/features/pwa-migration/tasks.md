@@ -191,6 +191,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 
 ### T4: Add manifest and platform metadata
 
+**Status**: ✅ Complete — `dcc4457`
+
 **What**: Criar o manifest App Router e completar metadata para Android, iOS, standalone, theme colors e ícones corretos.  
 **Where**: `src/app/manifest.ts`, `src/app/manifest.test.ts`, `src/app/layout.tsx`  
 **Depends on**: T3  
@@ -219,6 +221,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 
 ### T5: Self-host Poppins through Next.js
 
+**Status**: ✅ Complete — `bf3027c`
+
 **What**: Remover a dependência runtime do Google Fonts e servir exatamente os pesos atuais de Poppins pelo build do Next.js.  
 **Where**: `src/app/layout.tsx`, `src/app/globals.css`, `src/app/theme.css`  
 **Depends on**: T4  
@@ -245,6 +249,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 ---
 
 ### T6: Define the cache allowlist policy
+
+**Status**: ✅ Complete — `d0979a4`
 
 **What**: Implementar funções puras que classifiquem requests e URLs em navegação, static Next, asset local ou network-only.  
 **Where**: `src/pwa/cache-policy.ts`, `src/pwa/cache-policy.test.ts`  
@@ -273,6 +279,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 ---
 
 ### T7: Implement the versioned service worker source
+
+**Status**: ✅ Complete — `997ebfd`
 
 **What**: Implementar install, activate, fetch e message no worker TypeScript usando a política compartilhada e caches prefixados/versionados.  
 **Where**: `src/pwa/sw.ts`, `src/pwa/sw.test.ts`  
@@ -304,6 +312,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 
 ### T8: Bundle a deployment-revisioned service worker
 
+**Status**: ✅ Complete — `0c79e1c`
+
 **What**: Criar script que use esbuild para empacotar o worker e sua política, injete revisão determinística e produza `public/sw.js` antes de dev/build.  
 **Where**: `scripts/build-service-worker.mjs`, `scripts/build-service-worker.test.ts`, `package.json`, `package-lock.json`, `.gitignore`  
 **Depends on**: T7  
@@ -332,6 +342,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 ---
 
 ### T9: Add secure service-worker response headers
+
+**Status**: ✅ Complete — `fc45bbe`
 
 **What**: Configurar headers específicos para `/sw.js` sem alterar os headers/rotas existentes.  
 **Where**: `next.config.ts`, `tests/pwa/sw-headers.spec.ts`  
