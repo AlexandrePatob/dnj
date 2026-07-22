@@ -373,6 +373,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 
 ### T10: Register, warm and update the PWA client
 
+**Status**: ✅ Complete — `5837104`
+
 **What**: Criar o registrador client-side com protocolo de warmup, estados tipados, worker waiting e recarga única após confirmação.  
 **Where**: `src/components/pwa/pwa-registrar.tsx`, `src/components/pwa/pwa-registrar.test.tsx`  
 **Depends on**: T9  
@@ -403,6 +405,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 
 ### T11: Add connectivity and update status UI
 
+**Status**: ✅ Complete — `2d4617d`
+
 **What**: Implementar hook online/offline e um status discreto que comunique desconexão, reconexão e atualização usando apenas o sistema visual existente.  
 **Where**: `src/hooks/use-network-status.ts`, `src/hooks/use-network-status.test.ts`, `src/components/pwa/connectivity-status.tsx`, `src/components/pwa/connectivity-status.test.tsx`  
 **Depends on**: T10  
@@ -430,6 +434,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 ---
 
 ### T12: Persist a safe offline snapshot
+
+**Status**: ✅ Complete — `3db9af7`
 
 **What**: Implementar snapshot local versionado, mínimo, validado e sem credenciais para reabrir conteúdo seguro em modo somente leitura.  
 **Where**: `src/lib/pwa/offline-snapshot.ts`, `src/lib/pwa/offline-snapshot.test.ts`  
@@ -460,6 +466,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 
 ### T13: Fail API operations clearly while offline
 
+**Status**: ✅ Complete — `00ab245`
+
 **What**: Estender o cliente de API para erro offline antecipado e recuperável sem mudar contratos ou cachear respostas.  
 **Where**: `src/lib/api/client.ts`, `src/lib/api/client.test.ts`  
 **Depends on**: T12  
@@ -487,6 +495,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 ---
 
 ### T14: Wire PWA runtime into the existing application
+
+**Status**: ✅ Complete — `d6fb982` (runtime follow-up: `be54071`)
 
 **What**: Integrar registrador, status, snapshot e bootstrap offline ao layout/shell sem refatorar telas, e provar a experiência completa em browsers.  
 **Where**: `src/app/layout.tsx`, `src/components/dnj-app.tsx`, `tests/pwa/pwa-runtime.spec.ts`, `tests/e2e/pwa-flow.spec.ts`, `tests/visual/dnj-baseline.spec.ts`  
@@ -518,6 +528,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 ---
 
 ### T15: Document operation, update and real-device UAT
+
+**Status**: ✅ Complete — `239e922`
 
 **What**: Documentar instalação, cache, atualização, troubleshooting e checklist de validação em Android/iOS reais para o handoff de produção.  
 **Where**: `README.md`, `docs/pwa.md`, `.specs/features/pwa-migration/validation.md` (preparado pelo Verifier no fechamento)  

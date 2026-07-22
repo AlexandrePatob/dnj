@@ -37,10 +37,10 @@
 ## Handoff
 
 - **Feature**: Migração PWA / `.specs/features/pwa-migration/`
-- **Phase / Task**: Execute — Batch 3, T10–T15
-- **Completed**: planejamento aprovado; T1–T3 Phase 1; T4 manifest/metadata (`dcc4457`); T5 Poppins self-hosted (`bf3027c`); fix Vitest-only (`a053d54`); T6 cache policy (`d0979a4`); T7 service worker (`997ebfd`); T8 bundle revisionado (`0c79e1c`); T9 headers seguros (`fc45bbe`)
+- **Phase / Task**: Execute complete — independent Verify is next
+- **Completed**: T1–T9 conforme tasks; T10 registro/warmup (`5837104`); T11 conectividade/update UI (`2d4617d`); T12 snapshot seguro (`3db9af7`); T13 erros offline da API (`00ab245`); T14 integração runtime (`d6fb982`) e estabilização React/update (`be54071`); T15 operação e UAT documentados (`239e922`). Gate final: 87 unit tests, build de produção e 27 Playwright tests aprovados, incluindo 8 baselines visuais sem atualização.
 - **In-progress** (file:line): none
-- **Next step**: executar T10–T15 e depois o Verifier independente
-- **Blockers**: UAT final depende de acesso a Android e iPhone/iPad reais
-- **Uncommitted files**: `.gitignore` e `Untitled-1.md` (alterações preexistentes do usuário; preservar)
+- **Next step**: executar o Verifier independente (autor diferente) e registrar `.specs/features/pwa-migration/validation.md`; depois executar os checklists de `docs/pwa.md` em Android/Chrome e iPhone/Safari reais.
+- **Blockers**: implementação sem bloqueios; evidência final de instalação, ícones, standalone, safe areas/status bar e atualização depende de Android e iPhone/iPad reais.
+- **Uncommitted files**: `.gitignore` e `Untitled-1.md` (alterações preexistentes do usuário; preservar); `test-results/` (artefato gerado pelos testes, não versionar).
 - **Branch**: feat/pwa-migration

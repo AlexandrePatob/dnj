@@ -181,14 +181,14 @@ O DNJ Game é uma aplicação mobile-first usada durante um evento, onde a conex
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| PWA-01 | P1: Instalar o DNJ Game | Tasks | In Tasks |
-| PWA-02 | P1: Abrir sob conectividade instável | Tasks | In Tasks |
-| PWA-03 | P1: Tratar operações que exigem rede | Tasks | In Tasks |
-| PWA-04 | P1: Preservar integralmente o design | Tasks | In Tasks |
-| PWA-05 | P1: Atualizar com segurança na Vercel | Tasks | In Tasks |
-| PWA-06 | P2: Tornar o comportamento observável | Tasks | In Tasks |
+| PWA-01 | P1: Instalar o DNJ Game | Execute | Implemented — pending verification and real-device UAT |
+| PWA-02 | P1: Abrir sob conectividade instável | Execute | Implemented — pending verification |
+| PWA-03 | P1: Tratar operações que exigem rede | Execute | Implemented — pending verification |
+| PWA-04 | P1: Preservar integralmente o design | Execute | Implemented — pending verification and real-device UAT |
+| PWA-05 | P1: Atualizar com segurança na Vercel | Execute | Implemented — pending verification and real-device UAT |
+| PWA-06 | P2: Tornar o comportamento observável | Execute | Implemented — pending verification |
 
-**Coverage:** 6 requisitos, 0 mapeados para tarefas, 6 ainda não mapeados — esperado antes das fases Design e Tasks.
+**Coverage:** 6 requisitos implementados e mapeados para tarefas; a verificação independente e o UAT físico aplicável permanecem pendentes.
 
 ---
 
