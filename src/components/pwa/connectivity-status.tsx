@@ -1,7 +1,7 @@
 "use client";
 
 import { RefreshCw, Wifi, WifiOff } from "lucide-react";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { type ReactNode, useEffect, useState, useSyncExternalStore } from "react";
 
 import type { PwaStatus } from "./pwa-registrar";
 
@@ -10,6 +10,7 @@ interface ConnectivityStatusProps {
   pwaStatus: PwaStatus;
   onRetry?: () => void;
   onApplyUpdate?: () => void;
+  idleContent?: ReactNode;
 }
 
 const subscribeToHydration = () => () => undefined;
@@ -21,6 +22,7 @@ export function ConnectivityStatus({
   pwaStatus,
   onRetry,
   onApplyUpdate,
+  idleContent,
 }: ConnectivityStatusProps) {
   const hasMounted = useSyncExternalStore(
     subscribeToHydration,
@@ -83,7 +85,7 @@ export function ConnectivityStatus({
     );
   }
 
-  if (!content) return null;
+  if (!content) return idleContent ?? null;
 
   return (
     <div

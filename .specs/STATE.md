@@ -36,11 +36,11 @@
 
 ## Handoff
 
-- **Feature**: Migração PWA / `.specs/features/pwa-migration/`
-- **Phase / Task**: Execute complete — independent Verify is next
-- **Completed**: T1–T9 conforme tasks; T10 registro/warmup (`5837104`); T11 conectividade/update UI (`2d4617d`); T12 snapshot seguro (`3db9af7`); T13 erros offline da API (`00ab245`); T14 integração runtime (`d6fb982`) e estabilização React/update (`be54071`); T15 operação e UAT documentados (`239e922`). Gate final: 87 unit tests, build de produção e 27 Playwright tests aprovados, incluindo 8 baselines visuais sem atualização.
+- **Feature**: Promoção de instalação PWA / `.specs/features/pwa-install-promotion/`
+- **Phase / Task**: Execute and independent Verify complete
+- **Completed**: especificação (`e62558a`, `a6d5773`); ciclo de instalação (`7612590`); interface e integração (`9f58cc7`); operação (`602824c`); correções de sessão (`6c1bac6`). Verificação final: 11/11 critérios, 110/110 unit tests, typecheck, lint e build aprovados; sensor 3/3 mutações mortas; nenhum teste em browser executado.
 - **In-progress** (file:line): none
-- **Next step**: executar o Verifier independente (autor diferente) e registrar `.specs/features/pwa-migration/validation.md`; depois executar os checklists de `docs/pwa.md` em Android/Chrome e iPhone/Safari reais.
-- **Blockers**: implementação sem bloqueios; evidência final de instalação, ícones, standalone, safe areas/status bar e atualização depende de Android e iPhone/iPad reais.
-- **Uncommitted files**: `.gitignore` e `Untitled-1.md` (alterações preexistentes do usuário; preservar); `test-results/` (artefato gerado pelos testes, não versionar).
-- **Branch**: feat/pwa-migration
+- **Next step**: executar os checklists manuais de `docs/pwa.md` em Android/Chrome e iPhone/Safari reais quando houver aparelhos disponíveis.
+- **Blockers**: implementação sem bloqueios; evidência em aparelho real de instalação, ícones, standalone e safe areas/status bar permanece manual.
+- **Uncommitted files**: `.gitignore` e `tests/e2e/pwa-flow.spec.ts` (alterações preexistentes ou somente de line ending; preservar).
+- **Branch**: dev

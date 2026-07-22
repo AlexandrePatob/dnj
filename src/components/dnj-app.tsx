@@ -11,6 +11,7 @@ import type { ApiGroup } from "@/lib/api/contracts";
 import { env } from "@/lib/env";
 import { storage } from "@/lib/storage";
 import { ConnectivityStatus } from "@/components/pwa/connectivity-status";
+import { InstallPromotion } from "@/components/pwa/install-promotion";
 import { usePwa } from "@/components/pwa/pwa-registrar";
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import {
@@ -2443,6 +2444,17 @@ export function DnjApp() {
         )}
         {isMain && <BottomNav active={screen} onNavigate={navigate} />}
         <ConnectivityStatus
+          idleContent={(
+            <InstallPromotion
+              hasBottomNavigation={isMain}
+              isIosSafari={pwa.isIosSafari}
+              isOnline={network.isOnline}
+              onDismiss={pwa.dismissInstall}
+              onInstall={pwa.requestInstall}
+              pwaStatus={pwa.status}
+              status={pwa.installStatus}
+            />
+          )}
           isOnline={network.isOnline}
           onApplyUpdate={pwa.applyUpdate}
           pwaStatus={pwa.status}
