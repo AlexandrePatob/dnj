@@ -7,7 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run",
+    "test:pwa": "npm run build && playwright test tests/pwa --project=chromium",
+    "test:e2e": "npm run build && playwright test tests/e2e --project=chromium --project=webkit",
+    "test:visual": "npm run build && playwright test tests/visual --project=visual-chromium",
+    "validate": "npm run typecheck && npm run lint && npm run test:unit && npm run build && playwright test"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
@@ -20,14 +25,21 @@
     "tw-animate-css": "1.3.8"
   },
   "devDependencies": {
+    "@playwright/test": "1.61.1",
     "@tailwindcss/postcss": "4.1.12",
+    "@testing-library/jest-dom": "7.0.0",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.1",
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.3",
     "@types/react-dom": "^19.0.2",
+    "@vitest/coverage-v8": "4.1.10",
     "eslint": "^9.17.0",
     "eslint-config-next": "^16.2.10",
+    "jsdom": "29.1.1",
     "tailwindcss": "4.1.12",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "4.1.10"
   },
   "overrides": {
     "postcss": "8.5.19"
