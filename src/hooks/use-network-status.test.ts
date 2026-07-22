@@ -19,10 +19,9 @@ describe("useNetworkStatus", () => {
   it("updates connectivity and timestamp from browser events", () => {
     vi.spyOn(Date, "now").mockReturnValue(20260722);
     const { result } = renderHook(() => useNetworkStatus());
-    Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
     act(() => window.dispatchEvent(new Event("offline")));
     expect(result.current).toEqual({ isOnline: false, changedAt: 20260722 });
-    Object.defineProperty(navigator, "onLine", { configurable: true, value: true });
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
     act(() => window.dispatchEvent(new Event("online")));
     expect(result.current).toEqual({ isOnline: true, changedAt: 20260722 });
   });

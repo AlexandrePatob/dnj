@@ -14,12 +14,13 @@ export function useNetworkStatus(): NetworkStatus {
   }));
 
   useEffect(() => {
-    const update = () => setStatus({ isOnline: navigator.onLine, changedAt: Date.now() });
-    window.addEventListener("online", update);
-    window.addEventListener("offline", update);
+    const updateOnline = () => setStatus({ isOnline: true, changedAt: Date.now() });
+    const updateOffline = () => setStatus({ isOnline: false, changedAt: Date.now() });
+    window.addEventListener("online", updateOnline);
+    window.addEventListener("offline", updateOffline);
     return () => {
-      window.removeEventListener("online", update);
-      window.removeEventListener("offline", update);
+      window.removeEventListener("online", updateOnline);
+      window.removeEventListener("offline", updateOffline);
     };
   }, []);
 
