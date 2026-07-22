@@ -17,7 +17,9 @@ test.describe("service worker response headers", () => {
   test("restricts worker scripts to the same origin", async ({ request }) => {
     const response = await request.get("/sw.js");
 
-    expect(response.headers()["content-security-policy"]).toBe("default-src 'none'; script-src 'self'");
+    expect(response.headers()["content-security-policy"]).toBe(
+      "default-src 'none'; script-src 'self'; connect-src *",
+    );
   });
 
   test("allows the worker to control only the application root scope", async ({ request }) => {

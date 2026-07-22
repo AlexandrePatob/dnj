@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
         headers: [
           { key: "Content-Type", value: "application/javascript; charset=utf-8" },
           { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
-          { key: "Content-Security-Policy", value: "default-src 'none'; script-src 'self'" },
+          { key: "Content-Security-Policy", value: "default-src 'none'; script-src 'self'; connect-src *" },
           { key: "Service-Worker-Allowed", value: "/" },
         ],
       },
