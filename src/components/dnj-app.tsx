@@ -2432,7 +2432,7 @@ export function DnjApp() {
           </motion.div>
         </AnimatePresence>
 
-        {isMain && <TopBar theme={theme} />}
+        {isMain && <TopBar />}
         {!network.isOnline && offlineSnapshotCapturedAt && (
           <p
             className="absolute left-3 right-3 top-14 z-40 rounded-xl border px-3 py-2 text-center text-xs font-medium"
