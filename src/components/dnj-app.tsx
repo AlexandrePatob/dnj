@@ -10,6 +10,15 @@ import { mapApiUser } from "@/lib/api/mappers";
 import type { ApiGroup } from "@/lib/api/contracts";
 import { env } from "@/lib/env";
 import { storage } from "@/lib/storage";
+import { ConnectivityStatus } from "@/components/pwa/connectivity-status";
+import { usePwa } from "@/components/pwa/pwa-registrar";
+import { useNetworkStatus } from "@/hooks/use-network-status";
+import {
+  clearOfflineSnapshot,
+  migrateThemeStorage,
+  readOfflineSnapshot,
+  writeOfflineSnapshot,
+} from "@/lib/pwa/offline-snapshot";
 import heroLogo from "../assets/brand/DNJ_geral.png";
 import gameLogoLight from "../assets/brand/DNJGAME_01.png";
 import gameLogoDark from "../assets/brand/DNJGAME_DARK.png";
@@ -2277,14 +2286,18 @@ function AccountScreen({
 
 export function DnjApp() {
   const reduceMotion = useReducedMotion();
-  const theme = useSyncExternalStore(subscribeToTheme, getStoredTheme, getServerTheme);
+  const network = useNetworkStatus();
+  const pwa = usePwa();
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    return migrateThemeStorage() ?? "light";
+  });
 
   function toggleTheme() {
-    const next = theme === "light" ? "dark" : "light";
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, next);
-      window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
-    } catch { /* noop */ }
+    setTheme((t) => {
+      const next = t === "light" ? "dark" : "light";
+      try { storage.setTheme(next); } catch { /* noop */ }
+      return next;
+    });
   }
 
   const [screen, setScreen]         = useState<Screen>("login");
@@ -2295,6 +2308,8 @@ export function DnjApp() {
     name: "João Paulo", cpf: "", email: "", group: "",
     points: 150, rankPosition: 9,
   });
+  const [offlineSnapshotCapturedAt, setOfflineSnapshotCapturedAt] = useState<string | null>(null);
+  const restoredSnapshot = useRef(false);
 
   const navigate = useCallback((next: Screen) => {
     setPrevScreen(screen);
@@ -2353,6 +2368,39 @@ export function DnjApp() {
   const animDir = getAnimDir(prevScreen, screen);
   const isMain  = ["home", "game", "queue", "account"].includes(screen);
 
+  useEffect(() => {
+    if (network.isOnline || restoredSnapshot.current || screen !== "login") return;
+    restoredSnapshot.current = true;
+    const snapshot = readOfflineSnapshot();
+    if (!snapshot) return;
+    let disposed = false;
+    queueMicrotask(() => {
+      if (disposed) return;
+      setUser({ ...snapshot.user, cpf: "", email: "" });
+      setPrevScreen("login");
+      setScreen(snapshot.lastMainScreen);
+      setOfflineSnapshotCapturedAt(snapshot.capturedAt);
+    });
+    return () => {
+      disposed = true;
+    };
+  }, [network.isOnline, screen]);
+
+  useEffect(() => {
+    if (!network.isOnline || !isMain) return;
+    writeOfflineSnapshot({
+      schemaVersion: 1,
+      capturedAt: new Date().toISOString(),
+      lastMainScreen: screen as "home" | "game" | "queue" | "account",
+      user: {
+        name: user.name,
+        group: user.group,
+        points: user.points,
+        rankPosition: user.rankPosition,
+      },
+    });
+  }, [isMain, network.isOnline, screen, user.group, user.name, user.points, user.rankPosition]);
+
   return (
     <div
       className={theme === "dark" ? "dark" : ""}
@@ -2380,12 +2428,25 @@ export function DnjApp() {
             {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} />}
             {screen === "game"    && <GameScreen    user={user} theme={theme}      animDir={animDir} />}
             {screen === "queue"   && <QueueScreen                                  animDir={animDir} />}
-            {screen === "account" && <AccountScreen user={user} onLogout={() => { storage.clearSession(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
+            {screen === "account" && <AccountScreen user={user} onLogout={() => { storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
           </motion.div>
         </AnimatePresence>
 
-        {isMain && <TopBar />}
+        {isMain && <TopBar theme={theme} />}
+        {!network.isOnline && offlineSnapshotCapturedAt && (
+          <p
+            className="absolute left-3 right-3 top-14 z-40 rounded-xl border px-3 py-2 text-center text-xs font-medium"
+            style={{ background: "var(--card)", borderColor: "var(--border)", color: "var(--muted-foreground)" }}
+          >
+            Conteúdo salvo em {new Date(offlineSnapshotCapturedAt).toLocaleString("pt-BR")} · somente leitura
+          </p>
+        )}
         {isMain && <BottomNav active={screen} onNavigate={navigate} />}
+        <ConnectivityStatus
+          isOnline={network.isOnline}
+          onApplyUpdate={pwa.applyUpdate}
+          pwaStatus={pwa.status}
+        />
       </div>
     </div>
   );
