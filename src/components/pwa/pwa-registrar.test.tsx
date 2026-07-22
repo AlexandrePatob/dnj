@@ -113,10 +113,14 @@ describe("PwaRegistrar", () => {
     expect(container.register).toHaveBeenCalledTimes(1);
   });
 
-  it("reports an already waiting worker without reloading", async () => {
+  it("detects a worker that became waiting when the window regains focus without reloading", async () => {
     const reloadPage = vi.fn();
-    installServiceWorker(createRegistration({ waiting: createWorker() }));
+    const waiting = createWorker();
+    const { registration } = installServiceWorker();
     render(<PwaRegistrar reloadPage={reloadPage}><Probe /></PwaRegistrar>);
+    await waitFor(() => expect(registration.addEventListener).toHaveBeenCalled());
+    registration.waiting = waiting;
+    act(() => window.dispatchEvent(new Event("focus")));
     expect(await screen.findByTestId("status")).toHaveTextContent("update-available");
     expect(reloadPage).not.toHaveBeenCalled();
   });
@@ -163,6 +167,7 @@ describe("PwaRegistrar", () => {
 
   it("sanitizes worker failures and removes all listeners on unmount", async () => {
     const { container, registration } = installServiceWorker();
+    const removeWindowListener = vi.spyOn(window, "removeEventListener");
     const view = render(<PwaRegistrar><Probe /></PwaRegistrar>);
     await waitFor(() => expect(container.register).toHaveBeenCalled());
     act(() => container.dispatch("message", new MessageEvent("message", {
@@ -174,5 +179,6 @@ describe("PwaRegistrar", () => {
     view.unmount();
     expect(container.removeEventListener).toHaveBeenCalledWith("controllerchange", expect.any(Function));
     expect(registration.removeEventListener).toHaveBeenCalledWith("updatefound", expect.any(Function));
+    expect(removeWindowListener).toHaveBeenCalledWith("focus", expect.any(Function));
   });
 });

@@ -89,6 +89,13 @@ export function PwaRegistrar({
         setStatus("error");
       }
     };
+    const onFocus = async () => {
+      const currentRegistration = await container.getRegistration();
+      if (disposed || !currentRegistration?.waiting) return;
+      registration = currentRegistration;
+      waitingWorker.current = currentRegistration.waiting;
+      setStatus("update-available");
+    };
     const onStateChange = () => {
       if (installing?.state !== "installed" || !container.controller) return;
       waitingWorker.current = registration?.waiting ?? installing;
@@ -104,6 +111,7 @@ export function PwaRegistrar({
 
     container.addEventListener("controllerchange", onControllerChange);
     container.addEventListener("message", onMessage);
+    window.addEventListener("focus", onFocus);
     setStatus("registering");
 
     void container
@@ -138,6 +146,7 @@ export function PwaRegistrar({
       disposed = true;
       container.removeEventListener("controllerchange", onControllerChange);
       container.removeEventListener("message", onMessage);
+      window.removeEventListener("focus", onFocus);
       registration?.removeEventListener("updatefound", onUpdateFound);
       installing?.removeEventListener("statechange", onStateChange);
     };
