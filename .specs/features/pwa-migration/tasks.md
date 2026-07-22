@@ -100,6 +100,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 
 ### T1: Add the automated test foundation
 
+**Status**: ✅ Complete — `8139546`
+
 **What**: Instalar e configurar Vitest, Testing Library e Playwright, criar os scripts aprovados e estabelecer servidores/projetos de teste determinísticos.  
 **Where**: `package.json`, `package-lock.json`, `vitest.config.ts`, `playwright.config.ts`, `tests/setup/`  
 **Depends on**: None  
@@ -128,6 +130,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 
 ### T2: Capture the pre-migration visual baseline
 
+**Status**: ✅ Complete — `91f7803`
+
 **What**: Criar fixtures de navegação e screenshots determinísticos da interface atual antes de qualquer mudança visual.  
 **Where**: `tests/visual/dnj-baseline.spec.ts`, `tests/visual/__snapshots__/`, helpers sob `tests/fixtures/`  
 **Depends on**: T1  
@@ -155,6 +159,8 @@ Com 15 tasks, as fases formam três batches naturais para uma futura execução 
 ---
 
 ### T3: Generate and validate Android/iOS installable assets
+
+**Status**: ✅ Complete — `22cea60`
 
 **What**: Criar pipeline reprodutível com Sharp e encoder ICO para derivar os assets instaláveis oficiais de Android, iOS e favicon sem deformação ou corte da marca.  
 **Where**: `scripts/generate-pwa-icons.mjs`, `scripts/generate-pwa-icons.test.ts`, `public/icons/`, `src/app/icon.png`, `src/app/apple-icon.png`, `src/app/favicon.ico`  

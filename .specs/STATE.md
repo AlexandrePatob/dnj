@@ -37,10 +37,10 @@
 ## Handoff
 
 - **Feature**: Migração PWA / `.specs/features/pwa-migration/`
-- **Phase / Task**: Execute — Batch 1, T1–T3
-- **Completed**: análise do repositório, contexto de produto, `spec.md` aprovado, `context.md` aprovado, `design.md` aprovado, matriz de assets Android/iOS definida, estratégia de testes aprovada, `tasks.md` criado e validado
+- **Phase / Task**: Execute — Batch 2, T4–T9
+- **Completed**: planejamento aprovado; T1 fundação de testes (`8139546`); T2 baseline visual com 8 snapshots (`91f7803`); T3 assets Android/iOS validados (`22cea60`)
 - **In-progress** (file:line): none
-- **Next step**: executar sequencialmente T1–T3, T4–T9 e T10–T15 com workers autorizados; depois executar o Verifier independente
+- **Next step**: executar T4–T9; depois T10–T15 e o Verifier independente
 - **Blockers**: UAT final depende de acesso a Android e iPhone/iPad reais
 - **Uncommitted files**: `PRODUCT.md`, `.specs/STATE.md`, `.specs/features/pwa-migration/spec.md`, `.specs/features/pwa-migration/context.md`, `.specs/features/pwa-migration/design.md`, `.specs/features/pwa-migration/tasks.md`
 - **Branch**: dev
