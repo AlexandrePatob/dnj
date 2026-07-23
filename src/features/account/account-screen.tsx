@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LogOut, Moon, Shield, Sun } from "lucide-react";
 import { GameIcon } from "@/components/ui/dnj-controls";
 import type { AnimDir, UserData } from "@/features/app/types";
@@ -10,6 +10,13 @@ export function AccountScreen({
   user: UserData; onLogout: () => void; theme: "light" | "dark"; onToggleTheme: () => void; animDir: AnimDir;
 }) {
   const [confirmingLogout, setConfirmingLogout] = useState(false);
+  const [recordCount, setRecordCount] = useState<number | null>(null);
+  useEffect(() => {
+    void fetch("/api/mock/v1/gallery/mine", { headers: { authorization: "Bearer mock" } })
+      .then((response) => response.ok ? response.json() : null)
+      .then((value: { items?: unknown[] } | null) => setRecordCount(value?.items?.length ?? 0))
+      .catch(() => setRecordCount(null));
+  }, []);
   const maskedCPF = user.cpf
     ? user.cpf.replace(/(\d{3})\.(\d{3})\.(\d{3})-(\d{2})/, "***.$2.$3-**")
     : "***.***.***-**";
@@ -48,7 +55,7 @@ export function AccountScreen({
           {[
             { label: "Pontos", value: user.points },
             { label: "Ranking", value: user.rankPosition > 0 ? `#${user.rankPosition}` : "—" },
-            { label: "Registros", value: "0" },
+            { label: "Registros", value: recordCount ?? "—" },
           ].map((item) => (
             <div key={item.label} className="rounded-2xl px-3 py-3 text-center" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
               <strong className="block text-lg font-black" style={{ color: "var(--primary)" }}>{item.value}</strong>

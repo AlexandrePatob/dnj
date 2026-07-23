@@ -566,11 +566,11 @@ Gate: todo endpoint possui happy path, erro, autenticação e teste de contrato.
 ### Fase 4 — Scanner e participação
 
 - [ ] S4-01 Fazer spike controlado das bibliotecas de QR em Chrome e WebKit.
-- [ ] S4-02 Implementar câmera e lifecycle do stream.
-- [ ] S4-03 Implementar decoder e fallback por arquivo.
-- [ ] S4-04 Integrar validação QR mockada.
-- [ ] S4-05 Implementar todos os estados de permissão e erro.
-- [ ] S4-06 Implementar badge de participação.
+- [x] S4-02 Implementar câmera e lifecycle do stream.
+- [x] S4-03 Implementar decoder e fallback por arquivo.
+- [x] S4-04 Integrar validação QR mockada.
+- [x] S4-05 Implementar todos os estados de permissão e erro.
+- [x] S4-06 Implementar badge de participação.
 - [ ] S4-07 Implementar cooldown derivado do servidor.
 - [ ] S4-08 Restaurar participação após reload.
 - [ ] S4-09 Bloquear ações online quando offline.
@@ -579,17 +579,17 @@ Gate: fluxo completo demonstrável em câmera real, QR válido/inválido, reload
 
 ### Fase 5 — Momentos e Galeria
 
-- [ ] G5-01 Implementar captura/seleção e preview.
-- [ ] G5-02 Implementar consentimento de publicação.
+- [x] G5-01 Implementar captura/seleção e preview.
+- [x] G5-02 Implementar consentimento de publicação.
 - [ ] G5-03 Implementar envio mock e retry.
-- [ ] G5-04 Implementar concessão mock idempotente de pontos.
-- [ ] G5-05 Implementar marca d'água.
-- [ ] G5-06 Implementar compartilhamento e download fallback.
+- [x] G5-04 Implementar concessão mock idempotente de pontos.
+- [x] G5-05 Implementar marca d'água.
+- [x] G5-06 Implementar compartilhamento e download fallback.
 - [ ] G5-07 Implementar tela Galeria e paginação.
-- [ ] G5-08 Implementar Meus registros e estados de moderação.
+- [x] G5-08 Implementar Meus registros e estados de moderação.
 - [ ] G5-09 Implementar lightbox e swipe.
-- [ ] G5-10 Adicionar Galeria à navegação principal.
-- [ ] G5-11 Integrar resumo de registros à Conta.
+- [x] G5-10 Adicionar Galeria à navegação principal.
+- [x] G5-11 Integrar resumo de registros à Conta.
 
 Gate: jornada QR → foto → pontos → Meus registros → Galeria → compartilhar totalmente demonstrável.
 
@@ -732,4 +732,3 @@ Ao iniciar uma nova sessão:
 - [MDN — Web Share API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Share_API)
 - [Vercel — Cron Jobs](https://vercel.com/docs/cron-jobs)
 - [Vercel — Queues](https://vercel.com/docs/queues)
-

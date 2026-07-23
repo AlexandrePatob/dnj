@@ -44,3 +44,10 @@
 - **Blockers**: validação visual automatizada falha 6/8 contra snapshots existentes; usuário assumirá validação manual e orientará eventuais correções.
 - **Uncommitted files**: `.gitignore`, `graphify-out/` e `test-results/`; preservar e não incluir em commits desta feature sem revisão separada.
 - **Branch**: dev
+
+## Handoff update — 2026-07-23
+
+- **Phase / Task**: Fases 4–5 implementadas parcialmente; preparação para API real.
+- **Completed**: QR com decoder dinâmico, fallback por imagem, rota mock e badge de participação; captura com consentimento; Galeria, Meus registros, lightbox, compartilhamento/download e navegação com cinco itens. Commit: `682e2b9`.
+- **Remaining**: spike manual Chrome/WebKit, participação/cooldown persistido no cliente, retry explícito, paginação e swipe. A6 depende do backend/staging.
+- **Validation**: typecheck e 126 testes unitários aprovados. Snapshot visual continua sob revisão manual do usuário.

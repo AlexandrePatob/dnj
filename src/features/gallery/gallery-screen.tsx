@@ -21,6 +21,18 @@ export function GalleryScreen({ animDir }: { animDir: AnimDir }) {
   const [page, setPage] = useState<GalleryPage>({ items: [], nextCursor: null });
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Moment | null>(null);
+  async function shareSelected() {
+    if (!selected) return;
+    const text = `${selected.placeName} · DNJ Curitiba 2026`;
+    if (navigator.share) {
+      await navigator.share({ title: "DNJ Game", text });
+      return;
+    }
+    const link = document.createElement("a");
+    link.href = placeholders[0];
+    link.download = "dnj-game-momento.png";
+    link.click();
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -43,8 +55,8 @@ export function GalleryScreen({ animDir }: { animDir: AnimDir }) {
       </div>
     </header>
     <main className="px-5 py-5">
-      {loading ? <p className="py-10 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Carregando registros...</p> : page.items.length === 0 ? <div className="py-14 text-center"><ImageIcon className="mx-auto mb-3" style={{ color: "var(--muted-foreground)" }} /><p className="font-bold">Nenhum registro ainda</p><p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>Participe de uma atividade para criar o primeiro.</p></div> : <div className="grid grid-cols-2 gap-3">{page.items.map((moment, index) => <button key={moment.id} type="button" onClick={() => setSelected(moment)} className="overflow-hidden rounded-2xl text-left" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><img src={placeholders[index % placeholders.length]} alt={`Momento em ${moment.placeName}`} className="aspect-square w-full object-cover" /><div className="p-3"><p className="truncate text-sm font-bold">{moment.placeName}</p><p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>{moment.moderationStatus === "approved" ? "Publicado" : moment.moderationStatus === "pending" ? "Em moderaÃ§Ã£o" : "NÃ£o publicado"}</p></div></button>)}</div>}
+      {loading ? <p className="py-10 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Carregando registros...</p> : page.items.length === 0 ? <div className="py-14 text-center"><ImageIcon className="mx-auto mb-3" style={{ color: "var(--muted-foreground)" }} /><p className="font-bold">Nenhum registro ainda</p><p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>Participe de uma atividade para criar o primeiro.</p></div> : <div className="grid grid-cols-2 gap-3">{page.items.map((moment, index) => <button key={moment.id} type="button" onClick={() => setSelected(moment)} className="overflow-hidden rounded-2xl text-left" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><span className="relative block"><img src={placeholders[index % placeholders.length]} alt={`Momento em ${moment.placeName}`} className="aspect-square w-full object-cover" /><b className="absolute bottom-2 right-2 rounded-lg px-2 py-1 text-[0.6rem]" style={{ background: "rgba(0,0,0,.55)", color: "white" }}>DNJ GAME</b></span><div className="p-3"><p className="truncate text-sm font-bold">{moment.placeName}</p><p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>{moment.moderationStatus === "approved" ? "Publicado" : moment.moderationStatus === "pending" ? "Em moderaÃ§Ã£o" : "NÃ£o publicado"}</p></div></button>)}</div>}
     </main>
-    {selected && <div className="absolute inset-0 z-50 flex flex-col justify-end p-5" style={{ background: "rgba(0,0,0,.7)" }}><div className="rounded-3xl p-5" style={{ background: "var(--card)" }}><img src={placeholders[0]} alt={`Momento em ${selected.placeName}`} className="mb-4 aspect-square w-full rounded-2xl object-cover" /><div className="flex items-start justify-between gap-4"><div><h2 className="font-black">{selected.placeName}</h2><p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>{selected.pointsAwarded} pontos Â· {selected.moderationStatus === "approved" ? "Aprovado" : "Em moderaÃ§Ã£o"}</p></div><button type="button" onClick={() => setSelected(null)} aria-label="Fechar visualizaÃ§Ã£o"><X /></button></div></div></div>}
+    {selected && <div className="absolute inset-0 z-50 flex flex-col justify-end p-5" style={{ background: "rgba(0,0,0,.7)" }}><div className="rounded-3xl p-5" style={{ background: "var(--card)" }}><img src={placeholders[0]} alt={`Momento em ${selected.placeName}`} className="mb-4 aspect-square w-full rounded-2xl object-cover" /><div className="flex items-start justify-between gap-4"><div><h2 className="font-black">{selected.placeName}</h2><p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>{selected.pointsAwarded} pontos Â· {selected.moderationStatus === "approved" ? "Aprovado" : "Em moderaÃ§Ã£o"}</p></div><button type="button" onClick={() => setSelected(null)} aria-label="Fechar visualizaÃ§Ã£o"><X /></button></div><button type="button" onClick={() => void shareSelected()} className="mt-4 w-full rounded-xl py-3 text-sm font-bold" style={{ background: "var(--primary)", color: "white" }}>Compartilhar ou baixar</button></div></div>}
   </div>;
 }
