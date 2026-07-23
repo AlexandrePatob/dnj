@@ -1,14 +1,16 @@
 "use client";
+
 import { useEffect, useState } from "react";
-import { LogOut, Moon, Shield, Sun } from "lucide-react";
+import { Award, Flame, LogOut, Moon, Shield, Star, Sun, Trophy } from "lucide-react";
 import { GameIcon } from "@/components/ui/dnj-controls";
 import type { AnimDir, UserData } from "@/features/app/types";
-function animStyle(dir: AnimDir): React.CSSProperties { const map: Record<AnimDir,string>={right:"slideInRight 280ms cubic-bezier(0.22,1,0.36,1) both",left:"slideInLeft  280ms cubic-bezier(0.22,1,0.36,1) both",up:"fadeUp       220ms cubic-bezier(0.22,1,0.36,1) both"}; return { animation: map[dir] }; }
-export function AccountScreen({
-  user, onLogout, theme, onToggleTheme, animDir,
-}: {
-  user: UserData; onLogout: () => void; theme: "light" | "dark"; onToggleTheme: () => void; animDir: AnimDir;
-}) {
+
+function animStyle(dir: AnimDir): React.CSSProperties {
+  const map: Record<AnimDir, string> = { right: "slideInRight 280ms cubic-bezier(0.22,1,0.36,1) both", left: "slideInLeft 280ms cubic-bezier(0.22,1,0.36,1) both", up: "fadeUp 220ms cubic-bezier(0.22,1,0.36,1) both" };
+  return { animation: map[dir] };
+}
+
+export function AccountScreen({ user, onLogout, theme, onToggleTheme, animDir }: { user: UserData; onLogout: () => void; theme: "light" | "dark"; onToggleTheme: () => void; animDir: AnimDir }) {
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const [recordCount, setRecordCount] = useState<number | null>(null);
   useEffect(() => {
@@ -17,152 +19,28 @@ export function AccountScreen({
       .then((value: { items?: unknown[] } | null) => setRecordCount(value?.items?.length ?? 0))
       .catch(() => setRecordCount(null));
   }, []);
-  const maskedCPF = user.cpf
-    ? user.cpf.replace(/(\d{3})\.(\d{3})\.(\d{3})-(\d{2})/, "***.$2.$3-**")
-    : "***.***.***-**";
+  const nextLevel = Math.max(0, 200 - user.points);
 
-  return (
-    <div
-      key="account"
-      className="absolute inset-0 overflow-y-auto"
-      style={{ background: "var(--background)", paddingBottom: "var(--main-content-bottom-padding)", ...animStyle(animDir) }}
-    >
-      <div
-        className="px-6 pb-6 flex flex-col items-center"
-        style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", paddingTop: "calc(48px + var(--safe-area-top))" }}
-      >
-        <div
-          className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black mb-3"
-          style={{ background: "var(--primary)", color: "white" }}
-        >
-          {user.name[0]}
-        </div>
-        <h2 className="text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
-          {user.name}
-        </h2>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ background: "var(--accent-alpha-15)", color: "var(--accent)" }}>
-            {user.points} pontos
-          </span>
-          <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ background: "var(--primary-alpha-10)", color: "var(--primary)" }}>
-            #{user.rankPosition} no ranking
-          </span>
-        </div>
+  return <div key="account" className="absolute inset-0 overflow-y-auto" style={{ background: "var(--background)", paddingBottom: "var(--main-content-bottom-padding)", ...animStyle(animDir) }}>
+    <header className="px-5 pb-5" style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", paddingTop: "calc(64px + var(--safe-area-top))" }}>
+      <div className="flex items-center gap-4">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-2xl font-black" style={{ background: "var(--primary)", color: "white", boxShadow: "0 10px 22px var(--primary-alpha-40)" }}>{user.name[0]}</div>
+        <div className="min-w-0 flex-1"><p className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--primary)" }}>Peregrino DNJ</p><h1 className="truncate text-xl font-black">{user.name}</h1><p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>{user.group || "Grupo ainda não escolhido"}</p></div>
       </div>
-
-      <div className="px-5 pt-5 flex flex-col gap-4">
-        <div className="grid grid-cols-3 gap-2" aria-label="Resumo da participação">
-          {[
-            { label: "Pontos", value: user.points },
-            { label: "Ranking", value: user.rankPosition > 0 ? `#${user.rankPosition}` : "—" },
-            { label: "Registros", value: recordCount ?? "—" },
-          ].map((item) => (
-            <div key={item.label} className="rounded-2xl px-3 py-3 text-center" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-              <strong className="block text-lg font-black" style={{ color: "var(--primary)" }}>{item.value}</strong>
-              <span className="text-[0.65rem] font-semibold" style={{ color: "var(--muted-foreground)" }}>{item.label}</span>
-            </div>
-          ))}
-        </div>
-
-        <div
-          className="rounded-2xl overflow-hidden"
-          style={{ background: "var(--card)", border: "1px solid var(--border)" }}
-        >
-          <div className="px-4 py-2.5" style={{ borderBottom: "1px solid var(--border)" }}>
-            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-              Perfil
-            </p>
-          </div>
-          {[
-            { label: "Nome",   value: user.name },
-            { label: "CPF",    value: maskedCPF },
-            { label: "E-mail", value: user.email || "—" },
-            { label: "Grupo",  value: user.group || "—" },
-          ].map((item, i, arr) => (
-            <div
-              key={item.label}
-              className="flex items-center px-4 py-3.5"
-              style={{ borderBottom: i < arr.length - 1 ? "1px solid var(--border)" : "none" }}
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium mb-0.5" style={{ color: "var(--muted-foreground)" }}>{item.label}</p>
-                <p className="text-sm font-semibold truncate" style={{ color: "var(--foreground)" }}>{item.value}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div
-          className="rounded-2xl overflow-hidden"
-          style={{ background: "var(--card)", border: "1px solid var(--border)" }}
-        >
-          <div className="px-4 py-2.5" style={{ borderBottom: "1px solid var(--border)" }}>
-            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-              Configurações
-            </p>
-          </div>
-          <div className="px-4 py-4 flex gap-3" style={{ borderBottom: "1px solid var(--border)" }}>
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: "var(--accent-alpha-15)", color: "var(--accent)" }}>
-              <Shield size={18} aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>Privacidade</p>
-              <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--muted-foreground)" }}>Seus dados são usados somente para sua participação no evento.</p>
-            </div>
-          </div>
-
-          {/* Dark mode toggle */}
-          <button
-            onClick={onToggleTheme}
-            className="w-full flex items-center gap-3 px-4 py-3.5 transition-opacity hover:opacity-80"
-            style={{ borderBottom: "1px solid var(--border)" }}
-          >
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "var(--primary-alpha-10)", color: "var(--primary)" }}>
-              <GameIcon active>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</GameIcon>
-            </div>
-            <span className="flex-1 text-sm font-medium text-left" style={{ color: "var(--foreground)" }}>
-              {theme === "dark" ? "Modo claro" : "Modo escuro"}
-            </span>
-            {/* pill toggle */}
-            <span
-              className="relative flex-shrink-0 rounded-full transition-colors"
-              style={{
-                width: "44px", height: "24px",
-                background: theme === "dark" ? "var(--primary)" : "var(--switch-background)",
-              }}
-            >
-              <span
-                className="absolute top-0.5 rounded-full transition-transform"
-                style={{
-                  width: "20px", height: "20px",
-                  background: "white",
-                  left: "2px",
-                  transform: theme === "dark" ? "translateX(20px)" : "translateX(0)",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                }}
-              />
-            </span>
-          </button>
-          <button
-            onClick={() => confirmingLogout ? onLogout() : setConfirmingLogout(true)}
-            className="w-full flex items-center gap-3 px-4 py-3.5 transition-opacity hover:opacity-80"
-          >
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "var(--red-alpha-12)", color: "var(--secondary)" }}>
-              <GameIcon><LogOut size={18} /></GameIcon>
-            </div>
-            <span className="flex-1 text-sm font-medium text-left" style={{ color: "var(--secondary)" }}>{confirmingLogout ? "Confirmar saída" : "Sair da conta"}</span>
-          </button>
-          {confirmingLogout && (
-            <button onClick={() => setConfirmingLogout(false)} className="w-full px-4 py-3 text-sm font-medium" style={{ borderTop: "1px solid var(--border)", color: "var(--muted-foreground)" }}>
-              Cancelar
-            </button>
-          )}
-        </div>
-
-        <p className="text-center text-xs pb-2" style={{ color: "var(--muted-foreground)" }}>
-          DNJ · Curitiba 2026 · v1.0.0
-        </p>
+      <div className="mt-5 rounded-2xl p-4" style={{ background: "var(--primary-alpha-10)" }}>
+        <div className="flex items-center justify-between gap-4"><span className="flex items-center gap-2 text-sm font-black" style={{ color: "var(--primary)" }}><Trophy size={18} /> Rumo ao próximo nível</span><strong className="text-xs" style={{ color: "var(--muted-foreground)" }}>{nextLevel} pts</strong></div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full" style={{ background: "var(--card)" }}><span className="block h-full rounded-full" style={{ width: `${Math.min((user.points / 200) * 100, 100)}%`, background: "var(--primary)" }} /></div>
+        <p className="mt-2 text-xs" style={{ color: "var(--muted-foreground)" }}>Nível Peregrino · {user.points}/200 pontos</p>
       </div>
-    </div>
-  );
+    </header>
+    <main className="flex flex-col gap-5 px-5 py-5">
+      <section className="grid grid-cols-3 gap-2" aria-label="Progresso no jogo">
+        {[{ label: "Pontos", value: user.points, icon: <Star size={15} /> }, { label: "Ranking", value: user.rankPosition > 0 ? `#${user.rankPosition}` : "—", icon: <Trophy size={15} /> }, { label: "Carimbos", value: recordCount ?? "—", icon: <Award size={15} /> }].map((item) => <div key={item.label} className="rounded-2xl px-2 py-3 text-center" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><span className="mx-auto mb-1 flex w-fit" style={{ color: "var(--primary)" }}>{item.icon}</span><strong className="block text-lg font-black" style={{ color: "var(--foreground)" }}>{item.value}</strong><span className="text-[0.65rem] font-semibold" style={{ color: "var(--muted-foreground)" }}>{item.label}</span></div>)}
+      </section>
+      <section className="rounded-2xl p-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: "var(--accent-alpha-15)", color: "var(--accent)" }}><Flame size={20} /></span><div><p className="font-bold">Sua jornada continua</p><p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>Escaneie uma atividade para ganhar pontos e um novo carimbo.</p></div></div></section>
+      <section className="overflow-hidden rounded-2xl" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><div className="px-4 py-3"><p className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Seu perfil</p></div><div className="px-4 pb-4"><p className="text-sm font-bold">{user.email || "E-mail não informado"}</p><p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>Sua identificação e CPF ficam protegidos na privacidade.</p></div></section>
+      <section className="overflow-hidden rounded-2xl" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><div className="px-4 py-3"><p className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Preferências</p></div><div className="flex gap-3 border-t px-4 py-4" style={{ borderColor: "var(--border)" }}><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: "var(--accent-alpha-15)", color: "var(--accent)" }}><Shield size={18} /></span><p className="text-sm"><strong className="block">Privacidade protegida</strong><span className="mt-1 block text-xs" style={{ color: "var(--muted-foreground)" }}>CPF e dados pessoais não aparecem no perfil público.</span></p></div><button type="button" onClick={onToggleTheme} className="flex w-full items-center gap-3 border-t px-4 py-4 text-left" style={{ borderColor: "var(--border)" }}><span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "var(--primary-alpha-10)", color: "var(--primary)" }}><GameIcon active>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</GameIcon></span><span className="flex-1 text-sm font-bold">{theme === "dark" ? "Usar modo claro" : "Usar modo escuro"}</span><span className="h-6 w-11 rounded-full p-0.5" style={{ background: theme === "dark" ? "var(--primary)" : "var(--switch-background)" }}><span className="block h-5 w-5 rounded-full bg-white transition-transform" style={{ transform: theme === "dark" ? "translateX(20px)" : "translateX(0)" }} /></span></button></section>
+      <button type="button" onClick={() => confirmingLogout ? onLogout() : setConfirmingLogout(true)} className="py-3 text-sm font-bold" style={{ color: "var(--secondary)" }}>{confirmingLogout ? "Confirmar saída" : "Sair da conta"}</button>{confirmingLogout && <button type="button" onClick={() => setConfirmingLogout(false)} className="-mt-4 pb-2 text-sm" style={{ color: "var(--muted-foreground)" }}>Cancelar</button>}
+    </main>
+  </div>;
 }
