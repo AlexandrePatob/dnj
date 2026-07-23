@@ -8,6 +8,7 @@ import { ApiError } from "@/lib/api/client";
 import { groupsApi } from "@/lib/api/groups";
 import { mapApiUser } from "@/lib/api/mappers";
 import type { ApiGroup } from "@/lib/api/contracts";
+import type { AuthSession } from "@/types/domain";
 import { env } from "@/lib/env";
 import { storage } from "@/lib/storage";
 import { ConnectivityStatus } from "@/components/pwa/connectivity-status";
@@ -91,6 +92,39 @@ interface UserData {
   group: string;
   points: number;
   rankPosition: number;
+}
+
+interface RegistrationData {
+  name: string;
+  email: string;
+  mobilePhone: string;
+  group: string;
+}
+
+function sessionUserData(session: AuthSession): UserData {
+  return {
+    name: session.user.name,
+    cpf: session.user.document,
+    email: session.user.email,
+    group: session.user.group?.groupName ?? "",
+    points: session.user.points,
+    rankPosition: session.user.rankPosition,
+  };
+}
+
+function mockSession(user: UserData): AuthSession {
+  return {
+    identityToken: "mock-identity-token",
+    user: {
+      id: "mock-user",
+      name: user.name,
+      email: user.email,
+      document: user.cpf.replace(/\D/g, ""),
+      group: user.group ? { id: "mock-group", groupName: user.group } : null,
+      points: user.points,
+      rankPosition: user.rankPosition,
+    },
+  };
 }
 
 function requestErrorMessage(error: unknown) {
@@ -848,7 +882,7 @@ function LoginScreen({
 function RegisterScreen({
   onBack, onDone, animDir,
 }: {
-  onBack: () => void; onDone: (email: string) => void; animDir: AnimDir;
+  onBack: () => void; onDone: (registration: RegistrationData) => void; animDir: AnimDir;
 }) {
   const [nome, setNome]       = useState("");
   const [email, setEmail]     = useState("");
@@ -1024,7 +1058,10 @@ function RegisterScreen({
         )}
       </div>
 
-      <PrimaryButton onClick={() => onDone(email)} disabled={!valid}>
+      <PrimaryButton
+        onClick={() => onDone({ name: nome.trim(), email, mobilePhone: phone, group })}
+        disabled={!valid}
+      >
         Criar conta
       </PrimaryButton>
     </div>
@@ -2304,12 +2341,14 @@ export function DnjApp() {
   const [screen, setScreen]         = useState<Screen>("login");
   const [prevScreen, setPrevScreen] = useState<Screen>("login");
   const [emailVal, setEmailVal]     = useState("");
-  const [registerEmail, setRegisterEmail] = useState("");
+  const [registration, setRegistration] = useState<RegistrationData | null>(null);
   const [user, setUser] = useState<UserData>({
     name: "João Paulo", cpf: "", email: "", group: "",
     points: 150, rankPosition: 9,
   });
   const [offlineSnapshotCapturedAt, setOfflineSnapshotCapturedAt] = useState<string | null>(null);
+  const [sessionReady, setSessionReady] = useState(false);
+  const restoredSession = useRef(false);
   const restoredSnapshot = useRef(false);
 
   const navigate = useCallback((next: Screen) => {
@@ -2328,6 +2367,7 @@ export function DnjApp() {
 
   const handleVerification = useCallback(async (code: string) => {
     if (env.useMocks) {
+      storage.setSession(mockSession(user));
       navigate("group");
       return;
     }
@@ -2344,7 +2384,28 @@ export function DnjApp() {
       rankPosition: apiUser.rankPosition,
     });
     navigate("group");
-  }, [emailVal, navigate]);
+  }, [emailVal, navigate, user]);
+
+  const handleRegistrationVerification = useCallback(async () => {
+    if (!registration) throw new ApiError("Dados do cadastro não encontrados. Tente novamente.", 400);
+    if (!env.useMocks) {
+      throw new ApiError("A criação de conta ainda não está integrada à API.", 501);
+    }
+
+    const registeredUser: UserData = {
+      name: registration.name,
+      cpf: "",
+      email: registration.email,
+      group: registration.group,
+      points: 0,
+      rankPosition: 0,
+    };
+    const session = mockSession(registeredUser);
+    session.user.mobilePhone = registration.mobilePhone;
+    storage.setSession(session);
+    setUser(registeredUser);
+    navigate("home");
+  }, [navigate, registration]);
 
   const handleGroupConfirm = useCallback(async (group: string, groupId?: string) => {
     let confirmedGroup = group;
@@ -2361,13 +2422,43 @@ export function DnjApp() {
         identityToken: session.identityToken,
         user: { ...session.user, group: updatedUser.group },
       });
+    } else {
+      const session = storage.getSession() ?? mockSession(user);
+      storage.setSession({
+        identityToken: session.identityToken,
+        user: {
+          ...session.user,
+          group: { id: groupId ?? "mock-group", groupName: confirmedGroup },
+        },
+      });
     }
     setUser((current) => ({ ...current, group: confirmedGroup }));
     navigate("home");
-  }, [navigate]);
+  }, [navigate, user]);
 
   const animDir = getAnimDir(prevScreen, screen);
   const isMain  = ["home", "game", "queue", "account"].includes(screen);
+
+  useEffect(() => {
+    if (restoredSession.current) return;
+    restoredSession.current = true;
+    const session = storage.getSession();
+    let disposed = false;
+
+    queueMicrotask(() => {
+      if (disposed) return;
+      if (session) {
+        setUser(sessionUserData(session));
+        setPrevScreen("login");
+        setScreen(session.user.group ? "home" : "group");
+      }
+      setSessionReady(true);
+    });
+
+    return () => {
+      disposed = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (network.isOnline || restoredSnapshot.current || screen !== "login") return;
@@ -2402,6 +2493,10 @@ export function DnjApp() {
     });
   }, [isMain, network.isOnline, screen, user.group, user.name, user.points, user.rankPosition]);
 
+  if (!sessionReady) {
+    return <div className="min-h-dvh" style={{ background: "var(--background)" }} aria-label="Carregando sessao" />;
+  }
+
   return (
     <div
       className={theme === "dark" ? "dark" : ""}
@@ -2422,8 +2517,8 @@ export function DnjApp() {
             transition={{ duration: reduceMotion ? 0.01 : 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
             {screen === "login"           && <LoginScreen    onNext={handleLogin} onRegister={() => navigate("register")} animDir={animDir} />}
-            {screen === "register"        && <RegisterScreen onBack={() => navigate("login")} onDone={(em) => { setRegisterEmail(em); navigate("register-verify"); }} animDir={animDir} />}
-            {screen === "register-verify" && <VerifyScreen  email={registerEmail} onNext={async () => { navigate("home"); }} onBack={() => navigate("register")} animDir={animDir} />}
+            {screen === "register"        && <RegisterScreen onBack={() => navigate("login")} onDone={(data) => { setRegistration(data); navigate("register-verify"); }} animDir={animDir} />}
+            {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} />}
             {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onBack={() => navigate("login")}  animDir={animDir} />}
             {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("verify")} animDir={animDir} initialGroup={user.group} />}
             {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} />}
