@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null);
   if (!body || typeof body.qrToken !== "string" || typeof body.idempotencyKey !== "string") {
-    return Response.json({ code: "QR_INVALID", message: "Envie um QR Code vÃ¡lido." }, { status: 400 });
+    return Response.json({ code: "QR_INVALID", message: "Envie um QR Code válido." }, { status: 400 });
   }
 
   try {

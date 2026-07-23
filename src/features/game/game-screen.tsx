@@ -278,8 +278,8 @@ export function GameScreen({ user, theme, animDir }: { user: UserData; theme: "l
 
             {participation && (
               <div className="rounded-2xl px-4 py-3" style={{ background: "var(--primary-alpha-10)", border: "1px solid var(--primary-alpha-40)" }}>
-                <p className="text-sm font-bold" style={{ color: "var(--primary)" }}>ParticipaÃ§Ã£o ativa</p>
-                <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>{participation.activity.name} Â· {participation.place.name} Â· +{participation.checkInPoints} pontos</p>
+                <p className="text-sm font-bold" style={{ color: "var(--primary)" }}>Participação ativa</p>
+                <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>{participation.activity.name} · {participation.place.name} · +{participation.checkInPoints} pontos</p>
                 {participation.canShareMoment && <button type="button" onClick={() => setMomentOpen(true)} className="mt-3 rounded-xl px-3 py-2 text-xs font-bold" style={{ background: "var(--primary)", color: "white" }}>Compartilhar momento</button>}
               </div>
             )}

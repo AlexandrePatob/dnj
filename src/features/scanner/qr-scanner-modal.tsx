@@ -11,10 +11,10 @@ type ScannerStatus = "starting" | "reading" | "error" | "success";
 
 function scannerMessage(error: unknown) {
   const typed = error as Partial<ExperienceError>;
-  if (typed.code) return typed.message ?? "NÃ£o foi possÃ­vel validar este QR Code.";
-  if (error instanceof DOMException && error.name === "NotAllowedError") return "PermissÃ£o da cÃ¢mera negada. VocÃª pode escolher uma imagem do QR Code.";
-  if (error instanceof DOMException && error.name === "NotFoundError") return "Nenhuma cÃ¢mera foi encontrada neste aparelho.";
-  return "NÃ£o foi possÃ­vel abrir a cÃ¢mera. Tente novamente ou escolha uma imagem.";
+  if (typed.code) return typed.message ?? "Não foi possível validar este QR Code.";
+  if (error instanceof DOMException && error.name === "NotAllowedError") return "Permissão da câmera negada. Você pode escolher uma imagem do QR Code.";
+  if (error instanceof DOMException && error.name === "NotFoundError") return "Nenhuma câmera foi encontrada neste aparelho.";
+  return "Não foi possível abrir a câmera. Tente novamente ou escolha uma imagem.";
 }
 
 export function QrScannerModal({ onClose, onValidated }: { onClose: () => void; onValidated: (participation: Participation) => void }) {
@@ -22,7 +22,7 @@ export function QrScannerModal({ onClose, onValidated }: { onClose: () => void; 
   const controlsRef = useRef<IScannerControls | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<ScannerStatus>("starting");
-  const [message, setMessage] = useState("Preparando cÃ¢mera...");
+  const [message, setMessage] = useState("Preparando câmera...");
   const busyRef = useRef(false);
 
   const stopScanner = useCallback(() => {
@@ -38,7 +38,7 @@ export function QrScannerModal({ onClose, onValidated }: { onClose: () => void; 
     busyRef.current = true;
     stopScanner();
     setStatus("starting");
-    setMessage("Validando participaÃ§Ã£o...");
+    setMessage("Validando participação...");
     try {
       const response = await fetch("/api/mock/v1/qr/validate", {
         method: "POST",
@@ -48,7 +48,7 @@ export function QrScannerModal({ onClose, onValidated }: { onClose: () => void; 
       const body = await response.json();
       if (!response.ok) throw body;
       setStatus("success");
-      setMessage("ParticipaÃ§Ã£o confirmada. Agora vocÃª pode registrar seu momento.");
+      setMessage("Participação confirmada. Agora você pode registrar seu momento.");
       window.setTimeout(() => onValidated(body.participation), 900);
     } catch (error) {
       setStatus("error");
@@ -60,11 +60,11 @@ export function QrScannerModal({ onClose, onValidated }: { onClose: () => void; 
   const startScanner = useCallback(async () => {
     if (!navigator.mediaDevices?.getUserMedia || !videoRef.current) {
       setStatus("error");
-      setMessage("Seu navegador nÃ£o oferece acesso Ã  cÃ¢mera. Escolha uma imagem do QR Code.");
+      setMessage("Seu navegador não oferece acesso à câmera. Escolha uma imagem do QR Code.");
       return;
     }
     setStatus("starting");
-    setMessage("Abrindo cÃ¢mera...");
+    setMessage("Abrindo câmera...");
     try {
       const { BrowserQRCodeReader } = await import("@zxing/browser");
       const reader = new BrowserQRCodeReader();
@@ -74,7 +74,7 @@ export function QrScannerModal({ onClose, onValidated }: { onClose: () => void; 
         (result) => { if (result) void validate(result.getText()); },
       );
       setStatus("reading");
-      setMessage("Aponte a cÃ¢mera para o QR Code do evento.");
+      setMessage("Aponte a câmera para o QR Code do evento.");
     } catch (error) {
       setStatus("error");
       setMessage(scannerMessage(error));
@@ -118,7 +118,7 @@ export function QrScannerModal({ onClose, onValidated }: { onClose: () => void; 
       </div>
       <p className="mb-5 max-w-xs text-center text-sm leading-relaxed" style={{ color: status === "error" ? "var(--destructive)" : "var(--muted-foreground)" }}>{message}</p>
       <input ref={inputRef} type="file" accept="image/*" capture="environment" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) void decodeImage(file); event.currentTarget.value = ""; }} />
-      {status === "error" && <button type="button" onClick={() => void startScanner()} className="mb-3 rounded-xl px-4 py-2 text-sm font-bold" style={{ background: "var(--primary)", color: "white" }}>Tentar cÃ¢mera</button>}
+      {status === "error" && <button type="button" onClick={() => void startScanner()} className="mb-3 rounded-xl px-4 py-2 text-sm font-bold" style={{ background: "var(--primary)", color: "white" }}>Tentar câmera</button>}
       <button type="button" onClick={() => inputRef.current?.click()} className="flex items-center gap-2 text-sm font-semibold" style={{ color: "var(--primary)" }}><ImageUp size={18} /> Ler QR de uma imagem</button>
     </motion.section>
   );
