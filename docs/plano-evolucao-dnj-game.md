@@ -551,8 +551,8 @@ Gate: correções aprovadas em unitários, e2e, snapshots e aparelho real quando
 
 - [x] M3-01 Definir modelos de participação, momento, galeria e erros.
 - [x] M3-02 Definir interfaces de repositories.
-- [ ] M3-03 Criar fixtures realistas do evento.
-- [ ] M3-04 Criar motor de cenários mock e latência.
+- [x] M3-03 Criar fixtures realistas do evento.
+- [x] M3-04 Criar motor de cenários mock e latência.
 - [ ] M3-05 Criar Route Handler de validação QR.
 - [ ] M3-06 Criar Route Handler de participação atual.
 - [ ] M3-07 Criar Route Handler de momentos.
