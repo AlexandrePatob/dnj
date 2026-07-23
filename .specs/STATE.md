@@ -37,10 +37,10 @@
 ## Handoff
 
 - **Feature**: Modularização DNJ / `.specs/features/dnj-modularization/`
-- **Phase / Task**: Fase 3; M3-07 é próxima.
+- **Phase / Task**: Fase 3; M3-08 é próxima.
 - **Completed**: Fase 1 modularizada; Fase 2 aplicou viewport-fit, variáveis únicas de safe area, BottomNav segura, padding de telas e avisos PWA, Conta hierárquica com saída confirmada e CTA grande para scanner. Typecheck, lint e 113 testes unitários aprovados.
 - **In-progress** (file:line): none
-- **Next step**: M3-07, criar Route Handler de momentos.
+- **Next step**: M3-08, criar Route Handlers de galeria geral e pessoal.
 - **Blockers**: validação visual automatizada falha 6/8 contra snapshots existentes; usuário assumirá validação manual e orientará eventuais correções.
 - **Uncommitted files**: `.gitignore`, `graphify-out/` e `test-results/`; preservar e não incluir em commits desta feature sem revisão separada.
 - **Branch**: dev
