@@ -268,8 +268,8 @@ export function DnjApp() {
         {isMain && <TopBar />}
         {!network.isOnline && offlineSnapshotCapturedAt && (
           <p
-            className="absolute left-3 right-3 top-14 z-40 rounded-xl border px-3 py-2 text-center text-xs font-medium"
-            style={{ background: "var(--card)", borderColor: "var(--border)", color: "var(--muted-foreground)" }}
+            className="absolute left-3 right-3 z-40 rounded-xl border px-3 py-2 text-center text-xs font-medium"
+            style={{ top: "calc(48px + var(--safe-area-top) + 8px)", background: "var(--card)", borderColor: "var(--border)", color: "var(--muted-foreground)" }}
           >
             Conteúdo salvo em {new Date(offlineSnapshotCapturedAt).toLocaleString("pt-BR")} · somente leitura
           </p>

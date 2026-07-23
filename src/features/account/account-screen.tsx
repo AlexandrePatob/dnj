@@ -1,5 +1,6 @@
 "use client";
-import { Bell, ChevronRight, LogOut, Moon, Shield, Sun } from "lucide-react";
+import { useState } from "react";
+import { LogOut, Moon, Shield, Sun } from "lucide-react";
 import { GameIcon } from "@/components/ui/dnj-controls";
 import type { AnimDir, UserData } from "@/features/app/types";
 function animStyle(dir: AnimDir): React.CSSProperties { const map: Record<AnimDir,string>={right:"slideInRight 280ms cubic-bezier(0.22,1,0.36,1) both",left:"slideInLeft  280ms cubic-bezier(0.22,1,0.36,1) both",up:"fadeUp       220ms cubic-bezier(0.22,1,0.36,1) both"}; return { animation: map[dir] }; }
@@ -8,6 +9,7 @@ export function AccountScreen({
 }: {
   user: UserData; onLogout: () => void; theme: "light" | "dark"; onToggleTheme: () => void; animDir: AnimDir;
 }) {
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
   const maskedCPF = user.cpf
     ? user.cpf.replace(/(\d{3})\.(\d{3})\.(\d{3})-(\d{2})/, "***.$2.$3-**")
     : "***.***.***-**";
@@ -15,12 +17,12 @@ export function AccountScreen({
   return (
     <div
       key="account"
-      className="absolute inset-0 overflow-y-auto pb-28"
-      style={{ background: "var(--background)", ...animStyle(animDir) }}
+      className="absolute inset-0 overflow-y-auto"
+      style={{ background: "var(--background)", paddingBottom: "var(--main-content-bottom-padding)", ...animStyle(animDir) }}
     >
       <div
-        className="px-6 pt-12 pb-6 flex flex-col items-center"
-        style={{ background: "var(--card)", borderBottom: "1px solid var(--border)" }}
+        className="px-6 pb-6 flex flex-col items-center"
+        style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", paddingTop: "calc(48px + var(--safe-area-top))" }}
       >
         <div
           className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black mb-3"
@@ -42,6 +44,19 @@ export function AccountScreen({
       </div>
 
       <div className="px-5 pt-5 flex flex-col gap-4">
+        <div className="grid grid-cols-3 gap-2" aria-label="Resumo da participação">
+          {[
+            { label: "Pontos", value: user.points },
+            { label: "Ranking", value: user.rankPosition > 0 ? `#${user.rankPosition}` : "—" },
+            { label: "Registros", value: "0" },
+          ].map((item) => (
+            <div key={item.label} className="rounded-2xl px-3 py-3 text-center" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+              <strong className="block text-lg font-black" style={{ color: "var(--primary)" }}>{item.value}</strong>
+              <span className="text-[0.65rem] font-semibold" style={{ color: "var(--muted-foreground)" }}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+
         <div
           className="rounded-2xl overflow-hidden"
           style={{ background: "var(--card)", border: "1px solid var(--border)" }}
@@ -79,22 +94,15 @@ export function AccountScreen({
               Configurações
             </p>
           </div>
-          {[
-            { icon: <Bell size={18} />,   label: "Notificações", bg: "var(--teal-alpha-15)",   color: "var(--chart-2)" },
-            { icon: <Shield size={18} />, label: "Privacidade",  bg: "var(--accent-alpha-15)", color: "var(--accent)"  },
-          ].map((item) => (
-            <button
-              key={item.label}
-              className="w-full flex items-center gap-3 px-4 py-3.5 transition-opacity hover:opacity-80"
-              style={{ borderBottom: "1px solid var(--border)" }}
-            >
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: item.bg, color: item.color }}>
-                <GameIcon>{item.icon}</GameIcon>
-              </div>
-              <span className="flex-1 text-sm font-medium text-left" style={{ color: "var(--foreground)" }}>{item.label}</span>
-              <ChevronRight size={16} style={{ color: "var(--muted-foreground)" }} />
-            </button>
-          ))}
+          <div className="px-4 py-4 flex gap-3" style={{ borderBottom: "1px solid var(--border)" }}>
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: "var(--accent-alpha-15)", color: "var(--accent)" }}>
+              <Shield size={18} aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>Privacidade</p>
+              <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--muted-foreground)" }}>Seus dados são usados somente para sua participação no evento.</p>
+            </div>
+          </div>
 
           {/* Dark mode toggle */}
           <button
@@ -129,14 +137,19 @@ export function AccountScreen({
             </span>
           </button>
           <button
-            onClick={onLogout}
+            onClick={() => confirmingLogout ? onLogout() : setConfirmingLogout(true)}
             className="w-full flex items-center gap-3 px-4 py-3.5 transition-opacity hover:opacity-80"
           >
             <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "var(--red-alpha-12)", color: "var(--secondary)" }}>
               <GameIcon><LogOut size={18} /></GameIcon>
             </div>
-            <span className="flex-1 text-sm font-medium text-left" style={{ color: "var(--secondary)" }}>Sair da conta</span>
+            <span className="flex-1 text-sm font-medium text-left" style={{ color: "var(--secondary)" }}>{confirmingLogout ? "Confirmar saída" : "Sair da conta"}</span>
           </button>
+          {confirmingLogout && (
+            <button onClick={() => setConfirmingLogout(false)} className="w-full px-4 py-3 text-sm font-medium" style={{ borderTop: "1px solid var(--border)", color: "var(--muted-foreground)" }}>
+              Cancelar
+            </button>
+          )}
         </div>
 
         <p className="text-center text-xs pb-2" style={{ color: "var(--muted-foreground)" }}>

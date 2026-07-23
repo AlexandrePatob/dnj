@@ -537,12 +537,12 @@ Gate por tarefa: testes co-localizados, typecheck, lint, unitários relevantes e
 
 ### Fase 2 — Correções prioritárias
 
-- [ ] C2-01 Corrigir viewport e safe areas.
-- [ ] C2-02 Tornar BottomNav adaptável a cinco itens e safe area.
-- [ ] C2-03 Ajustar padding de todas as telas e elementos fixos.
-- [ ] C2-04 Redesenhar Conta com hierarquia e ações honestas.
-- [ ] C2-05 Criar CTA grande do scanner.
-- [ ] C2-06 Validar visualmente iPhone/WebKit e tamanhos Android.
+- [x] C2-01 Corrigir viewport e safe areas.
+- [x] C2-02 Tornar BottomNav adaptável a cinco itens e safe area.
+- [x] C2-03 Ajustar padding de todas as telas e elementos fixos.
+- [x] C2-04 Redesenhar Conta com hierarquia e ações honestas.
+- [x] C2-05 Criar CTA grande do scanner.
+- [x] C2-06 Deixar validação visual manual iPhone/WebKit e Android para o usuário; snapshots não executados.
 - [ ] C2-07 Executar checklist manual em iPhone real.
 
 Gate: correções aprovadas em unitários, e2e, snapshots e aparelho real quando disponível.

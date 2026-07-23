@@ -55,7 +55,7 @@ export function LoginScreen({
       {/* Orange hero with official logo */}
       <div
         className="relative flex flex-col items-center justify-center overflow-hidden"
-        style={{ background: "var(--primary)", paddingTop: "56px", paddingBottom: "32px" }}
+        style={{ background: "var(--primary)", paddingTop: "calc(56px + var(--safe-area-top))", paddingBottom: "32px" }}
       >
         <div
           className="absolute inset-0 pointer-events-none"
@@ -186,8 +186,8 @@ export function RegisterScreen({
   return (
     <div
       key="register"
-      className="flex flex-col min-h-dvh px-6 pt-12 pb-10 overflow-y-auto"
-      style={{ background: "var(--background)", ...animStyle(animDir) }}
+      className="flex flex-col min-h-dvh px-6 pb-10 overflow-y-auto"
+      style={{ background: "var(--background)", paddingTop: "calc(48px + var(--safe-area-top))", ...animStyle(animDir) }}
     >
       <BackButton onClick={onBack} />
 
@@ -398,8 +398,8 @@ export function VerifyScreen({
   return (
     <div
       key="verify"
-      className="flex flex-col min-h-dvh px-6 pt-12 pb-10"
-      style={{ background: "var(--background)", ...animStyle(animDir) }}
+      className="flex flex-col min-h-dvh px-6 pb-10"
+      style={{ background: "var(--background)", paddingTop: "calc(48px + var(--safe-area-top))", ...animStyle(animDir) }}
     >
       <BackButton onClick={onBack} />
 
@@ -532,8 +532,8 @@ export function GroupScreen({
   return (
     <div
       key="group"
-      className="flex flex-col min-h-dvh px-6 pt-12 pb-10"
-      style={{ background: "var(--background)", ...animStyle(animDir) }}
+      className="flex flex-col min-h-dvh px-6 pb-10"
+      style={{ background: "var(--background)", paddingTop: "calc(48px + var(--safe-area-top))", ...animStyle(animDir) }}
     >
       <BackButton onClick={onBack} />
 

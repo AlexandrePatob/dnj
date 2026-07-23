@@ -68,12 +68,12 @@ export function QueueScreen({ animDir }: { animDir: AnimDir }) {
     return (
       <div
         key="queue-select"
-        className="absolute inset-0 overflow-y-auto pb-28"
-        style={{ background: "var(--background)", ...animStyle(animDir) }}
+        className="absolute inset-0 overflow-y-auto"
+        style={{ background: "var(--background)", paddingBottom: "var(--main-content-bottom-padding)", ...animStyle(animDir) }}
       >
         <div
-          className="px-6 pt-12 pb-5"
-          style={{ background: "var(--card)", borderBottom: "1px solid var(--border)" }}
+          className="px-6 pb-5"
+          style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", paddingTop: "calc(48px + var(--safe-area-top))" }}
         >
           <h1 className="font-bold mx-[0px] mt-[16px] mb-[0px] text-[24px]" style={{ color: "var(--foreground)" }}>
             Fila do Espaço Esperança
@@ -165,13 +165,13 @@ export function QueueScreen({ animDir }: { animDir: AnimDir }) {
   return (
     <div
       key={`queue-${queueType}`}
-      className="absolute inset-0 overflow-y-auto pb-28"
-      style={{ background: "var(--background)", animation: "fadeUp 220ms cubic-bezier(0.22,1,0.36,1) both" }}
+      className="absolute inset-0 overflow-y-auto"
+      style={{ background: "var(--background)", paddingBottom: "var(--main-content-bottom-padding)", animation: "fadeUp 220ms cubic-bezier(0.22,1,0.36,1) both" }}
     >
       {/* Header */}
       <div
-        className="px-6 pt-12 pb-5 flex-shrink-0"
-        style={{ background: "var(--card)", borderBottom: "1px solid var(--border)" }}
+        className="px-6 pb-5 flex-shrink-0"
+        style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", paddingTop: "calc(48px + var(--safe-area-top))" }}
       >
         <h1 className="tex mx-[0px] mt-[16px] mb-[0px]t-xl font-bold text-[24px]" style={{ color: "var(--foreground)" }}>
           {isConfession ? "Confissão" : "Direção Espiritual"}

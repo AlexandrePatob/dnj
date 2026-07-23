@@ -13,17 +13,18 @@ export function TopBar() {
         top:          0,
         left:         0,
         right:        0,
-        height:       "48px",
+        height:       "calc(48px + var(--safe-area-top))",
         zIndex:       50,
         background:   "var(--primary)",
         display:      "flex",
         alignItems:   "center",
         justifyContent: "space-between",
+        paddingTop:   "var(--safe-area-top)",
         paddingLeft:  "16px",
         paddingRight: "16px",
         gap:          "12px",
       }}
-      initial={{ y: -48 }}
+      initial={{ y: "-100%" }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 260, damping: 25 }}
     >
@@ -70,9 +71,10 @@ export function BottomNav({
       style={{
         background: "var(--card)",
         borderTop:  "1px solid var(--border)",
-        height:     "68px",
+        height:     "var(--bottom-nav-total-height)",
+        paddingBottom: "var(--safe-area-bottom)",
       }}
-      initial={{ y: 68 }}
+      initial={{ y: "100%" }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 260, damping: 26 }}
     >

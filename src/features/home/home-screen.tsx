@@ -97,13 +97,13 @@ export function HomeScreen({ user, animDir }: { user: UserData; animDir: AnimDir
   return (
     <div
       key="home"
-      className="absolute inset-0 overflow-y-auto pb-28"
-      style={{ background: "var(--background)", ...animStyle(animDir) }}
+      className="absolute inset-0 overflow-y-auto"
+      style={{ background: "var(--background)", paddingBottom: "var(--main-content-bottom-padding)", ...animStyle(animDir) }}
     >
       {/* Header */}
       <div
-        className="px-6 pt-12 pb-5"
-        style={{ background: "var(--card)", borderBottom: "1px solid var(--border)" }}
+        className="px-6 pb-5"
+        style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", paddingTop: "calc(48px + var(--safe-area-top))" }}
       >
         <p className="font-medium mb-1" style={{ fontSize: "14px", color: "var(--muted-foreground)", marginTop: "15px" }}>
           Olá, {user.name.split(" ")[0]}! ✨

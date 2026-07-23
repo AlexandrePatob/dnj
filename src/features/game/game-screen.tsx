@@ -47,8 +47,8 @@ function QRModal({ onClose }: { onClose: () => void }) {
     >
       <button
         onClick={onClose}
-        className="absolute top-12 right-6 w-10 h-10 rounded-xl flex items-center justify-center"
-        style={{ background: "var(--muted)" }}
+        className="absolute right-6 w-10 h-10 rounded-xl flex items-center justify-center"
+        style={{ top: "calc(48px + var(--safe-area-top))", background: "var(--muted)" }}
       >
         <X size={18} style={{ color: "var(--foreground)" }} />
       </button>
@@ -195,13 +195,13 @@ export function GameScreen({ user, theme, animDir }: { user: UserData; theme: "l
   return (
     <div
       key="game"
-      className="absolute inset-0 flex flex-col pb-28"
-      style={{ background: "var(--background)", ...animStyle(animDir) }}
+      className="absolute inset-0 flex flex-col"
+      style={{ background: "var(--background)", paddingBottom: "var(--main-content-bottom-padding)", ...animStyle(animDir) }}
     >
       {/* Header */}
       <div
-        className="px-6 pt-12 pb-4 flex-shrink-0"
-        style={{ background: "var(--card)", borderBottom: "1px solid var(--border)" }}
+        className="px-6 pb-4 flex-shrink-0"
+        style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", paddingTop: "calc(48px + var(--safe-area-top))" }}
       >
         <div className="flex items-center justify-between mb-4" style={{ marginTop: "20px" }}>
           <img
@@ -245,6 +245,22 @@ export function GameScreen({ user, theme, animDir }: { user: UserData; theme: "l
 
         {tab === "overview" && (
           <div className="px-5 pt-5 flex flex-col gap-5 pb-24">
+            <button
+              type="button"
+              onClick={() => { dismissTooltip(); setQrOpen(true); }}
+              className="w-full rounded-2xl px-5 py-5 text-left transition-transform active:scale-[0.98]"
+              style={{ background: "var(--primary)", color: "white", boxShadow: "0 12px 28px var(--primary-alpha-40)" }}
+            >
+              <span className="flex items-center gap-4">
+                <span className="flex h-14 w-14 items-center justify-center rounded-2xl" style={{ background: "rgba(255,255,255,0.16)" }}>
+                  <QrCode size={30} aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-lg font-bold">Escanear QR Code</span>
+                  <span className="mt-1 block text-sm" style={{ color: "rgba(255,255,255,0.82)" }}>Participe de uma atividade e ganhe pontos</span>
+                </span>
+              </span>
+            </button>
 
             {/* Ranking summary — onboarding or live position */}
             {showQrTooltip ? (
@@ -443,62 +459,6 @@ export function GameScreen({ user, theme, animDir }: { user: UserData; theme: "l
             </div>
           </div>
         )}
-      </div>
-
-      {/* Floating QR button + first-visit tooltip */}
-      <div style={{ position: "absolute", bottom: "100px", right: "20px", zIndex: 30, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" }}>
-
-        {showQrTooltip && (
-          <div
-            style={{ animation: "fadeUp 260ms cubic-bezier(0.22,1,0.36,1) both" }}
-          >
-            <div
-              style={{
-                background:   "var(--foreground)",
-                color:        "var(--background)",
-                borderRadius: "10px",
-                padding:      "8px 14px",
-                fontSize:     "0.8125rem",
-                fontWeight:   "var(--font-weight-bold)" as React.CSSProperties["fontWeight"],
-                whiteSpace:   "nowrap",
-                boxShadow:    "0 4px 16px rgba(0,0,0,0.25)",
-                position:     "relative",
-              }}
-            >
-              Escaneie aqui
-              {/* Arrow pointing down-right */}
-              <span style={{
-                position:    "absolute",
-                bottom:      "-6px",
-                right:       "22px",
-                width:       0,
-                height:      0,
-                borderLeft:  "6px solid transparent",
-                borderRight: "6px solid transparent",
-                borderTop:   "6px solid var(--foreground)",
-              }} />
-            </div>
-          </div>
-        )}
-
-        <button
-          onClick={() => { dismissTooltip(); setQrOpen(true); }}
-          onTouchStart={showQrTooltip ? dismissTooltip : undefined}
-          className="transition-all active:scale-90"
-          style={{
-            width:        "60px",
-            height:       "60px",
-            borderRadius: "18px",
-            background:   "var(--primary)",
-            boxShadow:    "0 6px 24px var(--primary-alpha-40)",
-            display:      "flex",
-            alignItems:   "center",
-            justifyContent: "center",
-            animation:    showQrTooltip ? "haloPulse 2s ease-in-out infinite" : "none",
-          }}
-        >
-          <GameIcon active={showQrTooltip}><QrCode size={26} color="white" /></GameIcon>
-        </button>
       </div>
 
       <AnimatePresence>{qrOpen && <QRModal onClose={() => setQrOpen(false)} />}</AnimatePresence>

@@ -37,10 +37,10 @@
 ## Handoff
 
 - **Feature**: Modularização DNJ / `.specs/features/dnj-modularization/`
-- **Phase / Task**: Fase 1 concluída; aguardar validação visual manual antes da Fase 2.
-- **Completed**: baseline e R1-01/R1-02 concluídos; R1-03 a R1-09 extraíram layout e telas locais; `DnjApp` agora orquestra sessão, navegação e composição; typecheck, lint e 113 testes unitários aprovados.
+- **Phase / Task**: Fase 2 concluída; aguardar validação visual manual antes da Fase 3.
+- **Completed**: Fase 1 modularizada; Fase 2 aplicou viewport-fit, variáveis únicas de safe area, BottomNav segura, padding de telas e avisos PWA, Conta hierárquica com saída confirmada e CTA grande para scanner. Typecheck, lint e 113 testes unitários aprovados.
 - **In-progress** (file:line): none
-- **Next step**: usuário validar visualmente a Fase 1 e orientar correções; depois iniciar Fase 2 conforme plano.
+- **Next step**: usuário validar visualmente iPhone/WebKit e Android; depois iniciar Fase 3 conforme plano.
 - **Blockers**: validação visual automatizada falha 6/8 contra snapshots existentes; usuário assumirá validação manual e orientará eventuais correções.
 - **Uncommitted files**: `.gitignore`, `graphify-out/` e `test-results/`; preservar e não incluir em commits desta feature sem revisão separada.
 - **Branch**: dev
