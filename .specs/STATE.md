@@ -36,11 +36,11 @@
 
 ## Handoff
 
-- **Feature**: Promoção de instalação PWA / `.specs/features/pwa-install-promotion/`
-- **Phase / Task**: Execute and independent Verify complete
-- **Completed**: especificação (`e62558a`, `a6d5773`); ciclo de instalação (`7612590`); interface e integração (`9f58cc7`); operação (`602824c`); correções de sessão (`6c1bac6`). Verificação final: 11/11 critérios, 110/110 unit tests, typecheck, lint e build aprovados; sensor 3/3 mutações mortas; nenhum teste em browser executado.
+- **Feature**: Modularização DNJ / `.specs/features/dnj-modularization/`
+- **Phase / Task**: Fase 0 documentada; baseline bloqueada antes de B0-01.
+- **Completed**: restauração de sessão mockada validada e commitada (`065d0df`); plano aprovado versionado (`b169c78`); typecheck, lint, 113 testes unitários e build aprovados; baseline visual executada sem atualização de snapshots.
 - **In-progress** (file:line): none
-- **Next step**: executar os checklists manuais de `docs/pwa.md` em Android/Chrome e iPhone/Safari reais quando houver aparelhos disponíveis.
-- **Blockers**: implementação sem bloqueios; evidência em aparelho real de instalação, ícones, standalone e safe areas/status bar permanece manual.
-- **Uncommitted files**: `.gitignore` e `tests/e2e/pwa-flow.spec.ts` (alterações preexistentes ou somente de line ending; preservar).
+- **Next step**: B0-01, corrigir isolamento do status de reconexão em `tests/e2e/pwa-flow.spec.ts` e provar o cenário em Chromium/WebKit; depois revisar B0-02.
+- **Blockers**: e2e WebKit falha em `tests/e2e/pwa-flow.spec.ts:30` porque aviso de atualização ocupa `role=status`; visual falha 6/8 em Home, Game, Fila e Conta contra snapshots existentes. Não iniciar R1-01 antes de classificar e resolver essas diferenças.
+- **Uncommitted files**: `.gitignore`, `graphify-out/` e `test-results/`; preservar e não incluir em commits desta feature sem revisão separada.
 - **Branch**: dev
