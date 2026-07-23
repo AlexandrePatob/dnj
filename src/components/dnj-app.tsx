@@ -64,6 +64,7 @@ function getAnimDir(from: Screen, to: Screen): AnimDir {
 import { AccountScreen } from "@/features/account/account-screen";
 import { GroupScreen, LoginScreen, RegisterScreen, VerifyScreen } from "@/features/auth/auth-screens";
 import { GameScreen } from "@/features/game/game-screen";
+import { GalleryScreen } from "@/features/gallery/gallery-screen";
 import { HomeScreen } from "@/features/home/home-screen";
 import { QueueScreen } from "@/features/queue/queue-screen";
 import { AppShell, BottomNav, TopBar } from "@/components/layout/dnj-layout";
@@ -182,7 +183,7 @@ export function DnjApp() {
   }, [navigate, user]);
 
   const animDir = getAnimDir(prevScreen, screen);
-  const isMain  = ["home", "game", "queue", "account"].includes(screen);
+  const isMain  = ["home", "game", "queue", "gallery", "account"].includes(screen);
 
   useEffect(() => {
     if (restoredSession.current) return;
@@ -228,7 +229,7 @@ export function DnjApp() {
     writeOfflineSnapshot({
       schemaVersion: 1,
       capturedAt: new Date().toISOString(),
-      lastMainScreen: screen as "home" | "game" | "queue" | "account",
+      lastMainScreen: screen as "home" | "game" | "queue" | "gallery" | "account",
       user: {
         name: user.name,
         group: user.group,
@@ -261,6 +262,7 @@ export function DnjApp() {
             {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} />}
             {screen === "game"    && <GameScreen    user={user} theme={theme}      animDir={animDir} />}
             {screen === "queue"   && <QueueScreen                                  animDir={animDir} />}
+            {screen === "gallery" && <GalleryScreen                                animDir={animDir} />}
             {screen === "account" && <AccountScreen user={user} onLogout={() => { storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
           </motion.div>
         </AnimatePresence>

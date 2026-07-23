@@ -2,13 +2,16 @@
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Camera, QrCode, X } from "lucide-react";
+import { QrCode } from "lucide-react";
 import gameLogoDark from "@/assets/brand/DNJGAME_DARK.png";
 import gameLogoLight from "@/assets/brand/DNJGAME_01.png";
 import { GameIcon, MedalBadge, PointIcon } from "@/components/ui/dnj-controls";
 import { TOP3_BG } from "@/features/app/constants";
 import { GROUP_RANKING, INDIVIDUAL_RANKING, POINTS_LOG } from "@/features/app/fixtures";
 import type { AnimDir, GameTab, RankingTab, UserData } from "@/features/app/types";
+import { QrScannerModal } from "@/features/scanner/qr-scanner-modal";
+import { MomentComposer } from "@/features/moments/moment-composer";
+import type { Participation } from "@/types/experience";
 function animStyle(dir: AnimDir): React.CSSProperties { const map: Record<AnimDir,string>={right:"slideInRight 280ms cubic-bezier(0.22,1,0.36,1) both",left:"slideInLeft  280ms cubic-bezier(0.22,1,0.36,1) both",up:"fadeUp       220ms cubic-bezier(0.22,1,0.36,1) both"}; return { animation: map[dir] }; }
 function useCountUp(target: number, duration = 800) {
   const [value, setValue] = useState(0);
@@ -35,7 +38,7 @@ function useCountUp(target: number, duration = 800) {
   return value;
 }
 
-function QRModal({ onClose }: { onClose: () => void }) {
+/* function QRModal({ onClose }: { onClose: () => void }) {
   return (
     <motion.div
       className="absolute inset-0 z-50 flex flex-col items-center justify-center px-6"
@@ -114,7 +117,7 @@ function QRModal({ onClose }: { onClose: () => void }) {
       </p>
     </motion.div>
   );
-}
+} */
 function RankRow({
   position, name, group, points, isUser, isLast, showGroupLabel = true,
 }: {
@@ -176,6 +179,8 @@ export function GameScreen({ user, theme, animDir }: { user: UserData; theme: "l
   const [tab, setTab]         = useState<GameTab>("overview");
   const [rankTab, setRankTab] = useState<RankingTab>("individual");
   const [qrOpen, setQrOpen]   = useState(false);
+  const [participation, setParticipation] = useState<Participation | null>(null);
+  const [momentOpen, setMomentOpen] = useState(false);
   const count = useCountUp(user.points, 900);
   const [showQrTooltip, setShowQrTooltip] = useState(() => {
     try { return !localStorage.getItem("dnj_qr_seen"); } catch { return true; }
@@ -185,6 +190,15 @@ export function GameScreen({ user, theme, animDir }: { user: UserData; theme: "l
     try { localStorage.setItem("dnj_qr_seen", "1"); } catch { /* noop */ }
     setShowQrTooltip(false);
   }
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/mock/v1/participations/current", { headers: { authorization: "Bearer mock" } })
+      .then(async (response) => response.status === 204 ? null : response.json())
+      .then((body) => { if (!cancelled) setParticipation(body?.participation ?? null); })
+      .catch(() => { if (!cancelled) setParticipation(null); });
+    return () => { cancelled = true; };
+  }, []);
 
   const userEntry      = INDIVIDUAL_RANKING.find((e) => e.isUser);
   const userGroupEntry = user.group
@@ -261,6 +275,14 @@ export function GameScreen({ user, theme, animDir }: { user: UserData; theme: "l
                 </span>
               </span>
             </button>
+
+            {participation && (
+              <div className="rounded-2xl px-4 py-3" style={{ background: "var(--primary-alpha-10)", border: "1px solid var(--primary-alpha-40)" }}>
+                <p className="text-sm font-bold" style={{ color: "var(--primary)" }}>ParticipaÃ§Ã£o ativa</p>
+                <p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>{participation.activity.name} Â· {participation.place.name} Â· +{participation.checkInPoints} pontos</p>
+                {participation.canShareMoment && <button type="button" onClick={() => setMomentOpen(true)} className="mt-3 rounded-xl px-3 py-2 text-xs font-bold" style={{ background: "var(--primary)", color: "white" }}>Compartilhar momento</button>}
+              </div>
+            )}
 
             {/* Ranking summary — onboarding or live position */}
             {showQrTooltip ? (
@@ -461,7 +483,8 @@ export function GameScreen({ user, theme, animDir }: { user: UserData; theme: "l
         )}
       </div>
 
-      <AnimatePresence>{qrOpen && <QRModal onClose={() => setQrOpen(false)} />}</AnimatePresence>
+      <AnimatePresence>{qrOpen && <QrScannerModal onClose={() => setQrOpen(false)} onValidated={(value) => { setParticipation(value); setQrOpen(false); }} />}</AnimatePresence>
+      {momentOpen && participation && <MomentComposer participation={participation} onClose={() => setMomentOpen(false)} onCreated={() => setMomentOpen(false)} />}
     </div>
   );
 }

@@ -1,6 +1,4 @@
-import { createMockExperienceRepositories } from "@/lib/mocks/mock-experience-repositories";
-
-const repositories = createMockExperienceRepositories();
+import { mockExperienceRepositories as repositories } from "@/lib/mocks/mock-experience-store";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);

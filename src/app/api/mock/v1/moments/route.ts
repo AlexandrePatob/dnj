@@ -1,6 +1,4 @@
-import { createMockExperienceRepositories } from "@/lib/mocks/mock-experience-repositories";
-
-const repositories = createMockExperienceRepositories();
+import { mockExperienceRepositories as repositories } from "@/lib/mocks/mock-experience-store";
 
 export async function POST(request: Request) {
   if (!request.headers.get("authorization")) {

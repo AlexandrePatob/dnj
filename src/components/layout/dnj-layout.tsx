@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import type { ReactNode } from "react";
 import { motion } from "motion/react";
-import { Home, Trophy, User, Users } from "lucide-react";
+import { Home, Images, Trophy, User, Users } from "lucide-react";
 import heroLogo from "@/assets/brand/DNJ_geral.png";
 import type { Screen, Theme } from "@/features/app/types";
 export function TopBar() {
@@ -62,6 +62,7 @@ export function BottomNav({
     { screen: "home",    icon: <Home    size={22} />, label: "Home"    },
     { screen: "game",    icon: <Trophy  size={22} />, label: "DNJ Game" },
     { screen: "queue",   icon: <Users   size={22} />, label: "Fila"    },
+    { screen: "gallery", icon: <Images  size={22} />, label: "Galeria" },
     { screen: "account", icon: <User    size={22} />, label: "Conta"   },
   ];
 

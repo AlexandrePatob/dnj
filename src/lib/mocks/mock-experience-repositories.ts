@@ -11,14 +11,17 @@ export function createMockExperienceRepositories(options: MockExperienceOptions 
   const scenario = options.scenario ?? "success";
   const latencyMs = options.latencyMs ?? 250;
   const moments = mockMoments.map((moment) => ({ ...moment }));
-  const createdByKey = new Map<string, string>();
+  const participationByKey = new Map<string, string>();
+  const momentByKey = new Map<string, string>();
 
   const participation: ParticipationRepository = {
     async validateQr({ qrToken, idempotencyKey }) {
       if (!qrToken.trim()) throw mockError("QR_INVALID");
       if (qrToken === "expired") throw mockError("QR_EXPIRED");
-      if (createdByKey.has(idempotencyKey)) return mockParticipation;
-      createdByKey.set(idempotencyKey, mockParticipation.id);
+      if (qrToken === "duplicate") throw mockError("QR_ALREADY_USED");
+      if (qrToken === "cooldown") throw mockError("COOLDOWN_ACTIVE");
+      if (participationByKey.has(idempotencyKey)) return mockParticipation;
+      participationByKey.set(idempotencyKey, mockParticipation.id);
       return resolveMockScenario(scenario, mockParticipation, latencyMs);
     },
     getCurrent: () => resolveMockScenario(scenario, mockParticipation, latencyMs),
@@ -28,7 +31,7 @@ export function createMockExperienceRepositories(options: MockExperienceOptions 
     async create(input) {
       if (!input.publishConsent) throw mockError("CONSENT_REQUIRED");
       if (input.participationId !== mockParticipation.id) throw mockError("PARTICIPATION_REQUIRED");
-      const existingId = createdByKey.get(input.idempotencyKey);
+      const existingId = momentByKey.get(input.idempotencyKey);
       if (existingId) return moments.find((item) => item.id === existingId) ?? moments[0];
       const created = {
         ...moments[0],
@@ -37,7 +40,7 @@ export function createMockExperienceRepositories(options: MockExperienceOptions 
         capturedAt: new Date().toISOString(),
       };
       moments.unshift(created);
-      createdByKey.set(input.idempotencyKey, created.id);
+      momentByKey.set(input.idempotencyKey, created.id);
       return resolveMockScenario(scenario, created, latencyMs);
     },
     async remove(momentId) {

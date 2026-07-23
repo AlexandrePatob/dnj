@@ -7,6 +7,25 @@ servers:
   - url: /v1
   - url: /api/mock/v1
 paths:
+  /qr/validate:
+    post:
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [qrToken, idempotencyKey]
+              properties:
+                qrToken: { type: string }
+                idempotencyKey: { type: string, format: uuid }
+      responses:
+        '201': { description: Participação criada ou recuperada, content: { application/json: { schema: { type: object, properties: { participation: { $ref: '#/components/schemas/Participation' } } } } } }
+        '400': { $ref: '#/components/responses/QrInvalid' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '409': { $ref: '#/components/responses/QrUnavailable' }
+        '410': { $ref: '#/components/responses/QrExpired' }
   /participations/current:
     get:
       security: [{ bearerAuth: [] }]
@@ -87,3 +106,6 @@ components:
   responses:
     Unauthenticated: { description: Autenticação necessária, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
     ConsentRequired: { description: Consentimento necessário, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    QrInvalid: { description: QR inválido, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    QrUnavailable: { description: QR duplicado ou cooldown ativo, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    QrExpired: { description: QR expirado, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
