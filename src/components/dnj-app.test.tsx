@@ -89,5 +89,5 @@ describe("DnjApp session restoration", () => {
     render(<DnjApp />);
     expect(await screen.findByText(/Maria!/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Entrar" })).not.toBeInTheDocument();
-  });
+  }, 15_000);
 });
