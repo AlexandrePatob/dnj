@@ -554,7 +554,7 @@ Gate: correções aprovadas em unitários, e2e, snapshots e aparelho real quando
 - [x] M3-03 Criar fixtures realistas do evento.
 - [x] M3-04 Criar motor de cenários mock e latência.
 - [x] M3-05 Criar repositories mock.
-- [ ] M3-06 Criar Route Handler de participação atual.
+- [x] M3-06 Criar Route Handler de participação atual.
 - [ ] M3-07 Criar Route Handler de momentos.
 - [ ] M3-08 Criar Route Handlers de galeria geral e pessoal.
 - [ ] M3-09 Criar persistência IndexedDB para registros mockados.
