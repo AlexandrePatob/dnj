@@ -8,7 +8,7 @@
 ## Fase 1
 
 - [x] R1-01 Extrair tipos, constantes e fixtures de `dnj-app.tsx`.
-- [ ] R1-02 Extrair somente componentes UI reutilizados por mais de uma feature.
+- [x] R1-02 Extrair somente componentes UI reutilizados por mais de uma feature.
 - [ ] R1-03 Extrair `AppShell`, `TopBar` e `BottomNav` sem alterar estilos.
 - [ ] R1-04 Extrair autenticação e cadastro.
 - [ ] R1-05 Extrair Home.

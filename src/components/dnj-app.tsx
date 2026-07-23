@@ -15,7 +15,15 @@ import { ConnectivityStatus } from "@/components/pwa/connectivity-status";
 import { InstallPromotion } from "@/components/pwa/install-promotion";
 import { usePwa } from "@/components/pwa/pwa-registrar";
 import { useNetworkStatus } from "@/hooks/use-network-status";
-import { AUTH_ORDER, TOP3_BG, TOP3_MEDAL } from "@/features/app/constants";
+import {
+  BackButton,
+  FieldInput,
+  GameIcon,
+  MedalBadge,
+  PointIcon,
+  PrimaryButton,
+} from "@/components/ui/dnj-controls";
+import { AUTH_ORDER, TOP3_BG } from "@/features/app/constants";
 import {
   CONFESSION_FAQ,
   GROUP_RANKING,
@@ -50,10 +58,8 @@ import {
   QrCode,
   User,
   Trophy,
-  Star,
   Search,
   X,
-  ArrowLeft,
   Check,
   Zap,
   Heart,
@@ -170,129 +176,6 @@ function useCountUp(target: number, duration = 800) {
   }, [target, duration, reduced]);
 
   return value;
-}
-
-// ─── Shared helpers ───────────────────────────────────────────────────────────
-
-function GameIcon({ children, active = false }: { children: React.ReactNode; active?: boolean }) {
-  const reduceMotion = useReducedMotion();
-
-  return (
-    <motion.span
-      className="inline-flex items-center justify-center"
-      initial={reduceMotion ? false : { opacity: 0, scale: 0.55, rotate: -14 }}
-      animate={reduceMotion ? undefined : active ? { opacity: 1, scale: [1, 1.14, 1], rotate: 0 } : { opacity: 1, scale: 1, rotate: 0 }}
-      whileHover={reduceMotion ? undefined : { scale: 1.16, rotate: -7 }}
-      whileTap={reduceMotion ? undefined : { scale: 0.84, rotate: 7 }}
-      transition={active
-        ? { duration: 0.38, times: [0, 0.55, 1], ease: [0.22, 1, 0.36, 1] }
-        : { type: "spring", stiffness: 430, damping: 20 }}
-    >
-      {children}
-    </motion.span>
-  );
-}
-
-function PointIcon({ type }: { type: string }) {
-  const map: Record<string, React.ReactNode> = {
-    qr:    <QrCode  size={16} />,
-    star:  <Star    size={16} />,
-    heart: <Heart   size={16} />,
-    zap:   <Zap     size={16} />,
-    users: <Users   size={16} />,
-  };
-  return <GameIcon>{map[type] ?? <Star size={16} />}</GameIcon>;
-}
-
-function MedalBadge({ position }: { position: number }) {
-  if (TOP3_MEDAL[position]) {
-    return <span className="text-2xl leading-none flex-shrink-0">{TOP3_MEDAL[position]}</span>;
-  }
-  return (
-    <span
-      className="w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold flex-shrink-0"
-      style={{ background: "var(--muted)", color: "var(--muted-foreground)" }}
-    >
-      {position}
-    </span>
-  );
-}
-
-function PrimaryButton({
-  onClick, disabled, children, className = "",
-}: {
-  onClick?: () => void; disabled?: boolean; children: React.ReactNode; className?: string;
-}) {
-  return (
-    <motion.button
-      onClick={onClick}
-      disabled={disabled}
-      className={`w-full py-4 rounded-2xl font-semibold text-base transition-all active:scale-95 disabled:opacity-40 ${className}`}
-      style={{ background: "var(--primary)", color: "white" }}
-      whileHover={disabled ? undefined : { y: -2, boxShadow: "0 12px 28px var(--primary-alpha-40)" }}
-      whileTap={disabled ? undefined : { scale: 0.97 }}
-      transition={{ type: "spring", stiffness: 420, damping: 24 }}
-    >
-      {children}
-    </motion.button>
-  );
-}
-
-function BackButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex items-center gap-1.5 w-fit transition-opacity hover:opacity-70 active:opacity-50"
-      style={{ color: "var(--muted-foreground)" }}
-    >
-      <ArrowLeft size={18} />
-      <span className="text-sm font-medium">Voltar</span>
-    </button>
-  );
-}
-
-function FieldInput({
-  label, ...props
-}: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
-  const [focused, setFocused] = useState(false);
-  const filled = props.value !== undefined && String(props.value).length > 0;
-
-  return (
-    <motion.div
-      className="flex flex-col gap-1.5"
-      animate={focused ? { y: -2, scale: 1.01 } : { y: 0, scale: 1 }}
-      transition={{ type: "spring", stiffness: 420, damping: 28 }}
-    >
-      <motion.label
-        className="text-xs font-semibold"
-        animate={{ color: focused ? "var(--primary)" : "var(--muted-foreground)", x: focused ? 3 : 0 }}
-        transition={{ duration: 0.18 }}
-      >
-        {label}
-      </motion.label>
-      <div className="relative">
-        <input
-          {...props}
-          className="w-full px-4 py-3.5 rounded-xl text-sm outline-none transition-all"
-          style={{
-            background: "var(--input-background)",
-            color:      "var(--foreground)",
-            border:     `1.5px solid ${focused ? "var(--primary)" : filled ? "var(--accent-alpha-30)" : "var(--border)"}`,
-            boxShadow:  focused ? "0 8px 24px var(--primary-alpha-15)" : "none",
-          }}
-          onFocus={(e) => { setFocused(true); props.onFocus?.(e); }}
-          onBlur={(e)  => { setFocused(false); props.onBlur?.(e); }}
-        />
-        <motion.span
-          className="pointer-events-none absolute bottom-0 left-4 right-4 h-0.5 origin-left rounded-full"
-          style={{ background: "linear-gradient(90deg, var(--primary), var(--accent))" }}
-          initial={false}
-          animate={{ scaleX: focused ? 1 : 0, opacity: focused ? 1 : 0 }}
-          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-        />
-      </div>
-    </motion.div>
-  );
 }
 
 // Simple accordion item
