@@ -37,10 +37,10 @@
 ## Handoff
 
 - **Feature**: Modularização DNJ / `.specs/features/dnj-modularization/`
-- **Phase / Task**: Fase 1; R1-01 em andamento.
-- **Completed**: restauração de sessão mockada validada e commitada (`065d0df`); plano aprovado versionado (`b169c78`); especificação e baseline registradas (`3fc4105`); isolamento de conectividade e2e concluído (`2f231ce`); B0-02 aprovada para validação visual manual sem atualizar snapshots; typecheck, lint, 113 testes unitários, build e 6/6 e2e aprovados.
+- **Phase / Task**: Fase 1; R1-02 é próxima.
+- **Completed**: restauração de sessão mockada validada e commitada (`065d0df`); plano aprovado versionado (`b169c78`); especificação e baseline registradas (`3fc4105`); isolamento de conectividade e2e concluído (`2f231ce`); B0-02 aprovada para validação visual manual sem atualizar snapshots; R1-01 extraiu tipos, constantes e fixtures; typecheck, lint e 113 testes unitários aprovados.
 - **In-progress** (file:line): none
-- **Next step**: concluir R1-01, extraindo tipos, constantes e fixtures de `src/components/dnj-app.tsx` sem alteração funcional.
+- **Next step**: R1-02, extrair somente componentes UI usados por mais de uma feature.
 - **Blockers**: validação visual automatizada falha 6/8 contra snapshots existentes; usuário assumirá validação manual e orientará eventuais correções.
 - **Uncommitted files**: `.gitignore`, `graphify-out/` e `test-results/`; preservar e não incluir em commits desta feature sem revisão separada.
 - **Branch**: dev
