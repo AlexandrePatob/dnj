@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { storage } from "@/lib/storage";
 import type { AuthSession } from "@/types/domain";
+import { BottomNav } from "./layout/dnj-layout";
 import { DnjApp } from "./dnj-app";
 
 const session: AuthSession = {
@@ -90,4 +91,24 @@ describe("DnjApp session restoration", () => {
     expect(await screen.findByText(/Maria!/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Entrar" })).not.toBeInTheDocument();
   }, 15_000);
+});
+
+describe("BottomNav", () => {
+  it("uses the approved navigation order and gallery label", async () => {
+    const user = userEvent.setup();
+    const onNavigate = vi.fn();
+
+    render(<BottomNav active="home" onNavigate={onNavigate} />);
+
+    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual([
+      "Home",
+      "Galeria DNJ",
+      "DNJ Game",
+      "Fila",
+      "Conta",
+    ]);
+
+    await user.click(screen.getByRole("button", { name: "Galeria DNJ" }));
+    expect(onNavigate).toHaveBeenCalledWith("gallery");
+  });
 });
