@@ -37,10 +37,10 @@
 ## Handoff
 
 - **Feature**: Modularização DNJ / `.specs/features/dnj-modularization/`
-- **Phase / Task**: Fase 0; B0-01 concluída, B0-02 bloqueada por aprovação visual.
-- **Completed**: restauração de sessão mockada validada e commitada (`065d0df`); plano aprovado versionado (`b169c78`); especificação e baseline registradas (`3fc4105`); isolamento de conectividade e2e concluído (`2f231ce`); typecheck, lint, 113 testes unitários, build e 6/6 e2e aprovados.
+- **Phase / Task**: Fase 1; R1-01 em andamento.
+- **Completed**: restauração de sessão mockada validada e commitada (`065d0df`); plano aprovado versionado (`b169c78`); especificação e baseline registradas (`3fc4105`); isolamento de conectividade e2e concluído (`2f231ce`); B0-02 aprovada para validação visual manual sem atualizar snapshots; typecheck, lint, 113 testes unitários, build e 6/6 e2e aprovados.
 - **In-progress** (file:line): none
-- **Next step**: obter aprovação explícita ou direcionamento para as seis diferenças visuais e executar B0-02; depois iniciar R1-01.
-- **Blockers**: visual falha 6/8 em Home, Game, Fila e Conta contra snapshots existentes. Diferenças pequenas ficam nos headers claros; snapshots dark não correspondem ao tema dark atual. Não iniciar R1-01 antes de aprovar ou corrigir essas diferenças.
+- **Next step**: concluir R1-01, extraindo tipos, constantes e fixtures de `src/components/dnj-app.tsx` sem alteração funcional.
+- **Blockers**: validação visual automatizada falha 6/8 contra snapshots existentes; usuário assumirá validação manual e orientará eventuais correções.
 - **Uncommitted files**: `.gitignore`, `graphify-out/` e `test-results/`; preservar e não incluir em commits desta feature sem revisão separada.
 - **Branch**: dev

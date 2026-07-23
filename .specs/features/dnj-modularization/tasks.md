@@ -3,7 +3,7 @@
 ## Baseline unblock
 
 - [x] B0-01 Isolar aviso de conectividade no teste WebKit para não competir com aviso de atualização; provar reconexão em Chromium e WebKit (`2f231ce`).
-- [ ] B0-02 Revisar cada diferença visual atual contra o snapshot versionado; corrigir regressão ou registrar aprovação explícita antes de qualquer snapshot mudar.
+- [x] B0-02 Revisar diferenças visuais manualmente; o usuário aprovou continuidade sem atualização de snapshots.
 
 ## Fase 1
 

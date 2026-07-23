@@ -32,7 +32,7 @@ Executar `ARCH-01`: modularizar a experiência atual sem regressão visual ou fu
 - `npm.cmd run test:e2e`: 5/6 aprovado; WebKit falha em `tests/e2e/pwa-flow.spec.ts:30` porque `getByRole("status")` encontra aviso de atualização em vez de reconexão.
 - `npm.cmd run test:visual`: Login 2/2 aprovado; Home, Game, Fila e Conta 6/8 divergem dos snapshots versionados. Nenhum snapshot foi atualizado.
 
-As falhas de browser bloqueiam `ARCH-04` até serem classificadas e corrigidas ou terem diferenças visuais explicitamente aprovadas.
+O usuário aprovou continuidade sem bloquear por snapshots. Diferenças visuais serão validadas manualmente e nenhum snapshot será atualizado sem instrução explícita.
 
 ## Requirement Traceability
 
@@ -41,6 +41,6 @@ As falhas de browser bloqueiam `ARCH-04` até serem classificadas e corrigidas o
 | ARCH-01 | Planned |
 | ARCH-02 | Planned |
 | ARCH-03 | Planned |
-| ARCH-04 | Blocked by baseline |
+| ARCH-04 | Manual visual validation approved |
 | ARCH-05 | Active |
 | ARCH-06 | Planned |
