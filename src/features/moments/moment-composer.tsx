@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, Check, X } from "lucide-react";
+import { Camera, Check, RefreshCw, RotateCcw, X } from "lucide-react";
 import type { Participation } from "@/types/experience";
 
 type MomentStep = "capture" | "consent";
@@ -15,6 +15,7 @@ export function MomentComposer({ participation, onClose, onCreated }: { particip
   const [status, setStatus] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [step, setStep] = useState<MomentStep>("capture");
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
 
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
   const stopCamera = useCallback(() => {
@@ -31,7 +32,7 @@ export function MomentComposer({ participation, onClose, onCreated }: { particip
     stopCamera();
     setStatus("Abrindo câmera...");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facingMode } }, audio: false });
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -42,10 +43,10 @@ export function MomentComposer({ participation, onClose, onCreated }: { particip
     } catch {
       setStatus("Não foi possível abrir a câmera. Autorize o acesso e tente novamente.");
     }
-  }, [stopCamera]);
+  }, [facingMode, stopCamera]);
   useEffect(() => {
-    void startCamera();
-    return stopCamera;
+    const timer = window.setTimeout(() => { void startCamera(); }, 0);
+    return () => { window.clearTimeout(timer); stopCamera(); };
   }, [startCamera, stopCamera]);
   useEffect(() => {
     if (!cameraOpen || !streamRef.current || !videoRef.current) return;
@@ -80,17 +81,17 @@ export function MomentComposer({ participation, onClose, onCreated }: { particip
     void startCamera();
   }
   async function submit() {
-    if (!file || !consent) return;
+    if (!file) return;
     setStatus("Enviando momento...");
     const body = new FormData();
     body.set("participationId", participation.id);
     body.set("image", file);
-    body.set("publishConsent", "true");
+    body.set("publishConsent", String(consent));
     body.set("idempotencyKey", crypto.randomUUID());
     try {
       const response = await fetch("/api/mock/v1/moments", { method: "POST", headers: { authorization: "Bearer mock" }, body });
       if (!response.ok) throw await response.json();
-      setStatus("Momento enviado para moderação.");
+      setStatus(consent ? "Momento enviado para moderação." : "Momento salvo em Meus Momentos.");
       window.setTimeout(onCreated, 700);
     } catch (error) {
       setStatus((error as { message?: string }).message ?? "Não foi possível enviar agora.");
@@ -107,6 +108,6 @@ export function MomentComposer({ participation, onClose, onCreated }: { particip
       {preview ? <img src={preview} alt="Prévia do momento capturado" className="h-full w-full object-cover" /> : <><video ref={videoRef} muted playsInline className="h-full w-full object-cover" style={{ display: cameraOpen ? "block" : "none" }} />{!cameraOpen && <span className="flex h-full flex-col items-center justify-center px-6 text-center"><Camera className="mb-3" style={{ color: "var(--primary)" }} /><strong>{status === "Abrindo câmera..." ? "Abrindo câmera..." : "Câmera indisponível"}</strong></span>}</>}
       {!preview && <><span aria-hidden="true" className="absolute left-0 top-0 h-12 w-12 rounded-tl-3xl border-l-4 border-t-4" style={{ borderColor: "var(--primary)" }} /><span aria-hidden="true" className="absolute right-0 top-0 h-12 w-12 rounded-tr-3xl border-r-4 border-t-4" style={{ borderColor: "var(--primary)" }} /><span aria-hidden="true" className="absolute bottom-0 left-0 h-12 w-12 rounded-bl-3xl border-b-4 border-l-4" style={{ borderColor: "var(--primary)" }} /><span aria-hidden="true" className="absolute bottom-0 right-0 h-12 w-12 rounded-br-3xl border-b-4 border-r-4" style={{ borderColor: "var(--primary)" }} /></>}
     </div>
-    {step === "capture" ? <><p className="mt-6 text-center text-sm" style={{ color: status && !cameraOpen ? "var(--destructive)" : "var(--muted-foreground)" }}>{cameraOpen ? "Capture uma foto agora para compartilhar." : status}</p><button type="button" disabled={!cameraOpen} onClick={capturePhoto} className="mt-4 flex w-full max-w-[34rem] items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold disabled:opacity-40" style={{ background: "var(--primary)", color: "white" }}><Camera size={18} /> Capturar foto</button>{!cameraOpen && <button type="button" onClick={() => void startCamera()} className="mt-3 text-sm font-semibold" style={{ color: "var(--primary)" }}>Tentar abrir câmera</button>}</> : <div className="mt-6 w-full max-w-[34rem]"><label className="flex gap-3 rounded-2xl p-4 text-sm" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1" /><span><strong>Autorizar publicação na Galeria DNJ</strong><br /><small style={{ color: "var(--muted-foreground)" }}>Seu registro passa por moderação antes de aparecer publicamente.</small></span></label>{status && <p className="mt-4 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>{status}</p>}<button type="button" disabled={!file || !consent || status === "Enviando momento..."} onClick={() => void submit()} className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-bold disabled:opacity-40" style={{ background: "var(--primary)", color: "white" }}><Check size={18} /> Enviar momento</button><button type="button" onClick={retakePhoto} className="mt-3 w-full py-2 text-sm font-semibold" style={{ color: "var(--primary)" }}>Refazer foto</button></div>}
+    {step === "capture" ? <><p className="mt-6 text-center text-sm" style={{ color: status && !cameraOpen ? "var(--destructive)" : "var(--muted-foreground)" }}>{cameraOpen ? "Capture uma foto agora para compartilhar." : status}</p><div className="mt-4 flex w-full max-w-[34rem] gap-3"><button type="button" disabled={!cameraOpen} onClick={capturePhoto} className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold disabled:opacity-40" style={{ background: "var(--primary)", color: "white" }}><Camera size={18} /> Capturar foto</button><button type="button" disabled={!cameraOpen} onClick={() => setFacingMode((value) => value === "environment" ? "user" : "environment")} className="rounded-xl px-4 disabled:opacity-40" style={{ background: "var(--muted)", color: "var(--foreground)" }} aria-label="Trocar câmera"><RefreshCw size={18} /></button></div>{!cameraOpen && <button type="button" onClick={() => void startCamera()} className="mt-3 text-sm font-semibold" style={{ color: "var(--primary)" }}>Tentar abrir câmera</button>}</> : <div className="mt-6 w-full max-w-[34rem]"><label className="flex gap-3 rounded-2xl p-4 text-sm" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-1" /><span><strong>Autorizar publicação na Galeria DNJ</strong><br /><small style={{ color: "var(--muted-foreground)" }}>Com autorização, aparece na Galeria DNJ após moderação.</small></span></label>{status && <p className="mt-4 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>{status}</p>}<button type="button" disabled={!file || status === "Enviando momento..."} onClick={() => void submit()} className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-bold disabled:opacity-40" style={{ background: "var(--primary)", color: "white" }}><Check size={18} /> {consent ? "Enviar para moderação" : "Salvar em Meus Momentos"}</button><button type="button" onClick={retakePhoto} className="mt-3 flex w-full items-center justify-center gap-2 py-2 text-sm font-semibold" style={{ color: "var(--primary)" }}><RotateCcw size={16} /> Refazer foto</button></div>}
   </section>;
 }

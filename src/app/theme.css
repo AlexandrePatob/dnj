@@ -13,6 +13,13 @@
   --color-red: #db3a2e;
   --color-lime: #b2d64d;
   --color-teal: #34d1d1;
+  --color-game-green: #5fae3f;
+  --game: var(--color-game-green);
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --shadow-card: 0 12px 28px rgba(11, 35, 37, .10);
 
   /* ── Typography ── */
   --font-size: 16px;

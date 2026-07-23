@@ -260,7 +260,7 @@ export function DnjApp() {
             {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onBack={() => navigate("login")}  animDir={animDir} />}
             {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("verify")} animDir={animDir} initialGroup={user.group} />}
             {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} />}
-            {screen === "game"    && <GameScreen    user={user} theme={theme}      animDir={animDir} />}
+            {screen === "game"    && <GameScreen    user={user} theme={theme} animDir={animDir} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
             {screen === "queue"   && <QueueScreen                                  animDir={animDir} />}
             {screen === "gallery" && <GalleryScreen                                animDir={animDir} />}
             {screen === "account" && <AccountScreen user={user} onLogout={() => { storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}

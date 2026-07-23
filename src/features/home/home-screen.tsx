@@ -5,6 +5,7 @@ import { Calendar, ChevronDown, MapPin, Zap } from "lucide-react";
 import { GameIcon } from "@/components/ui/dnj-controls";
 import { MAP_PINS, SPACES } from "@/features/app/fixtures";
 import type { AnimDir, UserData } from "@/features/app/types";
+import { getDnjLevel } from "@/lib/levels";
 function animStyle(dir: AnimDir): React.CSSProperties { const map: Record<AnimDir,string>={right:"slideInRight 280ms cubic-bezier(0.22,1,0.36,1) both",left:"slideInLeft  280ms cubic-bezier(0.22,1,0.36,1) both",up:"fadeUp       220ms cubic-bezier(0.22,1,0.36,1) both"}; return { animation: map[dir] }; }
 function SpaceItem({ name, desc }: { name: string; desc: string }) {
   const [open, setOpen] = useState(false);
@@ -56,7 +57,7 @@ function SpaceItem({ name, desc }: { name: string; desc: string }) {
 // ─── QR Modal ─────────────────────────────────────────────────────────────────
 function MissionPulse({ points }: { points: number }) {
   const reduceMotion = useReducedMotion();
-  const progress = Math.min((points / 200) * 100, 100);
+  const level = getDnjLevel(points);
 
   return (
     <motion.section
@@ -71,9 +72,9 @@ function MissionPulse({ points }: { points: number }) {
         <h2>Reconstrua.<br /><em>Um passo por vez.</em></h2>
         <p>Explore os espaços, escaneie desafios e fortaleça seu grupo.</p>
         <div className="mission-progress-label">
-          <span>Nível Peregrino</span><strong>{points}/200 XP</strong>
+          <span>Nível {level.name}</span><strong>{level.nextPoints ? `${points}/${level.nextPoints} XP` : `${points} XP`}</strong>
         </div>
-        <div className="mission-progress"><motion.span initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ delay: 0.45, duration: 0.8, ease: [0.22, 1, 0.36, 1] }} /></div>
+        <div className="mission-progress"><motion.span initial={{ width: 0 }} animate={{ width: `${level.progress}%` }} transition={{ delay: 0.45, duration: 0.8, ease: [0.22, 1, 0.36, 1] }} /></div>
       </div>
 
       <div className="mission-orbit" aria-hidden="true">

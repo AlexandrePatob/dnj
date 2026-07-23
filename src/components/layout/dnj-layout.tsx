@@ -88,7 +88,7 @@ export function BottomNav({
             onClick={() => onNavigate(screen)}
             aria-current={isActive ? "page" : undefined}
             className={`relative flex flex-1 flex-col items-center justify-center gap-1 ${isGame ? "z-10 -translate-y-3 overflow-visible" : "z-0 overflow-hidden"}`}
-            style={{ color: isGame ? "var(--primary)" : isActive ? "white" : "var(--muted-foreground)", position: "relative" }}
+            style={{ color: isGame ? "var(--game)" : isActive ? "white" : "var(--muted-foreground)", position: "relative" }}
             whileTap={{ scale: isGame ? 0.94 : 0.9 }}
           >
             {isActive && !isGame && (
@@ -100,9 +100,9 @@ export function BottomNav({
               />
             )}
             <motion.span
-              className={isGame ? "relative z-10 flex h-[52px] w-[52px] items-center justify-center rounded-full" : "relative z-10"}
-              style={isGame ? { background: "var(--primary)", boxShadow: "0 8px 18px var(--primary-alpha-40)", color: "white" } : undefined}
-              animate={isGame ? { y: isActive ? -2 : 0, scale: isActive ? 1.06 : 1 } : isActive ? { y: -2, scale: 1.06 } : { y: 0, scale: 1 }}
+              className={isGame ? "relative z-10 flex h-[62px] w-[62px] items-center justify-center rounded-[22px]" : "relative z-10"}
+              style={isGame ? { background: "var(--game)", boxShadow: "0 10px 22px color-mix(in srgb, var(--game) 35%, transparent)", color: "white" } : undefined}
+              animate={isGame ? { y: isActive ? -4 : 0, scale: isActive ? 1.08 : 1 } : isActive ? { y: -2, scale: 1.06 } : { y: 0, scale: 1 }}
             >
               {icon}
             </motion.span>

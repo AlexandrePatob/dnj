@@ -96,6 +96,7 @@ export function QrScannerModal({ onClose, onValidated }: { onClose: () => void; 
       </div>
       <div className="relative mb-6 aspect-square w-[80vw] max-w-[34rem] overflow-hidden rounded-3xl" style={{ background: "var(--muted)" }}>
         <video ref={videoRef} muted playsInline className="h-full w-full object-cover" />
+        {status === "reading" && <span aria-hidden="true" className="absolute left-5 right-5 h-0.5" style={{ background: "var(--game)", boxShadow: "0 0 12px var(--game)", animation: "scanLine 1.8s ease-in-out infinite" }} />}
         {status !== "reading" && <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-5 text-center" style={{ background: "color-mix(in srgb, var(--background) 82%, transparent)" }}>{status === "success" ? <QrCode size={36} style={{ color: "var(--primary)" }} /> : <Camera size={36} style={{ color: "var(--muted-foreground)" }} />}</span>}
         <span aria-hidden="true" className="absolute left-0 top-0 h-12 w-12 rounded-tl-3xl border-l-4 border-t-4" style={{ borderColor: "var(--primary)" }} />
         <span aria-hidden="true" className="absolute right-0 top-0 h-12 w-12 rounded-tr-3xl border-r-4 border-t-4" style={{ borderColor: "var(--primary)" }} />
