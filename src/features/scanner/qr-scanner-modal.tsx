@@ -82,8 +82,8 @@ export function QrScannerModal({ onClose, onValidated }: { onClose: () => void; 
   }, [validate]);
 
   useEffect(() => {
-    void startScanner();
-    return stopScanner;
+    const timer = window.setTimeout(() => { void startScanner(); }, 0);
+    return () => { window.clearTimeout(timer); stopScanner(); };
   }, [startScanner, stopScanner]);
 
   async function decodeImage(file: File) {

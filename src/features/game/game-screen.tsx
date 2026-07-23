@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence } from "motion/react";
 import { QrCode } from "lucide-react";
 import gameLogoDark from "@/assets/brand/DNJGAME_DARK.png";
 import gameLogoLight from "@/assets/brand/DNJGAME_01.png";

@@ -36,7 +36,6 @@ export function GalleryScreen({ animDir }: { animDir: AnimDir }) {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     const url = tab === "public" ? "/api/mock/v1/gallery?eventId=event_dnj_curitiba_2026" : "/api/mock/v1/gallery/mine";
     void fetch(url, { headers: tab === "mine" ? { authorization: "Bearer mock" } : undefined })
       .then((response) => response.ok ? response.json() : Promise.reject())
@@ -51,7 +50,7 @@ export function GalleryScreen({ animDir }: { animDir: AnimDir }) {
       <h1 className="text-2xl font-black" style={{ color: "var(--foreground)" }}>Galeria DNJ</h1>
       <p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>MemÃ³rias que a juventude estÃ¡ criando.</p>
       <div className="mt-4 flex rounded-xl p-1" style={{ background: "var(--muted)" }}>
-        {[{ id: "public" as const, label: "Galeria" }, { id: "mine" as const, label: "Meus registros" }].map((item) => <button key={item.id} type="button" onClick={() => setTab(item.id)} className="flex-1 rounded-lg py-2 text-sm font-bold" style={{ background: tab === item.id ? "var(--primary)" : "transparent", color: tab === item.id ? "white" : "var(--muted-foreground)" }}>{item.label}</button>)}
+        {[{ id: "public" as const, label: "Galeria" }, { id: "mine" as const, label: "Meus registros" }].map((item) => <button key={item.id} type="button" onClick={() => { setLoading(true); setTab(item.id); }} className="flex-1 rounded-lg py-2 text-sm font-bold" style={{ background: tab === item.id ? "var(--primary)" : "transparent", color: tab === item.id ? "white" : "var(--muted-foreground)" }}>{item.label}</button>)}
       </div>
     </header>
     <main className="px-5 py-5">
