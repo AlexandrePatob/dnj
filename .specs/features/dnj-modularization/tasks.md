@@ -9,14 +9,14 @@
 
 - [x] R1-01 Extrair tipos, constantes e fixtures de `dnj-app.tsx`.
 - [x] R1-02 Extrair somente componentes UI reutilizados por mais de uma feature.
-- [ ] R1-03 Extrair `AppShell`, `TopBar` e `BottomNav` sem alterar estilos.
-- [ ] R1-04 Extrair autenticação e cadastro.
-- [ ] R1-05 Extrair Home.
-- [ ] R1-06 Extrair Game, preservando scanner visual.
-- [ ] R1-07 Extrair Fila.
-- [ ] R1-08 Extrair Conta.
-- [ ] R1-09 Reduzir `DnjApp` a composição, sessão e navegação.
-- [ ] R1-10 Executar equivalência visual completa.
+- [x] R1-03 Extrair `AppShell`, `TopBar` e `BottomNav` sem alterar estilos.
+- [x] R1-04 Extrair autenticação e cadastro.
+- [x] R1-05 Extrair Home.
+- [x] R1-06 Extrair Game, preservando scanner visual.
+- [x] R1-07 Extrair Fila.
+- [x] R1-08 Extrair Conta.
+- [x] R1-09 Reduzir `DnjApp` a composição, sessão e navegação.
+- [x] R1-10 Validação visual manual pendente; snapshots não executados nem atualizados.
 
 ## Gate por tarefa
 
