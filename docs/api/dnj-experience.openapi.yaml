@@ -1,0 +1,89 @@
+openapi: 3.1.0
+info:
+  title: DNJ Experience API
+  version: 1.0.0-draft
+  description: Contrato de participação, momentos e galeria do DNJ Game.
+servers:
+  - url: /v1
+  - url: /api/mock/v1
+paths:
+  /participations/current:
+    get:
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Participação ativa, content: { application/json: { schema: { type: object, required: [participation], properties: { participation: { $ref: '#/components/schemas/Participation' } } } } } }
+        '204': { description: Sem participação ativa }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+  /moments:
+    post:
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [participationId, image, publishConsent, idempotencyKey]
+              properties:
+                participationId: { type: string }
+                image: { type: string, format: binary }
+                publishConsent: { type: boolean }
+                idempotencyKey: { type: string, format: uuid }
+      responses:
+        '201': { description: Momento criado, content: { application/json: { schema: { type: object, properties: { moment: { $ref: '#/components/schemas/Moment' } } } } } }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '422': { $ref: '#/components/responses/ConsentRequired' }
+  /gallery:
+    get:
+      parameters:
+        - { name: eventId, in: query, required: true, schema: { type: string } }
+        - { name: cursor, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50 } }
+      responses:
+        '200': { description: Momentos públicos aprovados, content: { application/json: { schema: { $ref: '#/components/schemas/GalleryPage' } } } }
+  /gallery/mine:
+    get:
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Registros do participante, content: { application/json: { schema: { $ref: '#/components/schemas/GalleryPage' } } } }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer }
+  schemas:
+    Participation:
+      type: object
+      required: [id, checkedInAt, cooldownEndsAt, status, canShareMoment, checkInPoints]
+      properties:
+        id: { type: string }
+        checkedInAt: { type: string, format: date-time }
+        cooldownEndsAt: { type: string, format: date-time }
+        status: { type: string, enum: [active, completed, expired] }
+        canShareMoment: { type: boolean }
+        checkInPoints: { type: integer }
+    Moment:
+      type: object
+      required: [id, participationId, imageUrl, thumbnailUrl, shareImageUrl, capturedAt, moderationStatus, publicationStatus, pointsAwarded]
+      properties:
+        id: { type: string }
+        participationId: { type: string }
+        imageUrl: { type: string, format: uri-reference }
+        thumbnailUrl: { type: string, format: uri-reference }
+        shareImageUrl: { type: string, format: uri-reference }
+        capturedAt: { type: string, format: date-time }
+        moderationStatus: { type: string, enum: [pending, approved, rejected] }
+        publicationStatus: { type: string, enum: [private, public] }
+        pointsAwarded: { type: integer }
+    GalleryPage:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Moment' } }
+        nextCursor: { type: [string, 'null'] }
+    Error:
+      type: object
+      required: [code, message]
+      properties: { code: { type: string }, message: { type: string }, details: { type: object } }
+  responses:
+    Unauthenticated: { description: Autenticação necessária, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    ConsentRequired: { description: Consentimento necessário, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }

@@ -557,8 +557,8 @@ Gate: correções aprovadas em unitários, e2e, snapshots e aparelho real quando
 - [x] M3-06 Criar Route Handler de participação atual.
 - [x] M3-07 Criar Route Handler de momentos.
 - [x] M3-08 Criar Route Handlers de galeria geral e pessoal.
-- [ ] M3-09 Criar persistência IndexedDB para registros mockados.
-- [ ] M3-10 Criar `docs/api/dnj-experience.openapi.yaml`.
+- [x] M3-09 Criar persistência IndexedDB para registros mockados.
+- [x] M3-10 Criar `docs/api/dnj-experience.openapi.yaml`.
 - [ ] M3-11 Validar exemplos do Swagger contra responses dos mocks.
 
 Gate: todo endpoint possui happy path, erro, autenticação e teste de contrato.
