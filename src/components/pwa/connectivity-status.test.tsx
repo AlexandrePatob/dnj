@@ -54,7 +54,7 @@ describe("ConnectivityStatus", () => {
     render(<ConnectivityStatus isOnline={false} pwaStatus="ready" />);
     const status = screen.getByRole("status");
     expect(status).toHaveStyle({ background: "var(--card)", color: "var(--card-foreground)" });
-    expect(status.className).toContain("bottom-[calc(env(safe-area-inset-bottom)+5.5rem)]");
+    expect(status.className).toContain("bottom-[calc(var(--bottom-nav-total-height)+1.25rem)]");
   });
 
   it("disables its transition when reduced motion is requested", () => {

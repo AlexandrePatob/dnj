@@ -36,11 +36,18 @@
 
 ## Handoff
 
-- **Feature**: Promoção de instalação PWA / `.specs/features/pwa-install-promotion/`
-- **Phase / Task**: Execute and independent Verify complete
-- **Completed**: especificação (`e62558a`, `a6d5773`); ciclo de instalação (`7612590`); interface e integração (`9f58cc7`); operação (`602824c`); correções de sessão (`6c1bac6`). Verificação final: 11/11 critérios, 110/110 unit tests, typecheck, lint e build aprovados; sensor 3/3 mutações mortas; nenhum teste em browser executado.
+- **Feature**: Modularização DNJ / `.specs/features/dnj-modularization/`
+- **Phase / Task**: Fase 3; M3-08 é próxima.
+- **Completed**: Fase 1 modularizada; Fase 2 aplicou viewport-fit, variáveis únicas de safe area, BottomNav segura, padding de telas e avisos PWA, Conta hierárquica com saída confirmada e CTA grande para scanner. Typecheck, lint e 113 testes unitários aprovados.
 - **In-progress** (file:line): none
-- **Next step**: executar os checklists manuais de `docs/pwa.md` em Android/Chrome e iPhone/Safari reais quando houver aparelhos disponíveis.
-- **Blockers**: implementação sem bloqueios; evidência em aparelho real de instalação, ícones, standalone e safe areas/status bar permanece manual.
-- **Uncommitted files**: `.gitignore` e `tests/e2e/pwa-flow.spec.ts` (alterações preexistentes ou somente de line ending; preservar).
+- **Next step**: M3-08, criar Route Handlers de galeria geral e pessoal.
+- **Blockers**: validação visual automatizada falha 6/8 contra snapshots existentes; usuário assumirá validação manual e orientará eventuais correções.
+- **Uncommitted files**: `.gitignore`, `graphify-out/` e `test-results/`; preservar e não incluir em commits desta feature sem revisão separada.
 - **Branch**: dev
+
+## Handoff update — 2026-07-23
+
+- **Phase / Task**: Fases 4–5 implementadas parcialmente; preparação para API real.
+- **Completed**: QR com decoder dinâmico, fallback por imagem, rota mock e badge de participação; captura com consentimento; Galeria, Meus registros, lightbox, compartilhamento/download e navegação com cinco itens. Commit: `682e2b9`.
+- **Remaining**: spike manual Chrome/WebKit, participação/cooldown persistido no cliente, retry explícito, paginação e swipe. A6 depende do backend/staging.
+- **Validation**: typecheck e 126 testes unitários aprovados. Snapshot visual continua sob revisão manual do usuário.

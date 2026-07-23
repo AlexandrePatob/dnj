@@ -20,6 +20,7 @@ test.describe("PWA browser integration", () => {
   });
 
   test("announces offline and reconnection states without blocking the shell", async ({ page, context }) => {
+    await page.addInitScript(() => Object.defineProperty(navigator, "serviceWorker", { configurable: true, value: undefined }));
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.waitForLoadState("networkidle");
     await context.setOffline(true);

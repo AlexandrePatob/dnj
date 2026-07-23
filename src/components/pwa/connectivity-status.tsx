@@ -90,7 +90,7 @@ export function ConnectivityStatus({
   return (
     <div
       aria-live="polite"
-      className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center gap-2 rounded-xl border px-3 py-2 shadow-lg transition-opacity motion-reduce:transition-none"
+      className="fixed bottom-[calc(var(--bottom-nav-total-height)+1.25rem)] left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center gap-2 rounded-xl border px-3 py-2 shadow-lg transition-opacity motion-reduce:transition-none"
       role="status"
       style={{
         background: "var(--card)",

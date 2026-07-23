@@ -2,13 +2,13 @@ export const OFFLINE_SNAPSHOT_KEY = "dnj.pwa.snapshot.v1";
 export const THEME_KEY = "dnj.theme.v1";
 const LEGACY_THEME_KEY = "dnj_theme";
 
-const MAIN_SCREENS = new Set(["home", "game", "queue", "account"] as const);
+const MAIN_SCREENS = new Set(["home", "game", "queue", "gallery", "account"] as const);
 const FORBIDDEN_KEYS = new Set(["authorization", "body", "cpf", "email", "header", "headers", "response", "token"]);
 
 export interface OfflineSnapshot {
   schemaVersion: 1;
   capturedAt: string;
-  lastMainScreen: "home" | "game" | "queue" | "account";
+  lastMainScreen: "home" | "game" | "queue" | "gallery" | "account";
   user: {
     name: string;
     group: string;

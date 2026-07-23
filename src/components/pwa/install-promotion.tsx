@@ -42,8 +42,8 @@ export function InstallPromotion({
       aria-label="Instalar DNJ Game"
       className={`fixed left-1/2 z-40 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-2xl p-4 transition-none motion-reduce:transition-none ${
         hasBottomNavigation
-          ? "bottom-[calc(env(safe-area-inset-bottom)+5.5rem)]"
-          : "bottom-[calc(env(safe-area-inset-bottom)+1rem)]"
+          ? "bottom-[calc(var(--bottom-nav-total-height)+1.25rem)]"
+          : "bottom-[calc(var(--safe-area-bottom)+1rem)]"
       }`}
       initial={reduceMotion ? false : { filter: "blur(6px)", opacity: 0, scale: 0.985, y: 18 }}
       role="region"

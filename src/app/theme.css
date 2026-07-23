@@ -1,6 +1,12 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --bottom-nav-height: 68px;
+  --bottom-nav-total-height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+  --main-content-bottom-padding: calc(var(--bottom-nav-total-height) + 24px);
+
   /* ── Brand Palette ── */
   --color-orange: #e87425;
   --color-red: #db3a2e;

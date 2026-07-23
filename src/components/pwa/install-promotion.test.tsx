@@ -64,7 +64,7 @@ describe("InstallPromotion", () => {
     const view = render(<InstallPromotion {...defaultProps} onDismiss={onDismiss} />);
     const promotion = screen.getByRole("region", { name: "Instalar DNJ Game" });
     const dismiss = screen.getByRole("button", { name: "Agora não" });
-    expect(promotion.className).toContain("bottom-[calc(env(safe-area-inset-bottom)+5.5rem)]");
+    expect(promotion.className).toContain("bottom-[calc(var(--bottom-nav-total-height)+1.25rem)]");
     expect(promotion.className).toContain("motion-reduce:transition-none");
     expect(dismiss.className).toContain("focus-visible:outline");
     await userEvent.click(dismiss);
@@ -72,9 +72,8 @@ describe("InstallPromotion", () => {
 
     view.rerender(<InstallPromotion {...defaultProps} hasBottomNavigation={false} status="installing" />);
     expect(screen.getByRole("region", { name: "Instalar DNJ Game" }).className).toContain(
-      "bottom-[calc(env(safe-area-inset-bottom)+1rem)]",
+      "bottom-[calc(var(--safe-area-bottom)+1rem)]",
     );
     expect(screen.getByRole("button", { name: "Abrindo instalação" })).toBeDisabled();
   });
 });
-
