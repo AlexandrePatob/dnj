@@ -32,6 +32,8 @@ export function LoginScreen({
   }
 
   const valid = cpf.replace(/\D/g, "").length === 11 && email.includes("@");
+  const cpfError = cpf && cpf.replace(/\D/g, "").length !== 11 ? "Informe os 11 dígitos do CPF." : "";
+  const emailError = email && !email.includes("@") ? "Informe um e-mail válido." : "";
 
   async function submitLogin() {
     if (!valid || submitting) return;
@@ -120,6 +122,7 @@ export function LoginScreen({
             placeholder="000.000.000-00"
             value={cpf}
             onChange={(e) => setCpf(formatCPF(e.target.value))}
+            error={cpfError}
           />
           <FieldInput
             label="E-mail"
@@ -127,6 +130,7 @@ export function LoginScreen({
             placeholder="seu@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            error={emailError}
           />
           {submitError ? <p className="text-sm" style={{ color: "var(--secondary)" }}>{submitError}</p> : null}
           <PrimaryButton onClick={submitLogin} disabled={!valid || submitting} className="mt-1">
@@ -397,6 +401,16 @@ export function VerifyScreen({
     }
   }
 
+  function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted) return;
+    e.preventDefault();
+    const next = [...pasted, "", "", "", "", ""].slice(0, 6);
+    setDigits(next);
+    setAllFilled(pasted.length === 6);
+    inputs.current[Math.min(pasted.length, 5)]?.focus();
+  }
+
   async function submitCode() {
     if (!allFilled || verifying) return;
     setVerifying(true);
@@ -443,6 +457,8 @@ export function VerifyScreen({
             value={digit}
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
+            onPaste={handlePaste}
+            aria-label={`Dígito ${i + 1} do código de verificação`}
             className="w-12 h-14 rounded-xl text-center text-xl font-bold outline-none"
             style={{
               background: digit ? "var(--primary-alpha-15)" : "var(--input-background)",
