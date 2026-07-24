@@ -185,7 +185,8 @@ export function DnjApp() {
   }, [navigate, user]);
 
   const animDir = getAnimDir(prevScreen, screen);
-  const isMain  = ["home", "game", "queue", "gallery", "account"].includes(screen);
+  const isMain  = ["home", "schedule", "map", "game", "queue", "gallery", "account"].includes(screen);
+  const activeNavScreen = screen === "schedule" || screen === "map" ? "home" : screen;
 
   useEffect(() => {
     if (restoredSession.current) return;
@@ -280,7 +281,7 @@ export function DnjApp() {
             Conteúdo salvo em {new Date(offlineSnapshotCapturedAt).toLocaleString("pt-BR")} · somente leitura
           </p>
         )}
-        {isMain && <BottomNav active={screen} onNavigate={navigate} />}
+        {isMain && <BottomNav active={activeNavScreen} onNavigate={navigate} />}
         <ConnectivityStatus
           idleContent={(
             <InstallPromotion
