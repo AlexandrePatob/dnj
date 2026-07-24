@@ -65,7 +65,7 @@ export function InstallPromotion({
         <div className="min-w-0 flex-1">
           <h2 className="text-[0.95rem] font-bold leading-tight">DNJ Game no seu celular</h2>
           <p className="mt-1 text-xs font-medium leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-            Acesse mais rápido e use o que já carregou mesmo sem sinal.
+            Acesse mais rápido e use o que já carregou mesmo sem sinal. Instalação pelo navegador, sem baixar APK.
           </p>
         </div>
       </div>
@@ -102,14 +102,14 @@ export function InstallPromotion({
           </button>
         ) : (
           <button
-            aria-label={isInstalling ? "Abrindo instalação" : undefined}
+            aria-label={isInstalling ? "Abrindo instalação" : "Instalar app"}
             className="min-h-10 flex-1 rounded-xl px-4 py-2 text-sm font-bold text-white shadow-[0_6px_16px_rgba(232,116,37,0.24)] transition-[transform,background-color] hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)] active:translate-y-0 disabled:cursor-wait disabled:opacity-70 motion-reduce:transform-none motion-reduce:transition-none"
             disabled={isInstalling}
             onClick={() => void onInstall()}
             style={{ background: "var(--primary)" }}
             type="button"
           >
-            {isInstalling ? "Abrindo…" : "Instalar app"}
+            {isInstalling ? "Abrindo…" : "Instalar pelo navegador"}
           </button>
         )}
         <button

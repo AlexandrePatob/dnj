@@ -2,7 +2,8 @@
 
 :root {
   --safe-area-top: env(safe-area-inset-top, 0px);
-  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  /* Keep iPhone gesture clearance without pushing the navigation too far up. */
+  --safe-area-bottom: max(0px, calc(env(safe-area-inset-bottom, 0px) - 10px));
   --bottom-nav-height: 68px;
   --bottom-nav-total-height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
   --main-content-bottom-padding: calc(var(--bottom-nav-total-height) + 24px);
@@ -12,6 +13,13 @@
   --color-red: #db3a2e;
   --color-lime: #b2d64d;
   --color-teal: #34d1d1;
+  --color-game-green: #b2d64d;
+  --game: var(--color-game-green);
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --shadow-card: 0 12px 28px rgba(11, 35, 37, .10);
 
   /* ── Typography ── */
   --font-size: 16px;

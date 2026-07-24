@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, ImageUp, QrCode, X } from "lucide-react";
+import { Camera, QrCode, X } from "lucide-react";
 import { motion } from "motion/react";
 import type { IScannerControls } from "@zxing/browser";
 import type { ExperienceError } from "@/types/experience";
@@ -12,15 +12,14 @@ type ScannerStatus = "starting" | "reading" | "error" | "success";
 function scannerMessage(error: unknown) {
   const typed = error as Partial<ExperienceError>;
   if (typed.code) return typed.message ?? "Não foi possível validar este QR Code.";
-  if (error instanceof DOMException && error.name === "NotAllowedError") return "Permissão da câmera negada. Você pode escolher uma imagem do QR Code.";
+  if (error instanceof DOMException && error.name === "NotAllowedError") return "Permissão da câmera negada. Autorize o acesso e tente novamente.";
   if (error instanceof DOMException && error.name === "NotFoundError") return "Nenhuma câmera foi encontrada neste aparelho.";
-  return "Não foi possível abrir a câmera. Tente novamente ou escolha uma imagem.";
+  return "Não foi possível abrir a câmera. Tente novamente.";
 }
 
 export function QrScannerModal({ onClose, onValidated }: { onClose: () => void; onValidated: (participation: Participation) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<ScannerStatus>("starting");
   const [message, setMessage] = useState("Preparando câmera...");
   const busyRef = useRef(false);
@@ -60,9 +59,10 @@ export function QrScannerModal({ onClose, onValidated }: { onClose: () => void; 
   const startScanner = useCallback(async () => {
     if (!navigator.mediaDevices?.getUserMedia || !videoRef.current) {
       setStatus("error");
-      setMessage("Seu navegador não oferece acesso à câmera. Escolha uma imagem do QR Code.");
+      setMessage("Seu navegador não oferece acesso à câmera.");
       return;
     }
+    stopScanner();
     setStatus("starting");
     setMessage("Abrindo câmera...");
     try {
@@ -79,30 +79,12 @@ export function QrScannerModal({ onClose, onValidated }: { onClose: () => void; 
       setStatus("error");
       setMessage(scannerMessage(error));
     }
-  }, [validate]);
+  }, [stopScanner, validate]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void startScanner(); }, 0);
     return () => { window.clearTimeout(timer); stopScanner(); };
   }, [startScanner, stopScanner]);
-
-  async function decodeImage(file: File) {
-    try {
-      setStatus("starting");
-      setMessage("Lendo QR Code da imagem...");
-      const { BrowserQRCodeReader } = await import("@zxing/browser");
-      const url = URL.createObjectURL(file);
-      try {
-        const result = await new BrowserQRCodeReader().decodeFromImageUrl(url);
-        await validate(result.getText());
-      } finally {
-        URL.revokeObjectURL(url);
-      }
-    } catch (error) {
-      setStatus("error");
-      setMessage(scannerMessage(error));
-    }
-  }
 
   return (
     <motion.section className="absolute inset-0 z-50 flex flex-col items-center justify-center px-6" style={{ background: "var(--background)" }} initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.25 }} aria-label="Escanear QR Code">
@@ -112,14 +94,17 @@ export function QrScannerModal({ onClose, onValidated }: { onClose: () => void; 
         <h3 className="mb-2 text-xl font-bold">Escanear QR Code</h3>
         <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Participe de uma atividade do DNJ.</p>
       </div>
-      <div className="relative mb-6 aspect-square w-full max-w-64 overflow-hidden rounded-3xl" style={{ background: "var(--muted)", border: "3px solid var(--primary)" }}>
+      <div className="relative mb-6 aspect-square w-[80vw] max-w-[34rem] overflow-hidden rounded-3xl" style={{ background: "var(--muted)" }}>
         <video ref={videoRef} muted playsInline className="h-full w-full object-cover" />
+        {status === "reading" && <span aria-hidden="true" className="absolute left-5 right-5 h-0.5" style={{ background: "var(--game)", boxShadow: "0 0 12px var(--game)", animation: "scanLine 1.8s ease-in-out infinite" }} />}
         {status !== "reading" && <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-5 text-center" style={{ background: "color-mix(in srgb, var(--background) 82%, transparent)" }}>{status === "success" ? <QrCode size={36} style={{ color: "var(--primary)" }} /> : <Camera size={36} style={{ color: "var(--muted-foreground)" }} />}</span>}
+        <span aria-hidden="true" className="absolute left-0 top-0 h-12 w-12 rounded-tl-3xl border-l-4 border-t-4" style={{ borderColor: "var(--primary)" }} />
+        <span aria-hidden="true" className="absolute right-0 top-0 h-12 w-12 rounded-tr-3xl border-r-4 border-t-4" style={{ borderColor: "var(--primary)" }} />
+        <span aria-hidden="true" className="absolute bottom-0 left-0 h-12 w-12 rounded-bl-3xl border-b-4 border-l-4" style={{ borderColor: "var(--primary)" }} />
+        <span aria-hidden="true" className="absolute bottom-0 right-0 h-12 w-12 rounded-br-3xl border-b-4 border-r-4" style={{ borderColor: "var(--primary)" }} />
       </div>
       <p className="mb-5 max-w-xs text-center text-sm leading-relaxed" style={{ color: status === "error" ? "var(--destructive)" : "var(--muted-foreground)" }}>{message}</p>
-      <input ref={inputRef} type="file" accept="image/*" capture="environment" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) void decodeImage(file); event.currentTarget.value = ""; }} />
-      {status === "error" && <button type="button" onClick={() => void startScanner()} className="mb-3 rounded-xl px-4 py-2 text-sm font-bold" style={{ background: "var(--primary)", color: "white" }}>Tentar câmera</button>}
-      <button type="button" onClick={() => inputRef.current?.click()} className="flex items-center gap-2 text-sm font-semibold" style={{ color: "var(--primary)" }}><ImageUp size={18} /> Ler QR de uma imagem</button>
+      {status === "error" && <button type="button" onClick={() => void startScanner()} className="rounded-xl px-4 py-2 text-sm font-bold" style={{ background: "var(--primary)", color: "white" }}>Tentar câmera</button>}
     </motion.section>
   );
 }

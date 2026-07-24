@@ -1,4 +1,4 @@
-export type Screen = "login" | "verify" | "group" | "register" | "register-verify" | "home" | "game" | "queue" | "gallery" | "account";
+export type Screen = "login" | "verify" | "group" | "register" | "register-verify" | "home" | "schedule" | "map" | "game" | "queue" | "gallery" | "account";
 export type GameTab = "overview" | "ranking";
 export type RankingTab = "individual" | "grupos";
 export type QueueType = "confession" | "spiritual" | null;

@@ -15,8 +15,8 @@ describe("mock experience repositories", () => {
     expect(page.items[0]).toMatchObject({ moderationStatus: "approved", publicationStatus: "public" });
   });
 
-  it("requires consent before creating moment", async () => {
+  it("saves a private moment without publication consent", async () => {
     const repository = createMockExperienceRepositories({ latencyMs: 0 }).moment;
-    await expect(repository.create({ participationId: "part_mock_001", image: new Blob(), publishConsent: false, idempotencyKey: "key-2" })).rejects.toMatchObject({ code: "CONSENT_REQUIRED" });
+    await expect(repository.create({ participationId: "part_mock_001", image: new Blob(), publishConsent: false, idempotencyKey: "key-2" })).resolves.toMatchObject({ publicationStatus: "private", moderationStatus: "approved" });
   });
 });

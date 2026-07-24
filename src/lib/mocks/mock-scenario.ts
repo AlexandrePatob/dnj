@@ -8,6 +8,7 @@ export function mockError(code: ExperienceErrorCode): ExperienceError {
     QR_INVALID: "Este QR Code não é válido.",
     QR_EXPIRED: "Este QR Code expirou.",
     QR_ALREADY_USED: "Este QR Code já foi utilizado.",
+    QR_OTHER_EVENT: "Este QR Code pertence a outro evento.",
     COOLDOWN_ACTIVE: "Aguarde antes de participar novamente.",
     PARTICIPATION_REQUIRED: "Participe de uma atividade antes de criar um momento.",
     MOMENT_ALREADY_CREATED: "Já existe um momento para esta participação.",

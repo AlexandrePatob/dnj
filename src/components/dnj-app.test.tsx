@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { storage } from "@/lib/storage";
 import type { AuthSession } from "@/types/domain";
+import { BottomNav } from "./layout/dnj-layout";
 import { DnjApp } from "./dnj-app";
 
 const session: AuthSession = {
@@ -64,6 +65,16 @@ describe("DnjApp session restoration", () => {
     expect(screen.queryByRole("button", { name: "Entrar" })).not.toBeInTheDocument();
   });
 
+  it("opens the map screen from the Home shortcut", async () => {
+    const user = userEvent.setup();
+    storage.setSession(session);
+
+    render(<DnjApp />);
+
+    await user.click(await screen.findByRole("button", { name: "Abrir mapa" }));
+    expect(await screen.findByRole("heading", { name: "Mapa do evento" })).toBeInTheDocument();
+  });
+
   it("persists a newly created mock account across an app remount", async () => {
     const user = userEvent.setup();
     const view = render(<DnjApp />);
@@ -73,6 +84,7 @@ describe("DnjApp session restoration", () => {
     await user.type(screen.getByPlaceholderText("Seu nome"), "Maria Lima");
     await user.type(screen.getByPlaceholderText("seu@email.com"), "maria@example.com");
     await user.type(screen.getByPlaceholderText("(41) 99999-0000"), "41999990000");
+    await user.click(screen.getByRole("button", { name: "Continuar" }));
     await user.click(screen.getByRole("button", { name: /Grupo Chama Viva/ }));
     await user.click(screen.getByRole("button", { name: "Criar conta" }));
 
@@ -90,4 +102,24 @@ describe("DnjApp session restoration", () => {
     expect(await screen.findByText(/Maria!/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Entrar" })).not.toBeInTheDocument();
   }, 15_000);
+});
+
+describe("BottomNav", () => {
+  it("uses the approved navigation order and gallery label", async () => {
+    const user = userEvent.setup();
+    const onNavigate = vi.fn();
+
+    render(<BottomNav active="home" onNavigate={onNavigate} />);
+
+    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual([
+      "Home",
+      "Galeria DNJ",
+      "DNJ Game",
+      "Fila",
+      "Conta",
+    ]);
+
+    await user.click(screen.getByRole("button", { name: "Galeria DNJ" }));
+    expect(onNavigate).toHaveBeenCalledWith("gallery");
+  });
 });

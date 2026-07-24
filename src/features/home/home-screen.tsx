@@ -5,6 +5,7 @@ import { Calendar, ChevronDown, MapPin, Zap } from "lucide-react";
 import { GameIcon } from "@/components/ui/dnj-controls";
 import { MAP_PINS, SPACES } from "@/features/app/fixtures";
 import type { AnimDir, UserData } from "@/features/app/types";
+import { getDnjLevel } from "@/lib/levels";
 function animStyle(dir: AnimDir): React.CSSProperties { const map: Record<AnimDir,string>={right:"slideInRight 280ms cubic-bezier(0.22,1,0.36,1) both",left:"slideInLeft  280ms cubic-bezier(0.22,1,0.36,1) both",up:"fadeUp       220ms cubic-bezier(0.22,1,0.36,1) both"}; return { animation: map[dir] }; }
 function SpaceItem({ name, desc }: { name: string; desc: string }) {
   const [open, setOpen] = useState(false);
@@ -56,7 +57,7 @@ function SpaceItem({ name, desc }: { name: string; desc: string }) {
 // ─── QR Modal ─────────────────────────────────────────────────────────────────
 function MissionPulse({ points }: { points: number }) {
   const reduceMotion = useReducedMotion();
-  const progress = Math.min((points / 200) * 100, 100);
+  const level = getDnjLevel(points);
 
   return (
     <motion.section
@@ -71,9 +72,9 @@ function MissionPulse({ points }: { points: number }) {
         <h2>Reconstrua.<br /><em>Um passo por vez.</em></h2>
         <p>Explore os espaços, escaneie desafios e fortaleça seu grupo.</p>
         <div className="mission-progress-label">
-          <span>Nível Peregrino</span><strong>{points}/200 XP</strong>
+          <span>Nível {level.name}</span><strong>{level.nextPoints ? `${points}/${level.nextPoints} XP` : `${points} XP`}</strong>
         </div>
-        <div className="mission-progress"><motion.span initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ delay: 0.45, duration: 0.8, ease: [0.22, 1, 0.36, 1] }} /></div>
+        <div className="mission-progress"><motion.span initial={{ width: 0 }} animate={{ width: `${level.progress}%` }} transition={{ delay: 0.45, duration: 0.8, ease: [0.22, 1, 0.36, 1] }} /></div>
       </div>
 
       <div className="mission-orbit" aria-hidden="true">
@@ -93,7 +94,7 @@ function MissionPulse({ points }: { points: number }) {
   );
 }
 
-export function HomeScreen({ user, animDir }: { user: UserData; animDir: AnimDir }) {
+export function HomeScreen({ user, animDir, onOpenSchedule, onOpenMap }: { user: UserData; animDir: AnimDir; onOpenSchedule: () => void; onOpenMap: () => void }) {
   return (
     <div
       key="home"
@@ -117,6 +118,12 @@ export function HomeScreen({ user, animDir }: { user: UserData; animDir: AnimDir
       </div>
 
       <div className="px-5 pt-5 flex flex-col gap-5">
+        <section className="rounded-2xl p-5" style={{ background: "var(--primary)", color: "white" }}>
+          <p className="text-xs font-bold uppercase tracking-wide text-white/80">Agora no DNJ · dados demonstrativos</p>
+          <h2 className="mt-2 text-xl font-black">Acolhida e missão de abertura</h2>
+          <p className="mt-2 text-sm text-white/90"><MapPin className="mr-1 inline" size={14} />Espaço Juventude · 14:00</p>
+          <button type="button" onClick={onOpenSchedule} className="mt-4 rounded-xl bg-white px-4 py-2 text-sm font-bold" style={{ color: "var(--primary)" }}>Ver cronograma</button>
+        </section>
 
         <MissionPulse points={user.points} />
 
@@ -151,6 +158,8 @@ export function HomeScreen({ user, animDir }: { user: UserData; animDir: AnimDir
             </p>
           </div>
           <button
+            type="button"
+            onClick={onOpenSchedule}
             className="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold"
             style={{ background: "var(--accent)", color: "#ffffff" }}
           >
@@ -262,6 +271,7 @@ export function HomeScreen({ user, animDir }: { user: UserData; animDir: AnimDir
                 </div>
               </div>
             </div>
+            <button type="button" onClick={onOpenMap} className="w-full px-4 py-3 text-sm font-bold" style={{ color: "var(--primary)" }}>Abrir mapa</button>
           </div>
         </div>
 

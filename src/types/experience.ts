@@ -29,6 +29,7 @@ export interface Participation {
   status: ParticipationStatus;
   canShareMoment: boolean;
   checkInPoints: number;
+  newTotalPoints?: number;
 }
 
 export interface Moment {
@@ -54,6 +55,7 @@ export type ExperienceErrorCode =
   | "QR_INVALID"
   | "QR_EXPIRED"
   | "QR_ALREADY_USED"
+  | "QR_OTHER_EVENT"
   | "COOLDOWN_ACTIVE"
   | "PARTICIPATION_REQUIRED"
   | "MOMENT_ALREADY_CREATED"

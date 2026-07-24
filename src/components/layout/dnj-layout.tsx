@@ -60,9 +60,9 @@ export function BottomNav({
 }) {
   const items: { screen: Screen; icon: React.ReactNode; label: string }[] = [
     { screen: "home",    icon: <Home    size={22} />, label: "Home"    },
+    { screen: "gallery", icon: <Images  size={22} />, label: "Galeria DNJ" },
     { screen: "game",    icon: <Trophy  size={22} />, label: "DNJ Game" },
     { screen: "queue",   icon: <Users   size={22} />, label: "Fila"    },
-    { screen: "gallery", icon: <Images  size={22} />, label: "Galeria" },
     { screen: "account", icon: <User    size={22} />, label: "Conta"   },
   ];
 
@@ -81,15 +81,17 @@ export function BottomNav({
     >
       {items.map(({ screen, icon, label }) => {
         const isActive = active === screen;
+        const isGame = screen === "game";
         return (
           <motion.button
             key={screen}
             onClick={() => onNavigate(screen)}
-            className="relative z-0 flex-1 flex flex-col items-center justify-center gap-1 overflow-hidden"
-            style={{ color: isActive ? "white" : "var(--muted-foreground)", position: "relative" }}
-            whileTap={{ scale: 0.9 }}
+            aria-current={isActive ? "page" : undefined}
+            className={`relative flex flex-1 flex-col items-center justify-center gap-1 ${isGame ? "z-10 -translate-y-3 overflow-visible" : "z-0 overflow-hidden"}`}
+            style={{ color: isGame ? "var(--game)" : isActive ? "white" : "var(--muted-foreground)", position: "relative" }}
+            whileTap={{ scale: isGame ? 0.94 : 0.9 }}
           >
-            {isActive && (
+            {isActive && !isGame && (
               <motion.span
                 layoutId="active-nav"
                 className="absolute inset-1 z-0 rounded-2xl"
@@ -97,8 +99,14 @@ export function BottomNav({
                 transition={{ type: "spring", stiffness: 380, damping: 30 }}
               />
             )}
-            <motion.span className="relative z-10" animate={isActive ? { y: -2, scale: 1.06 } : { y: 0, scale: 1 }}>{icon}</motion.span>
-            <span className="relative z-10 text-xs font-semibold leading-none">{label}</span>
+            <motion.span
+              className={isGame ? "relative z-10 flex h-[62px] w-[62px] items-center justify-center rounded-[22px]" : "relative z-10"}
+              style={isGame ? { background: "var(--game)", boxShadow: "0 10px 22px color-mix(in srgb, var(--game) 35%, transparent)", color: "white" } : undefined}
+              animate={isGame ? { y: isActive ? -4 : 0, scale: isActive ? 1.08 : 1 } : isActive ? { y: -2, scale: 1.06 } : { y: 0, scale: 1 }}
+            >
+              {icon}
+            </motion.span>
+            <span className={`relative z-10 max-w-full px-0.5 text-center leading-tight ${isGame ? "text-[0.625rem] font-bold" : "text-[0.625rem] font-semibold"}`}>{label}</span>
           </motion.button>
         );
       })}

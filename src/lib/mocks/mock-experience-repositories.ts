@@ -19,17 +19,17 @@ export function createMockExperienceRepositories(options: MockExperienceOptions 
       if (!qrToken.trim()) throw mockError("QR_INVALID");
       if (qrToken === "expired") throw mockError("QR_EXPIRED");
       if (qrToken === "duplicate") throw mockError("QR_ALREADY_USED");
+      if (qrToken === "other-event") throw mockError("QR_OTHER_EVENT");
       if (qrToken === "cooldown") throw mockError("COOLDOWN_ACTIVE");
       if (participationByKey.has(idempotencyKey)) return mockParticipation;
       participationByKey.set(idempotencyKey, mockParticipation.id);
-      return resolveMockScenario(scenario, mockParticipation, latencyMs);
+      return resolveMockScenario(scenario, { ...mockParticipation, newTotalPoints: 170 }, latencyMs);
     },
     getCurrent: () => resolveMockScenario(scenario, mockParticipation, latencyMs),
   };
 
   const moment: MomentRepository = {
     async create(input) {
-      if (!input.publishConsent) throw mockError("CONSENT_REQUIRED");
       if (input.participationId !== mockParticipation.id) throw mockError("PARTICIPATION_REQUIRED");
       const existingId = momentByKey.get(input.idempotencyKey);
       if (existingId) return moments.find((item) => item.id === existingId) ?? moments[0];
@@ -38,6 +38,8 @@ export function createMockExperienceRepositories(options: MockExperienceOptions 
         id: `moment_mock_${moments.length + 1}`,
         participationId: input.participationId,
         capturedAt: new Date().toISOString(),
+        moderationStatus: input.publishConsent ? "pending" as const : "approved" as const,
+        publicationStatus: input.publishConsent ? "public" as const : "private" as const,
       };
       moments.unshift(created);
       momentByKey.set(input.idempotencyKey, created.id);

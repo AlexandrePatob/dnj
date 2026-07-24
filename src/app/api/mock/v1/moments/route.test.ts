@@ -17,9 +17,9 @@ describe("POST /api/mock/v1/moments", () => {
     expect(response.status).toBe(201);
   });
 
-  it("rejects creation without consent", async () => {
+  it("creates a private moment without consent", async () => {
     const response = await POST(request(false));
-    await expect(response.json()).resolves.toMatchObject({ code: "CONSENT_REQUIRED" });
-    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toMatchObject({ moment: { publicationStatus: "private", moderationStatus: "approved" } });
+    expect(response.status).toBe(201);
   });
 });

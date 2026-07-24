@@ -32,6 +32,8 @@ export function LoginScreen({
   }
 
   const valid = cpf.replace(/\D/g, "").length === 11 && email.includes("@");
+  const cpfError = cpf && cpf.replace(/\D/g, "").length !== 11 ? "Informe os 11 dígitos do CPF." : "";
+  const emailError = email && !email.includes("@") ? "Informe um e-mail válido." : "";
 
   async function submitLogin() {
     if (!valid || submitting) return;
@@ -120,6 +122,7 @@ export function LoginScreen({
             placeholder="000.000.000-00"
             value={cpf}
             onChange={(e) => setCpf(formatCPF(e.target.value))}
+            error={cpfError}
           />
           <FieldInput
             label="E-mail"
@@ -127,6 +130,7 @@ export function LoginScreen({
             placeholder="seu@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            error={emailError}
           />
           {submitError ? <p className="text-sm" style={{ color: "var(--secondary)" }}>{submitError}</p> : null}
           <PrimaryButton onClick={submitLogin} disabled={!valid || submitting} className="mt-1">
@@ -162,6 +166,7 @@ export function RegisterScreen({
 }: {
   onBack: () => void; onDone: (registration: RegistrationData) => void; animDir: AnimDir;
 }) {
+  const [step, setStep]       = useState<1 | 2>(1);
   const [nome, setNome]       = useState("");
   const [email, setEmail]     = useState("");
   const [phone, setPhone]     = useState("");
@@ -181,7 +186,13 @@ export function RegisterScreen({
     return d.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
   }
 
-  const valid = nome.trim().length >= 2 && email.includes("@") && phone.replace(/\D/g, "").length >= 10 && group !== "";
+  const personalValid = nome.trim().length >= 2 && email.includes("@") && phone.replace(/\D/g, "").length >= 10;
+  const valid = personalValid && group !== "";
+  const personalErrors = {
+    nome: nome && nome.trim().length < 2 ? "Informe seu nome completo." : "",
+    email: email && !email.includes("@") ? "Informe um e-mail válido." : "",
+    phone: phone && phone.replace(/\D/g, "").length < 10 ? "Informe um WhatsApp válido." : "",
+  };
 
   return (
     <div
@@ -189,18 +200,20 @@ export function RegisterScreen({
       className="flex flex-col min-h-dvh px-6 pb-10 overflow-y-auto"
       style={{ background: "var(--background)", paddingTop: "calc(48px + var(--safe-area-top))", ...animStyle(animDir) }}
     >
-      <BackButton onClick={onBack} />
+      <BackButton onClick={() => step === 2 ? setStep(1) : onBack()} />
 
       <div className="mt-6 mb-6">
         <h2 className="text-2xl font-bold mb-1" style={{ color: "var(--foreground)" }}>
           Criar conta
         </h2>
         <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-          Preencha seus dados para participar do DNJ Game
+          {step === 1 ? "Dados pessoais" : "Escolha seu grupo de jovens"}
         </p>
       </div>
 
-      {/* Personal fields */}
+      <p className="mb-4 text-xs font-semibold" aria-label={`Etapa ${step} de 2`} style={{ color: "var(--muted-foreground)" }}>Etapa {step} de 2</p>
+
+      {step === 1 ? <>
       <div
         className="rounded-2xl p-5 flex flex-col gap-4 mb-5"
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}
@@ -211,6 +224,7 @@ export function RegisterScreen({
           placeholder="Seu nome"
           value={nome}
           onChange={(e) => setNome(e.target.value)}
+          error={personalErrors.nome}
         />
         <FieldInput
           label="E-mail"
@@ -218,6 +232,7 @@ export function RegisterScreen({
           placeholder="seu@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          error={personalErrors.email}
         />
         <FieldInput
           label="Telefone WhatsApp"
@@ -226,8 +241,11 @@ export function RegisterScreen({
           placeholder="(41) 99999-0000"
           value={phone}
           onChange={(e) => setPhone(formatPhone(e.target.value))}
+          error={personalErrors.phone}
         />
       </div>
+      <PrimaryButton onClick={() => setStep(2)} disabled={!personalValid}>Continuar</PrimaryButton>
+      </> : <>
 
       {/* Group selection */}
       <div className="mb-5">
@@ -342,6 +360,7 @@ export function RegisterScreen({
       >
         Criar conta
       </PrimaryButton>
+      </>}
     </div>
   );
 }
@@ -380,6 +399,16 @@ export function VerifyScreen({
     if (e.key === "Backspace" && !digits[index] && index > 0) {
       inputs.current[index - 1]?.focus();
     }
+  }
+
+  function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted) return;
+    e.preventDefault();
+    const next = [...pasted, "", "", "", "", ""].slice(0, 6);
+    setDigits(next);
+    setAllFilled(pasted.length === 6);
+    inputs.current[Math.min(pasted.length, 5)]?.focus();
   }
 
   async function submitCode() {
@@ -428,6 +457,8 @@ export function VerifyScreen({
             value={digit}
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
+            onPaste={handlePaste}
+            aria-label={`Dígito ${i + 1} do código de verificação`}
             className="w-12 h-14 rounded-xl text-center text-xl font-bold outline-none"
             style={{
               background: digit ? "var(--primary-alpha-15)" : "var(--input-background)",

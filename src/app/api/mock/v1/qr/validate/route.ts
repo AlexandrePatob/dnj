@@ -6,6 +6,7 @@ const statusByCode: Record<ExperienceError["code"], number> = {
   QR_INVALID: 400,
   QR_EXPIRED: 410,
   QR_ALREADY_USED: 409,
+  QR_OTHER_EVENT: 403,
   COOLDOWN_ACTIVE: 409,
   PARTICIPATION_REQUIRED: 403,
   MOMENT_ALREADY_CREATED: 409,
