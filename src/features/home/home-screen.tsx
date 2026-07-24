@@ -94,7 +94,7 @@ function MissionPulse({ points }: { points: number }) {
   );
 }
 
-export function HomeScreen({ user, animDir }: { user: UserData; animDir: AnimDir }) {
+export function HomeScreen({ user, animDir, onOpenSchedule, onOpenMap }: { user: UserData; animDir: AnimDir; onOpenSchedule: () => void; onOpenMap: () => void }) {
   return (
     <div
       key="home"
@@ -118,6 +118,12 @@ export function HomeScreen({ user, animDir }: { user: UserData; animDir: AnimDir
       </div>
 
       <div className="px-5 pt-5 flex flex-col gap-5">
+        <section className="rounded-2xl p-5" style={{ background: "var(--primary)", color: "white" }}>
+          <p className="text-xs font-bold uppercase tracking-wide text-white/80">Agora no DNJ · dados demonstrativos</p>
+          <h2 className="mt-2 text-xl font-black">Acolhida e missão de abertura</h2>
+          <p className="mt-2 text-sm text-white/90"><MapPin className="mr-1 inline" size={14} />Espaço Juventude · 14:00</p>
+          <button type="button" onClick={onOpenSchedule} className="mt-4 rounded-xl bg-white px-4 py-2 text-sm font-bold" style={{ color: "var(--primary)" }}>Ver cronograma</button>
+        </section>
 
         <MissionPulse points={user.points} />
 
