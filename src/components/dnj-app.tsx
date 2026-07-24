@@ -66,6 +66,7 @@ import { GroupScreen, LoginScreen, RegisterScreen, VerifyScreen } from "@/featur
 import { GameScreen } from "@/features/game/game-screen";
 import { GalleryScreen } from "@/features/gallery/gallery-screen";
 import { HomeScreen } from "@/features/home/home-screen";
+import { EventScheduleScreen } from "@/features/schedule/schedule-screen";
 import { QueueScreen } from "@/features/queue/queue-screen";
 import { AppShell, BottomNav, TopBar } from "@/components/layout/dnj-layout";
 export function DnjApp() {
@@ -259,7 +260,8 @@ export function DnjApp() {
             {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} />}
             {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onBack={() => navigate("login")}  animDir={animDir} />}
             {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("verify")} animDir={animDir} initialGroup={user.group} />}
-            {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} />}
+            {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} onOpenSchedule={() => navigate("schedule")} onOpenMap={() => navigate("map")} />}
+            {screen === "schedule" && <EventScheduleScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "game"    && <GameScreen    user={user} theme={theme} animDir={animDir} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
             {screen === "queue"   && <QueueScreen                                  animDir={animDir} />}
             {screen === "gallery" && <GalleryScreen                                animDir={animDir} />}
