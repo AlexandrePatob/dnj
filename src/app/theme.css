@@ -13,7 +13,7 @@
   --color-red: #db3a2e;
   --color-lime: #b2d64d;
   --color-teal: #34d1d1;
-  --color-game-green: #5fae3f;
+  --color-game-green: #b2d64d;
   --game: var(--color-game-green);
   --space-1: 0.25rem;
   --space-2: 0.5rem;
