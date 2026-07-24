@@ -39,4 +39,12 @@ describe("GalleryScreen", () => {
     expect(await screen.findByText("Você ainda não registrou momentos")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Ver galeria DNJ" })).toBeInTheDocument();
   });
+
+  it("communicates publication and moderation status as text for displayed moments", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => ({ items: [{ id: "moment-1", placeName: "Espaço Juventude", publicationStatus: "public", moderationStatus: "pending" }], nextCursor: null }) } as Response);
+
+    render(<GalleryScreen animDir="up" />);
+
+    expect(await screen.findByText(/Em moderação/)).toBeInTheDocument();
+  });
 });

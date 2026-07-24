@@ -17,9 +17,13 @@ describe("RegisterScreen", () => {
     expect(screen.getByLabelText("E-mail")).toHaveValue("ana@example.com");
   });
 
-  it("does not allow moving on until the first step is complete", () => {
+  it("does not allow moving on until the first step is complete and identifies invalid fields", () => {
     render(<RegisterScreen animDir="up" onBack={vi.fn()} onDone={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "ana" } });
+    fireEvent.change(screen.getByLabelText("Telefone WhatsApp"), { target: { value: "41" } });
     expect(screen.getByRole("button", { name: "Continuar" })).toBeDisabled();
+    expect(screen.getByText("Informe um e-mail válido.")).toBeInTheDocument();
+    expect(screen.getByText("Informe um WhatsApp válido.")).toBeInTheDocument();
   });
 });
 
@@ -30,11 +34,21 @@ describe("entry feedback", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Informe os 11 dígitos do CPF.");
   });
 
-  it("distributes six pasted OTP digits and enables verification", () => {
-    render(<VerifyScreen email="ana@example.com" animDir="up" onBack={vi.fn()} onNext={vi.fn()} />);
+  it("shows field guidance for an invalid email", () => {
+    render(<LoginScreen animDir="up" onNext={vi.fn()} onRegister={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "ana" } });
+    expect(screen.getByText("Informe um e-mail válido.")).toBeInTheDocument();
+  });
+
+  it("distributes six pasted OTP digits, announces delivery, and keeps validation guidance visible", async () => {
+    const onNext = vi.fn().mockRejectedValue(new Error("Código inválido. Confira os 6 dígitos."));
+    render(<VerifyScreen email="ana@example.com" animDir="up" onBack={vi.fn()} onNext={onNext} />);
     fireEvent.paste(screen.getByLabelText("Dígito 1 do código de verificação"), { clipboardData: { getData: () => "123456" } });
     expect(screen.getByLabelText("Dígito 6 do código de verificação")).toHaveValue("6");
     expect(screen.getByRole("button", { name: "Verificar código" })).toBeEnabled();
     expect(screen.getByText("a***@example.com")).toBeInTheDocument();
+    expect(screen.getByText(/Enviamos um código de 6 dígitos/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Verificar código" }));
+    expect(await screen.findByText("Código inválido. Confira os 6 dígitos.")).toBeInTheDocument();
   });
 });

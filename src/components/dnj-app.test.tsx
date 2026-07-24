@@ -65,6 +65,16 @@ describe("DnjApp session restoration", () => {
     expect(screen.queryByRole("button", { name: "Entrar" })).not.toBeInTheDocument();
   });
 
+  it("opens the map screen from the Home shortcut", async () => {
+    const user = userEvent.setup();
+    storage.setSession(session);
+
+    render(<DnjApp />);
+
+    await user.click(await screen.findByRole("button", { name: "Abrir mapa" }));
+    expect(await screen.findByRole("heading", { name: "Mapa do evento" })).toBeInTheDocument();
+  });
+
   it("persists a newly created mock account across an app remount", async () => {
     const user = userEvent.setup();
     const view = render(<DnjApp />);

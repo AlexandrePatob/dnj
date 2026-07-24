@@ -158,6 +158,8 @@ export function HomeScreen({ user, animDir, onOpenSchedule, onOpenMap }: { user:
             </p>
           </div>
           <button
+            type="button"
+            onClick={onOpenSchedule}
             className="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold"
             style={{ background: "var(--accent)", color: "#ffffff" }}
           >
@@ -269,6 +271,7 @@ export function HomeScreen({ user, animDir, onOpenSchedule, onOpenMap }: { user:
                 </div>
               </div>
             </div>
+            <button type="button" onClick={onOpenMap} className="w-full px-4 py-3 text-sm font-bold" style={{ color: "var(--primary)" }}>Abrir mapa</button>
           </div>
         </div>
 
