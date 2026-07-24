@@ -74,6 +74,7 @@ describe("DnjApp session restoration", () => {
     await user.type(screen.getByPlaceholderText("Seu nome"), "Maria Lima");
     await user.type(screen.getByPlaceholderText("seu@email.com"), "maria@example.com");
     await user.type(screen.getByPlaceholderText("(41) 99999-0000"), "41999990000");
+    await user.click(screen.getByRole("button", { name: "Continuar" }));
     await user.click(screen.getByRole("button", { name: /Grupo Chama Viva/ }));
     await user.click(screen.getByRole("button", { name: "Criar conta" }));
 
