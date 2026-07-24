@@ -162,6 +162,7 @@ export function RegisterScreen({
 }: {
   onBack: () => void; onDone: (registration: RegistrationData) => void; animDir: AnimDir;
 }) {
+  const [step, setStep]       = useState<1 | 2>(1);
   const [nome, setNome]       = useState("");
   const [email, setEmail]     = useState("");
   const [phone, setPhone]     = useState("");
@@ -181,7 +182,13 @@ export function RegisterScreen({
     return d.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
   }
 
-  const valid = nome.trim().length >= 2 && email.includes("@") && phone.replace(/\D/g, "").length >= 10 && group !== "";
+  const personalValid = nome.trim().length >= 2 && email.includes("@") && phone.replace(/\D/g, "").length >= 10;
+  const valid = personalValid && group !== "";
+  const personalErrors = {
+    nome: nome && nome.trim().length < 2 ? "Informe seu nome completo." : "",
+    email: email && !email.includes("@") ? "Informe um e-mail válido." : "",
+    phone: phone && phone.replace(/\D/g, "").length < 10 ? "Informe um WhatsApp válido." : "",
+  };
 
   return (
     <div
@@ -189,18 +196,20 @@ export function RegisterScreen({
       className="flex flex-col min-h-dvh px-6 pb-10 overflow-y-auto"
       style={{ background: "var(--background)", paddingTop: "calc(48px + var(--safe-area-top))", ...animStyle(animDir) }}
     >
-      <BackButton onClick={onBack} />
+      <BackButton onClick={() => step === 2 ? setStep(1) : onBack()} />
 
       <div className="mt-6 mb-6">
         <h2 className="text-2xl font-bold mb-1" style={{ color: "var(--foreground)" }}>
           Criar conta
         </h2>
         <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-          Preencha seus dados para participar do DNJ Game
+          {step === 1 ? "Dados pessoais" : "Escolha seu grupo de jovens"}
         </p>
       </div>
 
-      {/* Personal fields */}
+      <p className="mb-4 text-xs font-semibold" aria-label={`Etapa ${step} de 2`} style={{ color: "var(--muted-foreground)" }}>Etapa {step} de 2</p>
+
+      {step === 1 ? <>
       <div
         className="rounded-2xl p-5 flex flex-col gap-4 mb-5"
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}
@@ -211,6 +220,7 @@ export function RegisterScreen({
           placeholder="Seu nome"
           value={nome}
           onChange={(e) => setNome(e.target.value)}
+          error={personalErrors.nome}
         />
         <FieldInput
           label="E-mail"
@@ -218,6 +228,7 @@ export function RegisterScreen({
           placeholder="seu@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          error={personalErrors.email}
         />
         <FieldInput
           label="Telefone WhatsApp"
@@ -226,8 +237,11 @@ export function RegisterScreen({
           placeholder="(41) 99999-0000"
           value={phone}
           onChange={(e) => setPhone(formatPhone(e.target.value))}
+          error={personalErrors.phone}
         />
       </div>
+      <PrimaryButton onClick={() => setStep(2)} disabled={!personalValid}>Continuar</PrimaryButton>
+      </> : <>
 
       {/* Group selection */}
       <div className="mb-5">
@@ -342,6 +356,7 @@ export function RegisterScreen({
       >
         Criar conta
       </PrimaryButton>
+      </>}
     </div>
   );
 }
