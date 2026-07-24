@@ -1,7 +1,7 @@
 "use client";
 
 import type { InputHTMLAttributes, ReactNode } from "react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { ArrowLeft, Heart, QrCode, Star, Users, Zap } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
@@ -85,9 +85,14 @@ export function BackButton({ onClick }: { onClick: () => void }) {
 }
 
 export function FieldInput({
-  label, ...props
-}: { label: string } & InputHTMLAttributes<HTMLInputElement>) {
+  label, error, description, id, ...props
+}: { label: string; error?: string; description?: string } & InputHTMLAttributes<HTMLInputElement>) {
   const [focused, setFocused] = useState(false);
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
+  const descriptionId = description ? `${inputId}-description` : undefined;
+  const errorId = error ? `${inputId}-error` : undefined;
+  const ariaDescribedBy = [props["aria-describedby"], descriptionId, errorId].filter(Boolean).join(" ") || undefined;
   const filled = props.value !== undefined && String(props.value).length > 0;
 
   return (
@@ -97,6 +102,7 @@ export function FieldInput({
       transition={{ type: "spring", stiffness: 420, damping: 28 }}
     >
       <motion.label
+        htmlFor={inputId}
         className="text-xs font-semibold"
         animate={{ color: focused ? "var(--primary)" : "var(--muted-foreground)", x: focused ? 3 : 0 }}
         transition={{ duration: 0.18 }}
@@ -106,6 +112,9 @@ export function FieldInput({
       <div className="relative">
         <input
           {...props}
+          id={inputId}
+          aria-describedby={ariaDescribedBy}
+          aria-invalid={error ? true : props["aria-invalid"]}
           className="w-full px-4 py-3.5 rounded-xl text-sm outline-none transition-all"
           style={{
             background: "var(--input-background)",
@@ -124,6 +133,8 @@ export function FieldInput({
           transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         />
       </div>
+      {description ? <p id={descriptionId} className="text-xs" style={{ color: "var(--muted-foreground)" }}>{description}</p> : null}
+      {error ? <p id={errorId} role="alert" className="text-xs font-medium" style={{ color: "var(--destructive)" }}>{error}</p> : null}
     </motion.div>
   );
 }
