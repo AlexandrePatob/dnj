@@ -174,6 +174,7 @@ interface WorkerScopeLike {
   location: Location;
   skipWaiting(): Promise<void>;
   addEventListener(type: string, listener: (event: never) => void): void;
+  registration: { showNotification(title: string, options?: NotificationOptions): Promise<void> };
 }
 
 const scope = globalThis as unknown as WorkerScopeLike;
@@ -207,4 +208,8 @@ if (typeof scope.addEventListener === "function" && typeof scope.skipWaiting ===
       event.waitUntil?.(operation);
     }) as never,
   );
+  scope.addEventListener("push", ((event: { data?: { json(): { title?: string; body?: string; url?: string } }; waitUntil(promise: Promise<void>): void }) => {
+    const payload = event.data?.json() ?? {};
+    event.waitUntil(scope.registration.showNotification(payload.title ?? "DNJ Game", { body: payload.body ?? "Você tem uma novidade.", data: { url: payload.url ?? "/" }, icon: "/icons/icon-192x192.png" }));
+  }) as never);
 }
