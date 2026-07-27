@@ -115,14 +115,18 @@ export function DnjApp() {
 
   const handleVerification = useCallback(async (code: string) => {
     if (env.useMocks) {
-      storage.setSession(mockSession(user));
+      const session = mockSession(user);
+      storage.setSession(session);
+      recordTesterPresence(session);
       navigate("group");
       return;
     }
 
     const response = await authApi.verifyCode(emailVal, code);
     const apiUser = mapApiUser(response);
-    storage.setSession({ user: apiUser, identityToken: response.identityToken });
+    const session = { user: apiUser, identityToken: response.identityToken };
+    storage.setSession(session);
+    recordTesterPresence(session);
     setUser({
       name: apiUser.name,
       cpf: apiUser.document,
@@ -151,6 +155,7 @@ export function DnjApp() {
     const session = mockSession(registeredUser);
     session.user.mobilePhone = registration.mobilePhone;
     storage.setSession(session);
+    recordTesterPresence(session);
     setUser(registeredUser);
     navigate("home");
   }, [navigate, registration]);
@@ -185,7 +190,8 @@ export function DnjApp() {
   }, [navigate, user]);
 
   const animDir = getAnimDir(prevScreen, screen);
-  const isMain  = ["home", "game", "queue", "gallery", "account"].includes(screen);
+  const isMain  = ["home", "schedule", "map", "game", "queue", "gallery", "account"].includes(screen);
+  const activeNavScreen = screen === "schedule" || screen === "map" ? "home" : screen;
 
   useEffect(() => {
     if (restoredSession.current) return;
@@ -280,7 +286,7 @@ export function DnjApp() {
             Conteúdo salvo em {new Date(offlineSnapshotCapturedAt).toLocaleString("pt-BR")} · somente leitura
           </p>
         )}
-        {isMain && <BottomNav active={screen} onNavigate={navigate} />}
+        {isMain && <BottomNav active={activeNavScreen} onNavigate={navigate} />}
         <ConnectivityStatus
           idleContent={(
             <InstallPromotion
@@ -299,4 +305,12 @@ export function DnjApp() {
         />
     </AppShell>
   );
+}
+
+function recordTesterPresence(session: AuthSession) {
+  void fetch("/api/test-users/presence", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ externalKey: session.user.email || session.user.document || session.user.id, name: session.user.name, email: session.user.email, points: session.user.points }),
+  });
 }
