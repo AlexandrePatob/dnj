@@ -19,4 +19,18 @@ describe("mock experience repositories", () => {
     const repository = createMockExperienceRepositories({ latencyMs: 0 }).moment;
     await expect(repository.create({ participationId: "part_mock_001", image: new Blob(), publishConsent: false, idempotencyKey: "key-2" })).resolves.toMatchObject({ publicationStatus: "private", moderationStatus: "approved" });
   });
+
+  it("shares likes and comments through the same in-memory gallery", async () => {
+    const gallery = createMockExperienceRepositories({ latencyMs: 0 }).gallery;
+    const before = await gallery.list({ eventId: "event_dnj_curitiba_2026" });
+    const moment = before.items[0];
+    const initialLikes = moment.likesCount;
+
+    await gallery.toggleLike(moment.id);
+    await gallery.addComment(moment.id, "Estamos juntos!");
+
+    const after = await gallery.list({ eventId: "event_dnj_curitiba_2026" });
+    expect(after.items[0]).toMatchObject({ id: moment.id, likesCount: initialLikes + 1, likedByCurrentUser: true });
+    expect(after.items[0].comments).toEqual(expect.arrayContaining([expect.objectContaining({ authorName: "Você", body: "Estamos juntos!" })]));
+  });
 });

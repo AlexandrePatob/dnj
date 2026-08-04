@@ -1,4 +1,4 @@
-import type { GalleryPage, Moment, Participation } from "@/types/experience";
+import type { GalleryComment, GalleryPage, Moment, Participation } from "@/types/experience";
 
 export interface ParticipationRepository {
   validateQr(input: { qrToken: string; idempotencyKey: string }): Promise<Participation>;
@@ -18,4 +18,6 @@ export interface MomentRepository {
 export interface GalleryRepository {
   list(input: { cursor?: string; limit?: number; eventId: string; placeId?: string }): Promise<GalleryPage>;
   listMine(input: { cursor?: string; limit?: number }): Promise<GalleryPage>;
+  toggleLike(momentId: string): Promise<Moment>;
+  addComment(momentId: string, body: string): Promise<GalleryComment>;
 }

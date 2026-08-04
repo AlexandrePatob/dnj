@@ -34,6 +34,9 @@ export const mockMoments: Moment[] = [
     moderationStatus: "pending",
     publicationStatus: "private",
     pointsAwarded: 30,
+    likesCount: 8,
+    likedByCurrentUser: false,
+    comments: [{ id: "comment_mock_001", authorName: "Mariana", body: "Que momento lindo!", createdAt: "2026-10-18T17:40:00.000Z" }],
   },
   {
     id: "moment_mock_approved",
@@ -46,5 +49,8 @@ export const mockMoments: Moment[] = [
     moderationStatus: "approved",
     publicationStatus: "public",
     pointsAwarded: 30,
+    likesCount: 13,
+    likedByCurrentUser: false,
+    comments: [],
   },
 ];

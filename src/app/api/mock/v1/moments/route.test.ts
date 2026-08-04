@@ -13,7 +13,7 @@ function request(consent = true) {
 describe("POST /api/mock/v1/moments", () => {
   it("creates a moment with consent", async () => {
     const response = await POST(request());
-    await expect(response.json()).resolves.toMatchObject({ moment: { participationId: "part_mock_001", moderationStatus: "pending" } });
+    await expect(response.json()).resolves.toMatchObject({ moment: { participationId: "part_mock_001", moderationStatus: "approved", publicationStatus: "public", imageUrl: expect.stringMatching(/^data:image\/png;base64,/) } });
     expect(response.status).toBe(201);
   });
 
