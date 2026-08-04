@@ -34,6 +34,14 @@
 - **Date**: 2026-07-22
 - **Status**: active
 
+### AD-005
+- **Decision**: A área DNJ Game usará exclusivamente o verde oficial extraído da marca DNJGAME_01.png (#B2D64D) para progresso e destaques de jogo; ações de QR Code usarão o laranja institucional para contraste.
+- **Reason**: A cor atual do jogo diverge da marca. A separação verde para progresso e laranja para scan fortalece reconhecimento e hierarquia móvel.
+- **Trade-off**: O verde deixa de ser uma cor genérica de sucesso dentro da área de jogo; estados de erro e indisponibilidade permanecem semânticos e textuais.
+- **Scope**: Tema, componentes e telas vinculadas ao DNJ Game.
+- **Date**: 2026-07-24
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: Modularização DNJ / `.specs/features/dnj-modularization/`

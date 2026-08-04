@@ -43,6 +43,16 @@ export interface Moment {
   moderationStatus: ModerationStatus;
   publicationStatus: PublicationStatus;
   pointsAwarded: number;
+  likesCount: number;
+  likedByCurrentUser: boolean;
+  comments: GalleryComment[];
+}
+
+export interface GalleryComment {
+  id: string;
+  authorName: string;
+  body: string;
+  createdAt: IsoDateTime;
 }
 
 export interface GalleryPage {

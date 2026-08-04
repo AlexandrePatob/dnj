@@ -40,11 +40,25 @@ describe("GalleryScreen", () => {
     expect(screen.getByRole("button", { name: "Ver galeria DNJ" })).toBeInTheDocument();
   });
 
-  it("communicates publication and moderation status as text for displayed moments", async () => {
+  it("does not repeat publication status for moments already in the feed", async () => {
     vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => ({ items: [{ id: "moment-1", placeName: "Espaço Juventude", publicationStatus: "public", moderationStatus: "pending" }], nextCursor: null }) } as Response);
 
     render(<GalleryScreen animDir="up" />);
 
-    expect(await screen.findByText(/Em moderação/)).toBeInTheDocument();
+    await screen.findByRole("button", { name: "Compartilhar momento" });
+    expect(screen.queryByText("Publicado")).not.toBeInTheDocument();
+  });
+
+  it("opens the browser's native sharing sheet for a gallery moment", async () => {
+    const user = userEvent.setup();
+    const share = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "share", { configurable: true, value: share });
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => ({ items: [{ id: "moment-share", placeName: "Palco", imageUrl: "/mock/moments/dnj-feed-01.png", shareImageUrl: "/mock/moments/dnj-feed-01.png", publicationStatus: "public", moderationStatus: "approved", likesCount: 0, likedByCurrentUser: false, comments: [] }], nextCursor: null }) } as Response);
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, blob: async () => new Blob(["photo"], { type: "image/png" }) } as Response);
+
+    render(<GalleryScreen animDir="up" />);
+    await user.click(await screen.findByRole("button", { name: "Compartilhar momento" }));
+
+    expect(share).toHaveBeenCalledWith(expect.objectContaining({ title: "DNJ Game 2K26", files: expect.any(Array) }));
   });
 });

@@ -33,13 +33,21 @@ export function createMockExperienceRepositories(options: MockExperienceOptions 
       if (input.participationId !== mockParticipation.id) throw mockError("PARTICIPATION_REQUIRED");
       const existingId = momentByKey.get(input.idempotencyKey);
       if (existingId) return moments.find((item) => item.id === existingId) ?? moments[0];
+      const imageBuffer = Buffer.from(await input.image.arrayBuffer());
+      const imageUrl = `data:${input.image.type || "image/jpeg"};base64,${imageBuffer.toString("base64")}`;
       const created = {
         ...moments[0],
         id: `moment_mock_${moments.length + 1}`,
         participationId: input.participationId,
         capturedAt: new Date().toISOString(),
-        moderationStatus: input.publishConsent ? "pending" as const : "approved" as const,
+        imageUrl,
+        thumbnailUrl: imageUrl,
+        shareImageUrl: imageUrl,
+        moderationStatus: "approved" as const,
         publicationStatus: input.publishConsent ? "public" as const : "private" as const,
+        likesCount: 0,
+        likedByCurrentUser: false,
+        comments: [],
       };
       moments.unshift(created);
       momentByKey.set(input.idempotencyKey, created.id);
@@ -65,6 +73,22 @@ export function createMockExperienceRepositories(options: MockExperienceOptions 
       const offset = cursor ? Number(cursor) : 0;
       const items = mine.slice(offset, offset + limit);
       return resolveMockScenario(scenario, { items, nextCursor: offset + items.length < mine.length ? String(offset + items.length) : null }, latencyMs);
+    },
+    async toggleLike(momentId) {
+      const selected = moments.find((item) => item.id === momentId);
+      if (!selected) throw mockError("IMAGE_INVALID");
+      selected.likedByCurrentUser = !selected.likedByCurrentUser;
+      selected.likesCount += selected.likedByCurrentUser ? 1 : -1;
+      return resolveMockScenario(scenario, selected, latencyMs);
+    },
+    async addComment(momentId, body) {
+      const selected = moments.find((item) => item.id === momentId);
+      const text = body.trim();
+      if (!selected || !text) throw mockError("IMAGE_INVALID");
+      const comment = { id: `comment_mock_${selected.comments.length + 1}_${Date.now()}`, authorName: "Você", body: text.slice(0, 280), createdAt: new Date().toISOString() };
+      selected.comments.push(comment);
+      await resolveMockScenario(scenario, undefined, latencyMs);
+      return comment;
     },
   };
 
