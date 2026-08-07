@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Award, Bell, Flame, LogOut, Moon, Shield, Star, Sun, Trophy } from "lucide-react";
 import { GameIcon } from "@/components/ui/dnj-controls";
 import type { AnimDir, UserData } from "@/features/app/types";
+import { storage } from "@/lib/storage";
 
 function animStyle(dir: AnimDir): React.CSSProperties {
   const map: Record<AnimDir, string> = { right: "slideInRight 280ms cubic-bezier(0.22,1,0.36,1) both", left: "slideInLeft 280ms cubic-bezier(0.22,1,0.36,1) both", up: "fadeUp 220ms cubic-bezier(0.22,1,0.36,1) both" };
@@ -15,7 +16,8 @@ export function AccountScreen({ user, onLogout, theme, onToggleTheme, animDir }:
   const [recordCount, setRecordCount] = useState<number | null>(null);
   const [pushStatus, setPushStatus] = useState("idle");
   useEffect(() => {
-    void fetch("/api/mock/v1/gallery/mine", { headers: { authorization: "Bearer mock" } })
+    const token = storage.getSession()?.identityToken;
+    void fetch("/api/v1/moments?scope=mine", { headers: token ? { authorization: `Bearer ${token}` } : {} })
       .then((response) => response.ok ? response.json() : null)
       .then((value: { items?: unknown[] } | null) => setRecordCount(value?.items?.length ?? 0))
       .catch(() => setRecordCount(null));

@@ -1,39 +1,60 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { Check, MapPin, Plus, Search } from "lucide-react";
-import heroLogo from "@/assets/brand/DNJ_geral.png";
-import { BackButton, FieldInput, GameIcon, PrimaryButton } from "@/components/ui/dnj-controls";
-import { YOUTH_GROUPS } from "@/features/app/fixtures";
+import { BrandSticker } from "@/components/brand/brand-sticker";
+import {
+  BackButton,
+  FieldInput,
+  GameIcon,
+  PrimaryButton,
+} from "@/components/ui/dnj-controls";
 import type { AnimDir, RegistrationData } from "@/features/app/types";
 import type { ApiGroup } from "@/lib/api/contracts";
 import { groupsApi } from "@/lib/api/groups";
-import { env } from "@/lib/env";
 import { storage } from "@/lib/storage";
-function animStyle(dir: AnimDir): React.CSSProperties { const map: Record<AnimDir,string>={right:"slideInRight 280ms cubic-bezier(0.22,1,0.36,1) both",left:"slideInLeft  280ms cubic-bezier(0.22,1,0.36,1) both",up:"fadeUp       220ms cubic-bezier(0.22,1,0.36,1) both"}; return { animation: map[dir] }; }
-function requestErrorMessage(error: unknown) { return error instanceof Error ? error.message : "Não foi possível concluir a solicitação."; }
+function animStyle(dir: AnimDir): React.CSSProperties {
+  const map: Record<AnimDir, string> = {
+    right: "slideInRight 280ms cubic-bezier(0.22,1,0.36,1) both",
+    left: "slideInLeft  280ms cubic-bezier(0.22,1,0.36,1) both",
+    up: "fadeUp       220ms cubic-bezier(0.22,1,0.36,1) both",
+  };
+  return { animation: map[dir] };
+}
+function requestErrorMessage(error: unknown) {
+  return error instanceof Error
+    ? error.message
+    : "Não foi possível concluir a solicitação.";
+}
 export function LoginScreen({
-  onNext, onRegister, animDir,
+  onNext,
+  onRegister,
+  animDir,
 }: {
-  onNext: (email: string, cpf: string) => Promise<void>; onRegister: () => void; animDir: AnimDir;
+  onNext: (email: string, cpf: string) => Promise<void>;
+  onRegister: () => void;
+  animDir: AnimDir;
 }) {
-  const [cpf, setCpf]     = useState("");
+  const [cpf, setCpf] = useState("");
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const reduceMotion = useReducedMotion();
 
   function formatCPF(raw: string) {
     const d = raw.replace(/\D/g, "").slice(0, 11);
     return d
-      .replace(/(\d{3})(\d)/,                   "$1.$2")
-      .replace(/(\d{3})\.(\d{3})(\d)/,           "$1.$2.$3")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
       .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
   }
 
   const valid = cpf.replace(/\D/g, "").length === 11 && email.includes("@");
-  const cpfError = cpf && cpf.replace(/\D/g, "").length !== 11 ? "Informe os 11 dígitos do CPF." : "";
-  const emailError = email && !email.includes("@") ? "Informe um e-mail válido." : "";
+  const cpfError =
+    cpf && cpf.replace(/\D/g, "").length !== 11
+      ? "Informe os 11 dígitos do CPF."
+      : "";
+  const emailError =
+    email && !email.includes("@") ? "Informe um e-mail válido." : "";
 
   async function submitLogin() {
     if (!valid || submitting) return;
@@ -57,41 +78,26 @@ export function LoginScreen({
       {/* Orange hero with official logo */}
       <div
         className="relative flex flex-col items-center justify-center overflow-hidden"
-        style={{ background: "var(--primary)", paddingTop: "calc(56px + var(--safe-area-top))", paddingBottom: "32px" }}
+        style={{
+          background: "var(--primary)",
+          paddingTop: "calc(56px + var(--safe-area-top))",
+          paddingBottom: "32px",
+        }}
       >
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: "radial-gradient(circle, rgba(0,0,0,0.08) 1px, transparent 1px)",
+            background:
+              "radial-gradient(circle, rgba(0,0,0,0.08) 1px, transparent 1px)",
             backgroundSize: "24px 24px",
           }}
         />
-        <motion.div
+        <div
           className="relative z-10"
           style={{ width: "72%", maxWidth: "280px" }}
-          initial={reduceMotion ? false : { opacity: 0, scale: 0.72, rotate: -5, y: 18 }}
-          animate={{ opacity: 1, scale: 1, rotate: 0, y: 0 }}
-          transition={{ type: "spring", stiffness: 240, damping: 18 }}
         >
-          <motion.img
-            src={heroLogo.src}
-            alt="DNJ GAME 2026"
-            style={{ width: "100%", height: "auto", transformOrigin: "50% 100%" }}
-            animate={reduceMotion ? undefined : {
-              y:      [0, -15, 0, -5, 0],
-              scaleX: [1, 0.97, 1.04, 0.99, 1],
-              scaleY: [1, 1.05, 0.96, 1.02, 1],
-              rotate: [0, -1.2, 0, 0.7, 0],
-            }}
-            transition={{
-              duration: 1.05,
-              times: [0, 0.28, 0.55, 0.76, 1],
-              ease: [0.22, 1, 0.36, 1],
-              repeat: Infinity,
-              repeatDelay: 2.1,
-            }}
-          />
-        </motion.div>
+          <BrandSticker variant="intro" className="w-full" />
+        </div>
         <p
           className="text-sm text-center relative z-10 mt-4 font-medium"
           style={{ color: "rgba(0,0,0,0.55)" }}
@@ -103,7 +109,10 @@ export function LoginScreen({
       {/* Form */}
       <div className="flex flex-col flex-1 px-6 pt-6 pb-10 gap-5">
         <div>
-          <h2 className="text-xl font-bold mb-1" style={{ color: "var(--foreground)" }}>
+          <h2
+            className="text-xl font-bold mb-1"
+            style={{ color: "var(--foreground)" }}
+          >
             Bem-vindo(a)! 👋
           </h2>
           <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
@@ -113,7 +122,10 @@ export function LoginScreen({
 
         <div
           className="rounded-2xl p-6 flex flex-col gap-4"
-          style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--border)",
+          }}
         >
           <FieldInput
             label="CPF"
@@ -132,24 +144,47 @@ export function LoginScreen({
             onChange={(e) => setEmail(e.target.value)}
             error={emailError}
           />
-          {submitError ? <p className="text-sm" style={{ color: "var(--secondary)" }}>{submitError}</p> : null}
-          <PrimaryButton onClick={submitLogin} disabled={!valid || submitting} className="mt-1">
+          {submitError ? (
+            <p className="text-sm" style={{ color: "var(--secondary)" }}>
+              {submitError}
+            </p>
+          ) : null}
+          <PrimaryButton
+            onClick={submitLogin}
+            disabled={!valid || submitting}
+            className="mt-1"
+          >
             {submitting ? "Enviando código..." : "Entrar"}
           </PrimaryButton>
         </div>
 
-        <p className="text-center text-xs" style={{ color: "var(--muted-foreground)" }}>
+        <p
+          className="text-center text-xs"
+          style={{ color: "var(--muted-foreground)" }}
+        >
           Ao entrar, você concorda com os{" "}
-          <span className="underline" style={{ color: "var(--primary)" }}>termos de uso</span>{" "}
+          <span className="underline" style={{ color: "var(--primary)" }}>
+            termos de uso
+          </span>{" "}
           do evento.
         </p>
 
-        <p className="text-center text-sm" style={{ color: "var(--muted-foreground)" }}>
+        <p
+          className="text-center text-sm"
+          style={{ color: "var(--muted-foreground)" }}
+        >
           Não conseguiu acessar?{" "}
           <button
             onClick={onRegister}
             className="font-semibold underline underline-offset-2 transition-opacity hover:opacity-70"
-            style={{ color: "var(--primary)", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: "inherit" }}
+            style={{
+              color: "var(--primary)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              fontSize: "inherit",
+            }}
           >
             Crie uma conta
           </button>
@@ -162,48 +197,85 @@ export function LoginScreen({
 // ─── REGISTER SCREEN ─────────────────────────────────────────────────────────
 
 export function RegisterScreen({
-  onBack, onDone, animDir,
+  onBack,
+  onDone,
+  animDir,
 }: {
-  onBack: () => void; onDone: (registration: RegistrationData) => void; animDir: AnimDir;
+  onBack: () => void;
+  onDone: (registration: RegistrationData) => void;
+  animDir: AnimDir;
 }) {
-  const [step, setStep]       = useState<1 | 2>(1);
-  const [nome, setNome]       = useState("");
-  const [email, setEmail]     = useState("");
-  const [phone, setPhone]     = useState("");
-  const [query, setQuery]     = useState("");
-  const [group, setGroup]     = useState("");
-  const [adding, setAdding]   = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [query, setQuery] = useState("");
+  const [group, setGroup] = useState("");
+  const [adding, setAdding] = useState(false);
   const [newGroup, setNewGroup] = useState("");
+  const [apiGroups, setApiGroups] = useState<ApiGroup[]>([]);
 
-  const filtered = YOUTH_GROUPS.filter((g) =>
-    g.toLowerCase().includes(query.toLowerCase())
-  );
+  useEffect(() => {
+    let active = true;
+    const timer = window.setTimeout(
+      () => {
+        groupsApi
+          .search(query.trim(), "")
+          .then((groups) => {
+            if (active) setApiGroups(groups);
+          })
+          .catch(() => {
+            if (active) setApiGroups([]);
+          });
+      },
+      query ? 250 : 0,
+    );
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [query]);
+
+  const filtered = apiGroups.map((item) => item.groupName);
 
   function formatPhone(raw: string) {
     const d = raw.replace(/\D/g, "").slice(0, 11);
-    if (d.length <= 2)  return d.replace(/(\d{0,2})/, "($1");
-    if (d.length <= 7)  return d.replace(/(\d{2})(\d{0,5})/, "($1) $2");
+    if (d.length <= 2) return d.replace(/(\d{0,2})/, "($1");
+    if (d.length <= 7) return d.replace(/(\d{2})(\d{0,5})/, "($1) $2");
     return d.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
   }
 
-  const personalValid = nome.trim().length >= 2 && email.includes("@") && phone.replace(/\D/g, "").length >= 10;
+  const personalValid =
+    nome.trim().length >= 2 &&
+    email.includes("@") &&
+    phone.replace(/\D/g, "").length >= 10;
   const valid = personalValid && group !== "";
   const personalErrors = {
     nome: nome && nome.trim().length < 2 ? "Informe seu nome completo." : "",
     email: email && !email.includes("@") ? "Informe um e-mail válido." : "",
-    phone: phone && phone.replace(/\D/g, "").length < 10 ? "Informe um WhatsApp válido." : "",
+    phone:
+      phone && phone.replace(/\D/g, "").length < 10
+        ? "Informe um WhatsApp válido."
+        : "",
   };
 
   return (
     <div
       key="register"
       className="flex flex-col min-h-dvh px-6 pb-10 overflow-y-auto"
-      style={{ background: "var(--background)", paddingTop: "calc(48px + var(--safe-area-top))", ...animStyle(animDir) }}
+      style={{
+        background: "var(--background)",
+        paddingTop: "calc(48px + var(--safe-area-top))",
+        ...animStyle(animDir),
+      }}
     >
-      <BackButton onClick={() => step === 2 ? setStep(1) : onBack()} />
+      <BackButton onClick={() => (step === 2 ? setStep(1) : onBack())} />
 
       <div className="mt-6 mb-6">
-        <h2 className="text-2xl font-bold mb-1" style={{ color: "var(--foreground)" }}>
+        <h2
+          className="text-2xl font-bold mb-1"
+          style={{ color: "var(--foreground)" }}
+        >
           Criar conta
         </h2>
         <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
@@ -211,156 +283,283 @@ export function RegisterScreen({
         </p>
       </div>
 
-      <p className="mb-4 text-xs font-semibold" aria-label={`Etapa ${step} de 2`} style={{ color: "var(--muted-foreground)" }}>Etapa {step} de 2</p>
-
-      {step === 1 ? <>
-      <div
-        className="rounded-2xl p-5 flex flex-col gap-4 mb-5"
-        style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+      <p
+        className="mb-4 text-xs font-semibold"
+        aria-label={`Etapa ${step} de 2`}
+        style={{ color: "var(--muted-foreground)" }}
       >
-        <FieldInput
-          label="Nome completo"
-          type="text"
-          placeholder="Seu nome"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          error={personalErrors.nome}
-        />
-        <FieldInput
-          label="E-mail"
-          type="email"
-          placeholder="seu@email.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          error={personalErrors.email}
-        />
-        <FieldInput
-          label="Telefone WhatsApp"
-          type="tel"
-          inputMode="numeric"
-          placeholder="(41) 99999-0000"
-          value={phone}
-          onChange={(e) => setPhone(formatPhone(e.target.value))}
-          error={personalErrors.phone}
-        />
-      </div>
-      <PrimaryButton onClick={() => setStep(2)} disabled={!personalValid}>Continuar</PrimaryButton>
-      </> : <>
+        Etapa {step} de 2
+      </p>
 
-      {/* Group selection */}
-      <div className="mb-5">
-        <p className="text-sm font-semibold mb-3 px-1" style={{ color: "var(--foreground)" }}>
-          Grupo de Jovens
-        </p>
-
-        <AnimatePresence>
-        {group && !adding && (
-          <motion.div
-            className="rounded-xl p-3 mb-3 flex items-center gap-3"
-            style={{ background: "var(--accent-alpha-10)", border: "1.5px solid var(--accent-alpha-30)" }}
-            initial={{ opacity: 0, scale: 0.96, y: -6 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97 }}
+      {step === 1 ? (
+        <>
+          <div
+            className="rounded-2xl p-5 flex flex-col gap-4 mb-5"
+            style={{
+              background: "var(--card)",
+              border: "1px solid var(--border)",
+            }}
           >
-            <GameIcon active><Check size={15} style={{ color: "var(--accent)", flexShrink: 0 }} /></GameIcon>
-            <span className="text-sm font-semibold flex-1 truncate" style={{ color: "var(--foreground)" }}>
-              {group}
-            </span>
-          </motion.div>
-        )}
-        </AnimatePresence>
-
-        <div className="relative mb-2">
-          <Search size={15} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--muted-foreground)", pointerEvents: "none" }} />
-          <motion.input
-            type="text"
-            placeholder="Buscar grupo..."
-            value={query}
-            onChange={(e) => { setQuery(e.target.value); setAdding(false); }}
-            className="w-full rounded-xl py-3 pr-4 text-sm outline-none"
-            style={{ paddingLeft: "38px", background: "var(--input-background)", color: "var(--foreground)", border: "1px solid var(--border)" }}
-            whileFocus={{ scale: 1.015, y: -1, borderColor: "var(--primary)", boxShadow: "0 8px 22px var(--primary-alpha-15)" }}
-            transition={{ type: "spring", stiffness: 420, damping: 28 }}
-          />
-        </div>
-
-        <div
-          className="rounded-2xl overflow-hidden mb-3"
-          style={{ background: "var(--card)", border: "1px solid var(--border)", maxHeight: "200px", overflowY: "auto" }}
-        >
-          {filtered.map((g, i) => (
-            <button
-              key={g}
-              onClick={() => { setGroup(g); setQuery(""); setAdding(false); }}
-              className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
-              style={{
-                borderBottom: i < filtered.length - 1 ? "1px solid var(--border)" : "none",
-                background: group === g ? "var(--primary-alpha-10)" : "transparent",
-              }}
-            >
-              <MapPin size={13} style={{ color: "var(--muted-foreground)", flexShrink: 0 }} />
-              <span className="text-sm flex-1" style={{ color: "var(--foreground)" }}>{g}</span>
-              {group === g && <Check size={13} style={{ color: "var(--primary)" }} />}
-            </button>
-          ))}
-          {filtered.length === 0 && (
-            <div className="px-4 py-6 text-center">
-              <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Nenhum grupo encontrado</p>
-            </div>
-          )}
-        </div>
-
-        {adding ? (
-          <div className="flex flex-col gap-2">
-            <motion.input
+            <FieldInput
+              label="Nome completo"
               type="text"
-              placeholder="Nome do seu grupo"
-              value={newGroup}
-              onChange={(e) => setNewGroup(e.target.value)}
-              className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-              style={{ background: "var(--input-background)", color: "var(--foreground)", border: "1.5px solid var(--primary)" }}
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              whileFocus={{ scale: 1.015, boxShadow: "0 8px 22px var(--primary-alpha-15)" }}
+              placeholder="Seu nome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              error={personalErrors.nome}
             />
-            <div className="flex gap-2">
-              <button onClick={() => setAdding(false)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: "var(--muted)", color: "var(--foreground)" }}>Cancelar</button>
-              <button onClick={() => { if (newGroup) { setGroup(newGroup); setAdding(false); setNewGroup(""); } }} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}>Adicionar</button>
-            </div>
+            <FieldInput
+              label="E-mail"
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              error={personalErrors.email}
+            />
+            <FieldInput
+              label="Telefone WhatsApp"
+              type="tel"
+              inputMode="numeric"
+              placeholder="(41) 99999-0000"
+              value={phone}
+              onChange={(e) => setPhone(formatPhone(e.target.value))}
+              error={personalErrors.phone}
+            />
           </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            <button
-              onClick={() => setAdding(true)}
-              className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-medium"
-              style={{ background: "var(--card)", border: "1px dashed var(--border)", color: "var(--muted-foreground)" }}
+          <PrimaryButton onClick={() => setStep(2)} disabled={!personalValid}>
+            Continuar
+          </PrimaryButton>
+        </>
+      ) : (
+        <>
+          {/* Group selection */}
+          <div className="mb-5">
+            <p
+              className="text-sm font-semibold mb-3 px-1"
+              style={{ color: "var(--foreground)" }}
             >
-              <Plus size={15} />
-              Meu grupo não está na lista
-            </button>
-            <button
-              onClick={() => { setGroup("Sem grupo de jovens"); setQuery(""); }}
-              className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-medium transition-opacity hover:opacity-70"
+              Grupo de Jovens
+            </p>
+
+            <AnimatePresence>
+              {group && !adding && (
+                <motion.div
+                  className="rounded-xl p-3 mb-3 flex items-center gap-3"
+                  style={{
+                    background: "var(--accent-alpha-10)",
+                    border: "1.5px solid var(--accent-alpha-30)",
+                  }}
+                  initial={{ opacity: 0, scale: 0.96, y: -6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                >
+                  <GameIcon active>
+                    <Check
+                      size={15}
+                      style={{ color: "var(--accent)", flexShrink: 0 }}
+                    />
+                  </GameIcon>
+                  <span
+                    className="text-sm font-semibold flex-1 truncate"
+                    style={{ color: "var(--foreground)" }}
+                  >
+                    {group}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="relative mb-2">
+              <Search
+                size={15}
+                style={{
+                  position: "absolute",
+                  left: "14px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "var(--muted-foreground)",
+                  pointerEvents: "none",
+                }}
+              />
+              <motion.input
+                type="text"
+                placeholder="Buscar grupo..."
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setAdding(false);
+                }}
+                className="w-full rounded-xl py-3 pr-4 text-sm outline-none"
+                style={{
+                  paddingLeft: "38px",
+                  background: "var(--input-background)",
+                  color: "var(--foreground)",
+                  border: "1px solid var(--border)",
+                }}
+                whileFocus={{
+                  scale: 1.015,
+                  y: -1,
+                  borderColor: "var(--primary)",
+                  boxShadow: "0 8px 22px var(--primary-alpha-15)",
+                }}
+                transition={{ type: "spring", stiffness: 420, damping: 28 }}
+              />
+            </div>
+
+            <div
+              className="rounded-2xl overflow-hidden mb-3"
               style={{
-                background: group === "Sem grupo de jovens" ? "var(--muted)" : "transparent",
+                background: "var(--card)",
                 border: "1px solid var(--border)",
-                color: group === "Sem grupo de jovens" ? "var(--foreground)" : "var(--muted-foreground)",
+                maxHeight: "200px",
+                overflowY: "auto",
               }}
             >
-              {group === "Sem grupo de jovens" && <Check size={14} style={{ color: "var(--primary)" }} />}
-              Não tenho grupo de jovens
-            </button>
-          </div>
-        )}
-      </div>
+              {filtered.map((g, i) => (
+                <button
+                  key={g}
+                  onClick={() => {
+                    setGroup(g);
+                    setQuery("");
+                    setAdding(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
+                  style={{
+                    borderBottom:
+                      i < filtered.length - 1
+                        ? "1px solid var(--border)"
+                        : "none",
+                    background:
+                      group === g ? "var(--primary-alpha-10)" : "transparent",
+                  }}
+                >
+                  <MapPin
+                    size={13}
+                    style={{ color: "var(--muted-foreground)", flexShrink: 0 }}
+                  />
+                  <span
+                    className="text-sm flex-1"
+                    style={{ color: "var(--foreground)" }}
+                  >
+                    {g}
+                  </span>
+                  {group === g && (
+                    <Check size={13} style={{ color: "var(--primary)" }} />
+                  )}
+                </button>
+              ))}
+              {filtered.length === 0 && (
+                <div className="px-4 py-6 text-center">
+                  <p
+                    className="text-sm"
+                    style={{ color: "var(--muted-foreground)" }}
+                  >
+                    Nenhum grupo encontrado
+                  </p>
+                </div>
+              )}
+            </div>
 
-      <PrimaryButton
-        onClick={() => onDone({ name: nome.trim(), email, mobilePhone: phone, group })}
-        disabled={!valid}
-      >
-        Criar conta
-      </PrimaryButton>
-      </>}
+            {adding ? (
+              <div className="flex flex-col gap-2">
+                <motion.input
+                  type="text"
+                  placeholder="Nome do seu grupo"
+                  value={newGroup}
+                  onChange={(e) => setNewGroup(e.target.value)}
+                  className="w-full rounded-xl px-4 py-3 text-sm outline-none"
+                  style={{
+                    background: "var(--input-background)",
+                    color: "var(--foreground)",
+                    border: "1.5px solid var(--primary)",
+                  }}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileFocus={{
+                    scale: 1.015,
+                    boxShadow: "0 8px 22px var(--primary-alpha-15)",
+                  }}
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setAdding(false)}
+                    className="flex-1 py-3 rounded-xl text-sm font-semibold"
+                    style={{
+                      background: "var(--muted)",
+                      color: "var(--foreground)",
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (newGroup) {
+                        setGroup(newGroup);
+                        setAdding(false);
+                        setNewGroup("");
+                      }
+                    }}
+                    className="flex-1 py-3 rounded-xl text-sm font-semibold"
+                    style={{
+                      background: "var(--accent)",
+                      color: "var(--accent-foreground)",
+                    }}
+                  >
+                    Adicionar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => setAdding(true)}
+                  className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-medium"
+                  style={{
+                    background: "var(--card)",
+                    border: "1px dashed var(--border)",
+                    color: "var(--muted-foreground)",
+                  }}
+                >
+                  <Plus size={15} />
+                  Meu grupo não está na lista
+                </button>
+                <button
+                  onClick={() => {
+                    setGroup("Sem grupo de jovens");
+                    setQuery("");
+                  }}
+                  className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-medium transition-opacity hover:opacity-70"
+                  style={{
+                    background:
+                      group === "Sem grupo de jovens"
+                        ? "var(--muted)"
+                        : "transparent",
+                    border: "1px solid var(--border)",
+                    color:
+                      group === "Sem grupo de jovens"
+                        ? "var(--foreground)"
+                        : "var(--muted-foreground)",
+                  }}
+                >
+                  {group === "Sem grupo de jovens" && (
+                    <Check size={14} style={{ color: "var(--primary)" }} />
+                  )}
+                  Não tenho grupo de jovens
+                </button>
+              </div>
+            )}
+          </div>
+
+          <PrimaryButton
+            onClick={() =>
+              onDone({ name: nome.trim(), email, mobilePhone: phone, group })
+            }
+            disabled={!valid}
+          >
+            Criar conta
+          </PrimaryButton>
+        </>
+      )}
     </div>
   );
 }
@@ -368,13 +567,26 @@ export function RegisterScreen({
 // ─── VERIFY SCREEN (email + OTP merged) ───────────────────────────────────────
 
 export function VerifyScreen({
-  email, onNext, onBack, animDir,
+  email,
+  onNext,
+  onResend,
+  onBack,
+  animDir,
+  simulatedSmsCode = null,
 }: {
-  email: string; onNext: (code: string) => Promise<void>; onBack: () => void; animDir: AnimDir;
+  email: string;
+  onNext: (code: string) => Promise<void>;
+  onResend?: () => Promise<void>;
+  onBack: () => void;
+  animDir: AnimDir;
+  simulatedSmsCode?: string | null;
 }) {
-  const masked = email.replace(/^(.)(.*)(@.*)$/, (_, a, _b, c) => a + "***" + c);
-  const [digits, setDigits]       = useState(["", "", "", "", "", ""]);
-  const [timer, setTimer]         = useState(60);
+  const masked = email.replace(
+    /^(.)(.*)(@.*)$/,
+    (_, a, _b, c) => a + "***" + c,
+  );
+  const [digits, setDigits] = useState(["", "", "", "", "", ""]);
+  const [timer, setTimer] = useState(60);
   const [allFilled, setAllFilled] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState("");
@@ -388,7 +600,7 @@ export function VerifyScreen({
 
   function handleChange(index: number, value: string) {
     const digit = value.replace(/\D/g, "").slice(-1);
-    const next  = [...digits];
+    const next = [...digits];
     next[index] = digit;
     setDigits(next);
     setAllFilled(next.every((d) => d !== ""));
@@ -402,7 +614,10 @@ export function VerifyScreen({
   }
 
   function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const pasted = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, 6);
     if (!pasted) return;
     e.preventDefault();
     const next = [...pasted, "", "", "", "", ""].slice(0, 6);
@@ -428,20 +643,63 @@ export function VerifyScreen({
     <div
       key="verify"
       className="flex flex-col min-h-dvh px-6 pb-10"
-      style={{ background: "var(--background)", paddingTop: "calc(48px + var(--safe-area-top))", ...animStyle(animDir) }}
+      style={{
+        background: "var(--background)",
+        paddingTop: "calc(48px + var(--safe-area-top))",
+        ...animStyle(animDir),
+      }}
     >
       <BackButton onClick={onBack} />
 
       <div className="mt-8 mb-6">
-        <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
-          Verifique seu e-mail
+        <h2
+          className="text-2xl font-bold mb-2"
+          style={{ color: "var(--foreground)" }}
+        >
+          {simulatedSmsCode
+            ? "Código SMS de homologação"
+            : "Verifique seu e-mail"}
         </h2>
-        <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-          Enviamos um código de 6 dígitos para{" "}
-          <span className="font-semibold" style={{ color: "var(--accent)" }}>{masked}</span>.
-          Verifique também o spam.
+        <p
+          className="text-sm leading-relaxed"
+          style={{ color: "var(--muted-foreground)" }}
+        >
+          {simulatedSmsCode ? (
+            <>
+              O envio foi simulado localmente. Use o código de 6 dígitos abaixo
+              para entrar sem disparar SMS ou e-mail.
+            </>
+          ) : (
+            <>
+              Enviamos um código de 6 dígitos para{" "}
+              <span
+                className="font-semibold"
+                style={{ color: "var(--accent)" }}
+              >
+                {masked}
+              </span>
+              . Verifique também o spam.
+            </>
+          )}
         </p>
       </div>
+
+      {simulatedSmsCode ? (
+        <p
+          role="status"
+          className="mb-6 rounded-xl px-4 py-3 text-center text-sm font-bold"
+          style={{
+            background: "var(--accent-alpha-15)",
+            color: "var(--foreground)",
+            border: "1px solid var(--accent-alpha-30)",
+          }}
+        >
+          SMS simulado:{" "}
+          <span style={{ color: "var(--primary)", letterSpacing: ".16em" }}>
+            {simulatedSmsCode}
+          </span>
+        </p>
+      ) : null}
 
       <div
         className="flex gap-2.5 justify-center mb-5"
@@ -450,7 +708,9 @@ export function VerifyScreen({
         {digits.map((digit, i) => (
           <motion.input
             key={i}
-            ref={(el) => { inputs.current[i] = el; }}
+            ref={(el) => {
+              inputs.current[i] = el;
+            }}
             type="text"
             inputMode="numeric"
             maxLength={1}
@@ -461,14 +721,28 @@ export function VerifyScreen({
             aria-label={`Dígito ${i + 1} do código de verificação`}
             className="w-12 h-14 rounded-xl text-center text-xl font-bold outline-none"
             style={{
-              background: digit ? "var(--primary-alpha-15)" : "var(--input-background)",
-              color:      digit ? "var(--primary)"          : "var(--foreground)",
-              border:     `2px solid ${digit ? "var(--primary)" : "var(--border)"}`,
+              background: digit
+                ? "var(--primary-alpha-15)"
+                : "var(--input-background)",
+              color: digit ? "var(--primary)" : "var(--foreground)",
+              border: `2px solid ${digit ? "var(--primary)" : "var(--border)"}`,
               transition: "background 150ms ease, border-color 150ms ease",
             }}
-            animate={digit ? { scale: [1, 1.16, 1.04], y: [0, -3, 0] } : { scale: 1, y: 0 }}
-            whileFocus={{ scale: 1.08, y: -2, boxShadow: "0 8px 20px var(--primary-alpha-20)" }}
-            transition={{ duration: 0.28, times: [0, 0.55, 1], ease: [0.22, 1, 0.36, 1] }}
+            animate={
+              digit
+                ? { scale: [1, 1.16, 1.04], y: [0, -3, 0] }
+                : { scale: 1, y: 0 }
+            }
+            whileFocus={{
+              scale: 1.08,
+              y: -2,
+              boxShadow: "0 8px 20px var(--primary-alpha-20)",
+            }}
+            transition={{
+              duration: 0.28,
+              times: [0, 0.55, 1],
+              ease: [0.22, 1, 0.36, 1],
+            }}
           />
         ))}
       </div>
@@ -476,20 +750,36 @@ export function VerifyScreen({
       <div className="text-center mb-8">
         {timer > 0 ? (
           <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-            Reenviar em <span className="font-semibold" style={{ color: "var(--foreground)" }}>{timer}s</span>
+            Reenviar em{" "}
+            <span
+              className="font-semibold"
+              style={{ color: "var(--foreground)" }}
+            >
+              {timer}s
+            </span>
           </p>
         ) : (
           <button
             className="text-sm font-semibold underline"
             style={{ color: "var(--primary)" }}
-            onClick={() => setTimer(60)}
+            onClick={() => {
+              setTimer(60);
+              void onResend?.();
+            }}
           >
             Reenviar código
           </button>
         )}
       </div>
 
-      {verifyError ? <p className="text-sm text-center mb-3" style={{ color: "var(--secondary)" }}>{verifyError}</p> : null}
+      {verifyError ? (
+        <p
+          className="text-sm text-center mb-3"
+          style={{ color: "var(--secondary)" }}
+        >
+          {verifyError}
+        </p>
+      ) : null}
       <PrimaryButton onClick={submitCode} disabled={!allFilled || verifying}>
         Verificar código
       </PrimaryButton>
@@ -500,41 +790,49 @@ export function VerifyScreen({
 // ─── GROUP SCREEN ─────────────────────────────────────────────────────────────
 
 export function GroupScreen({
-  onNext, onBack, animDir, initialGroup = "",
+  onNext,
+  onBack,
+  animDir,
+  initialGroup = "",
 }: {
   onNext: (group: string, groupId?: string) => Promise<void>;
   onBack: () => void;
   animDir: AnimDir;
   initialGroup?: string;
 }) {
-  const [query, setQuery]       = useState("");
-  const [selected, setSelected] = useState(env.useMocks ? "Grupo Chama Viva – Bairro Alto" : initialGroup);
-  const [adding, setAdding]     = useState(false);
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState(initialGroup);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(
+    undefined,
+  );
+  const [adding, setAdding] = useState(false);
   const [newGroup, setNewGroup] = useState("");
   const [apiGroups, setApiGroups] = useState<ApiGroup[]>([]);
   const [groupsError, setGroupsError] = useState("");
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
-    if (env.useMocks) return;
     const search = query.trim();
-    if (!search) return;
     const session = storage.getSession();
     if (!session) return;
 
     let active = true;
-    const timer = window.setTimeout(() => {
-      groupsApi.search(search, session.identityToken)
-        .then((groups) => {
-          if (active) {
-            setApiGroups(groups);
-            setGroupsError("");
-          }
-        })
-        .catch((error) => {
-          if (active) setGroupsError(requestErrorMessage(error));
-        });
-    }, 400);
+    const timer = window.setTimeout(
+      () => {
+        groupsApi
+          .search(search, session.identityToken)
+          .then((groups) => {
+            if (active) {
+              setApiGroups(groups);
+              setGroupsError("");
+            }
+          })
+          .catch((error) => {
+            if (active) setGroupsError(requestErrorMessage(error));
+          });
+      },
+      search ? 400 : 0,
+    );
 
     return () => {
       active = false;
@@ -542,16 +840,20 @@ export function GroupScreen({
     };
   }, [query]);
 
-  const filtered = env.useMocks
-    ? YOUTH_GROUPS.filter((g) => g.toLowerCase().includes(query.toLowerCase()))
-    : query.trim() ? apiGroups.map((group) => group.groupName) : [];
+  const filtered = apiGroups.map((group) => group.groupName);
 
   async function confirmGroup() {
     if (!selected || confirming) return;
     setConfirming(true);
     setGroupsError("");
     try {
-      const groupId = apiGroups.find((group) => group.groupName === selected)?.id;
+      const groupId =
+        selectedGroupId ??
+        apiGroups.find((group) => group.groupName === selected)?.id;
+      if (selected !== "Sem grupo de jovens" && !groupId) {
+        setGroupsError("Escolha um dos grupos disponíveis para o DNJ 2K26.");
+        return;
+      }
       await onNext(selected, groupId);
     } catch (error) {
       setGroupsError(requestErrorMessage(error));
@@ -564,12 +866,19 @@ export function GroupScreen({
     <div
       key="group"
       className="flex flex-col min-h-dvh px-6 pb-10"
-      style={{ background: "var(--background)", paddingTop: "calc(48px + var(--safe-area-top))", ...animStyle(animDir) }}
+      style={{
+        background: "var(--background)",
+        paddingTop: "calc(48px + var(--safe-area-top))",
+        ...animStyle(animDir),
+      }}
     >
       <BackButton onClick={onBack} />
 
       <div className="mt-6 mb-5">
-        <h2 className="text-2xl font-bold mb-1" style={{ color: "var(--foreground)" }}>
+        <h2
+          className="text-2xl font-bold mb-1"
+          style={{ color: "var(--foreground)" }}
+        >
           Seu grupo jovem
         </h2>
         <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
@@ -578,24 +887,45 @@ export function GroupScreen({
       </div>
 
       <AnimatePresence>
-      {selected && !adding && (
-        <motion.div
-          className="rounded-xl p-3 mb-4 flex items-center gap-3"
-          style={{ background: "var(--accent-alpha-10)", border: "1.5px solid var(--accent-alpha-30)" }}
-          initial={{ opacity: 0, scale: 0.96, y: -6 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.97 }}
-        >
-          <GameIcon active><Check size={15} style={{ color: "var(--accent)", flexShrink: 0 }} /></GameIcon>
-          <span className="text-sm font-semibold flex-1 truncate" style={{ color: "var(--foreground)" }}>
-            {selected}
-          </span>
-        </motion.div>
-      )}
+        {selected && !adding && (
+          <motion.div
+            className="rounded-xl p-3 mb-4 flex items-center gap-3"
+            style={{
+              background: "var(--accent-alpha-10)",
+              border: "1.5px solid var(--accent-alpha-30)",
+            }}
+            initial={{ opacity: 0, scale: 0.96, y: -6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+          >
+            <GameIcon active>
+              <Check
+                size={15}
+                style={{ color: "var(--accent)", flexShrink: 0 }}
+              />
+            </GameIcon>
+            <span
+              className="text-sm font-semibold flex-1 truncate"
+              style={{ color: "var(--foreground)" }}
+            >
+              {selected}
+            </span>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <div className="relative mb-2">
-        <Search size={15} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--muted-foreground)", pointerEvents: "none" }} />
+        <Search
+          size={15}
+          style={{
+            position: "absolute",
+            left: "14px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            color: "var(--muted-foreground)",
+            pointerEvents: "none",
+          }}
+        />
         <motion.input
           type="text"
           placeholder="Buscar grupo..."
@@ -607,35 +937,78 @@ export function GroupScreen({
             setAdding(false);
           }}
           className="w-full rounded-xl py-3 pr-4 text-sm outline-none"
-          style={{ paddingLeft: "38px", background: "var(--input-background)", color: "var(--foreground)", border: "1px solid var(--border)" }}
-          whileFocus={{ scale: 1.015, y: -1, borderColor: "var(--primary)", boxShadow: "0 8px 22px var(--primary-alpha-15)" }}
+          style={{
+            paddingLeft: "38px",
+            background: "var(--input-background)",
+            color: "var(--foreground)",
+            border: "1px solid var(--border)",
+          }}
+          whileFocus={{
+            scale: 1.015,
+            y: -1,
+            borderColor: "var(--primary)",
+            boxShadow: "0 8px 22px var(--primary-alpha-15)",
+          }}
           transition={{ type: "spring", stiffness: 420, damping: 28 }}
         />
       </div>
 
       <div
         className="rounded-2xl overflow-hidden mb-4"
-        style={{ background: "var(--card)", border: "1px solid var(--border)", maxHeight: "240px", overflowY: "auto" }}
+        style={{
+          background: "var(--card)",
+          border: "1px solid var(--border)",
+          maxHeight: "240px",
+          overflowY: "auto",
+        }}
       >
-        {groupsError ? <p className="px-4 py-3 text-sm" style={{ color: "var(--secondary)" }}>{groupsError}</p> : null}
+        {groupsError ? (
+          <p
+            className="px-4 py-3 text-sm"
+            style={{ color: "var(--secondary)" }}
+          >
+            {groupsError}
+          </p>
+        ) : null}
         {filtered.map((group, i) => (
           <button
             key={group}
-            onClick={() => { setSelected(group); setQuery(""); setAdding(false); }}
+            onClick={() => {
+              setSelected(group);
+              setSelectedGroupId(
+                apiGroups.find((item) => item.groupName === group)?.id,
+              );
+              setQuery("");
+              setAdding(false);
+            }}
             className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
             style={{
-              borderBottom: i < filtered.length - 1 ? "1px solid var(--border)" : "none",
-              background:   selected === group ? "var(--primary-alpha-10)" : "transparent",
+              borderBottom:
+                i < filtered.length - 1 ? "1px solid var(--border)" : "none",
+              background:
+                selected === group ? "var(--primary-alpha-10)" : "transparent",
             }}
           >
-            <MapPin size={13} style={{ color: "var(--muted-foreground)", flexShrink: 0 }} />
-            <span className="text-sm flex-1" style={{ color: "var(--foreground)" }}>{group}</span>
-            {selected === group && <Check size={13} style={{ color: "var(--primary)" }} />}
+            <MapPin
+              size={13}
+              style={{ color: "var(--muted-foreground)", flexShrink: 0 }}
+            />
+            <span
+              className="text-sm flex-1"
+              style={{ color: "var(--foreground)" }}
+            >
+              {group}
+            </span>
+            {selected === group && (
+              <Check size={13} style={{ color: "var(--primary)" }} />
+            )}
           </button>
         ))}
         {filtered.length === 0 && (
           <div className="px-4 py-8 text-center">
-            <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Nenhum grupo encontrado</p>
+            <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+              Nenhum grupo encontrado
+            </p>
           </div>
         )}
       </div>
@@ -648,35 +1021,82 @@ export function GroupScreen({
             value={newGroup}
             onChange={(e) => setNewGroup(e.target.value)}
             className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-            style={{ background: "var(--input-background)", color: "var(--foreground)", border: "1.5px solid var(--primary)" }}
+            style={{
+              background: "var(--input-background)",
+              color: "var(--foreground)",
+              border: "1.5px solid var(--primary)",
+            }}
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            whileFocus={{ scale: 1.015, boxShadow: "0 8px 22px var(--primary-alpha-15)" }}
+            whileFocus={{
+              scale: 1.015,
+              boxShadow: "0 8px 22px var(--primary-alpha-15)",
+            }}
           />
           <div className="flex gap-2">
-            <button onClick={() => setAdding(false)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: "var(--muted)", color: "var(--foreground)" }}>Cancelar</button>
-            <button onClick={() => { if (newGroup) { setSelected(newGroup); setAdding(false); } }} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}>Adicionar</button>
+            <button
+              onClick={() => setAdding(false)}
+              className="flex-1 py-3 rounded-xl text-sm font-semibold"
+              style={{ background: "var(--muted)", color: "var(--foreground)" }}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => {
+                if (newGroup) {
+                  setSelected(newGroup);
+                  setAdding(false);
+                }
+              }}
+              className="flex-1 py-3 rounded-xl text-sm font-semibold"
+              style={{
+                background: "var(--accent)",
+                color: "var(--accent-foreground)",
+              }}
+            >
+              Adicionar
+            </button>
           </div>
         </div>
       ) : (
         <div className="flex flex-col gap-2 mb-4">
           <button
-            onClick={() => setAdding(true)}
+            onClick={() =>
+              setGroupsError(
+                "Os seis grupos cadastrados para homologação aparecem na busca acima.",
+              )
+            }
             className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-medium"
-            style={{ border: "1px dashed var(--border)", color: "var(--muted-foreground)", background: "transparent" }}
+            style={{
+              border: "1px dashed var(--border)",
+              color: "var(--muted-foreground)",
+              background: "transparent",
+            }}
           >
             <Plus size={15} /> Não encontrei meu grupo
           </button>
           <button
-            onClick={() => { setSelected("Sem grupo de jovens"); setQuery(""); }}
+            onClick={() => {
+              setSelected("Sem grupo de jovens");
+              setSelectedGroupId(undefined);
+              setQuery("");
+            }}
             className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-medium transition-opacity hover:opacity-70"
             style={{
-              background: selected === "Sem grupo de jovens" ? "var(--muted)" : "transparent",
+              background:
+                selected === "Sem grupo de jovens"
+                  ? "var(--muted)"
+                  : "transparent",
               border: "1px solid var(--border)",
-              color: selected === "Sem grupo de jovens" ? "var(--foreground)" : "var(--muted-foreground)",
+              color:
+                selected === "Sem grupo de jovens"
+                  ? "var(--foreground)"
+                  : "var(--muted-foreground)",
             }}
           >
-            {selected === "Sem grupo de jovens" && <Check size={14} style={{ color: "var(--primary)" }} />}
+            {selected === "Sem grupo de jovens" && (
+              <Check size={14} style={{ color: "var(--primary)" }} />
+            )}
             Não tenho grupo de jovens
           </button>
         </div>

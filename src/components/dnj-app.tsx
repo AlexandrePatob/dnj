@@ -6,7 +6,6 @@ import { ApiError } from "@/lib/api/client";
 import { groupsApi } from "@/lib/api/groups";
 import { mapApiUser } from "@/lib/api/mappers";
 import type { AuthSession } from "@/types/domain";
-import { env } from "@/lib/env";
 import { storage } from "@/lib/storage";
 import { ConnectivityStatus } from "@/components/pwa/connectivity-status";
 import { InstallPromotion } from "@/components/pwa/install-promotion";
@@ -37,21 +36,6 @@ function sessionUserData(session: AuthSession): UserData {
   };
 }
 
-function mockSession(user: UserData): AuthSession {
-  return {
-    identityToken: "mock-identity-token",
-    user: {
-      id: "mock-user",
-      name: user.name,
-      email: user.email,
-      document: user.cpf.replace(/\D/g, ""),
-      group: user.group ? { id: "mock-group", groupName: user.group } : null,
-      points: user.points,
-      rankPosition: user.rankPosition,
-    },
-  };
-}
-
 // ─── Screen transition logic ──────────────────────────────────────────────────
 
 function getAnimDir(from: Screen, to: Screen): AnimDir {
@@ -70,6 +54,8 @@ import { EventScheduleScreen } from "@/features/schedule/schedule-screen";
 import { EventMapScreen } from "@/features/map/map-screen";
 import { QueueScreen } from "@/features/queue/queue-screen";
 import { AppShell, BottomNav, TopBar } from "@/components/layout/dnj-layout";
+import { DnjOnboarding } from "@/components/onboarding/dnJ-onboarding";
+import { LiveStatusStack, type LiveMomentChallenge, type LiveSpecialEvent } from "@/components/live/live-status-stack";
 export function DnjApp() {
   const reduceMotion = useReducedMotion();
   const network = useNetworkStatus();
@@ -89,6 +75,7 @@ export function DnjApp() {
   const [screen, setScreen]         = useState<Screen>("login");
   const [prevScreen, setPrevScreen] = useState<Screen>("login");
   const [emailVal, setEmailVal]     = useState("");
+  const [simulatedSmsCode, setSimulatedSmsCode] = useState<string | null>(null);
   const [registration, setRegistration] = useState<RegistrationData | null>(null);
   const [user, setUser] = useState<UserData>({
     name: "João Paulo", cpf: "", email: "", group: "",
@@ -96,6 +83,9 @@ export function DnjApp() {
   });
   const [offlineSnapshotCapturedAt, setOfflineSnapshotCapturedAt] = useState<string | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [specialEvent, setSpecialEvent] = useState<LiveSpecialEvent | null>(null);
+  const [momentChallenge, setMomentChallenge] = useState<LiveMomentChallenge | null>(null);
   const restoredSession = useRef(false);
   const restoredSnapshot = useRef(false);
 
@@ -107,26 +97,21 @@ export function DnjApp() {
   const handleLogin = useCallback(async (email: string, cpf: string) => {
     setEmailVal(email);
     setUser((u) => ({ ...u, email, cpf }));
-    if (!env.useMocks) {
-      await authApi.requestCode(email, cpf.replace(/\D/g, ""));
-    }
+    const delivery = await authApi.requestCode(email, cpf.replace(/\D/g, ""));
+    setSimulatedSmsCode(delivery?.verificationCode ?? null);
     navigate("verify");
   }, [navigate]);
 
-  const handleVerification = useCallback(async (code: string) => {
-    if (env.useMocks) {
-      const session = mockSession(user);
-      storage.setSession(session);
-      recordTesterPresence(session);
-      navigate("group");
-      return;
-    }
+  const handleResendVerification = useCallback(async () => {
+    const delivery = await authApi.requestCode(emailVal, user.cpf.replace(/\D/g, ""));
+    setSimulatedSmsCode(delivery?.verificationCode ?? null);
+  }, [emailVal, user.cpf]);
 
-    const response = await authApi.verifyCode(emailVal, code);
+  const handleVerification = useCallback(async (code: string) => {
+    const response = await authApi.verifyCode(emailVal, user.cpf.replace(/\D/g, ""), code);
     const apiUser = mapApiUser(response);
     const session = { user: apiUser, identityToken: response.identityToken };
     storage.setSession(session);
-    recordTesterPresence(session);
     setUser({
       name: apiUser.name,
       cpf: apiUser.document,
@@ -140,51 +125,21 @@ export function DnjApp() {
 
   const handleRegistrationVerification = useCallback(async () => {
     if (!registration) throw new ApiError("Dados do cadastro não encontrados. Tente novamente.", 400);
-    if (!env.useMocks) {
-      throw new ApiError("A criação de conta ainda não está integrada à API.", 501);
-    }
-
-    const registeredUser: UserData = {
-      name: registration.name,
-      cpf: "",
-      email: registration.email,
-      group: registration.group,
-      points: 0,
-      rankPosition: 0,
-    };
-    const session = mockSession(registeredUser);
-    session.user.mobilePhone = registration.mobilePhone;
+    const response = await authApi.register(registration);
+    const apiUser = mapApiUser(response);
+    const session = { user: apiUser, identityToken: response.identityToken };
     storage.setSession(session);
-    recordTesterPresence(session);
-    setUser(registeredUser);
+    setUser({ name: apiUser.name, cpf: apiUser.document, email: apiUser.email, group: apiUser.group?.groupName ?? "", points: apiUser.points, rankPosition: apiUser.rankPosition });
     navigate("home");
   }, [navigate, registration]);
 
   const handleGroupConfirm = useCallback(async (group: string, groupId?: string) => {
     let confirmedGroup = group;
-    if (!env.useMocks) {
-      const session = storage.getSession();
-      if (!session) throw new ApiError("Sessão não encontrada. Entre novamente.", 401);
-      const updatedUser = await groupsApi.updateUserGroup(
-        session.user.id,
-        groupId ? { groupId } : { groupName: group },
-        session.identityToken,
-      );
-      confirmedGroup = updatedUser.group?.groupName ?? group;
-      storage.setSession({
-        identityToken: session.identityToken,
-        user: { ...session.user, group: updatedUser.group },
-      });
-    } else {
-      const session = storage.getSession() ?? mockSession(user);
-      storage.setSession({
-        identityToken: session.identityToken,
-        user: {
-          ...session.user,
-          group: { id: groupId ?? "mock-group", groupName: confirmedGroup },
-        },
-      });
-    }
+    const session = storage.getSession();
+    if (!session) throw new ApiError("Sessão não encontrada. Entre novamente.", 401);
+    const updatedUser = await groupsApi.updateUserGroup(group === "Sem grupo de jovens" ? {} : { groupId }, session.identityToken);
+    confirmedGroup = updatedUser.group?.groupName ?? "";
+    storage.setSession({ identityToken: session.identityToken, user: { ...session.user, group: updatedUser.group, points: updatedUser.points, rankPosition: updatedUser.rankPosition } });
     setUser((current) => ({ ...current, group: confirmedGroup }));
     navigate("home");
   }, [navigate, user]);
@@ -213,6 +168,38 @@ export function DnjApp() {
       disposed = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!sessionReady || !isMain) return;
+    const timer = window.setTimeout(() => {
+      try { if (!localStorage.getItem("dnj.onboarding.2k26")) setOnboardingOpen(true); } catch { setOnboardingOpen(true); }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [isMain, sessionReady]);
+
+  useEffect(() => {
+    let active = true;
+    async function readSpecialEvent() {
+      try {
+        const token = storage.getSession()?.identityToken;
+        const response = await fetch("/api/v1/special-events/active", { cache: "no-store", headers: token ? { authorization: `Bearer ${token}` } : {} });
+        if (!response.ok) throw new Error("special event unavailable");
+        const payload = await response.json() as { event: (LiveSpecialEvent & { id: string }) | null; momentChallenge: LiveMomentChallenge | null };
+        if (active) {
+          setSpecialEvent(payload.event);
+          setMomentChallenge(payload.momentChallenge);
+        }
+      } catch {
+        if (active) {
+          setSpecialEvent(null);
+          setMomentChallenge(null);
+        }
+      }
+    }
+    void readSpecialEvent();
+    const interval = window.setInterval(() => { void readSpecialEvent(); }, specialEvent?.status === "teaser" ? 1_000 : 10_000);
+    return () => { active = false; window.clearInterval(interval); };
+  }, [specialEvent?.status]);
 
   useEffect(() => {
     if (network.isOnline || restoredSnapshot.current || screen !== "login") return;
@@ -265,19 +252,20 @@ export function DnjApp() {
             {screen === "login"           && <LoginScreen    onNext={handleLogin} onRegister={() => navigate("register")} animDir={animDir} />}
             {screen === "register"        && <RegisterScreen onBack={() => navigate("login")} onDone={(data) => { setRegistration(data); navigate("register-verify"); }} animDir={animDir} />}
             {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} />}
-            {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onBack={() => navigate("login")}  animDir={animDir} />}
+            {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onResend={handleResendVerification} simulatedSmsCode={simulatedSmsCode} onBack={() => navigate("login")}  animDir={animDir} />}
             {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("verify")} animDir={animDir} initialGroup={user.group} />}
             {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} onOpenSchedule={() => navigate("schedule")} onOpenMap={() => navigate("map")} />}
             {screen === "schedule" && <EventScheduleScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "map" && <EventMapScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "game"    && <GameScreen    user={user} theme={theme} animDir={animDir} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
             {screen === "queue"   && <QueueScreen                                  animDir={animDir} />}
-            {screen === "gallery" && <GalleryScreen                                animDir={animDir} />}
+            {screen === "gallery" && <GalleryScreen group={user.group}             animDir={animDir} />}
             {screen === "account" && <AccountScreen user={user} onLogout={() => { storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
           </motion.div>
         </AnimatePresence>
 
         {isMain && <TopBar />}
+        {isMain && <LiveStatusStack special={specialEvent} momentChallenge={momentChallenge} queueSummary={specialEvent ? "Fila Radicalidade: acompanhamento no app" : undefined} />}
         {!network.isOnline && offlineSnapshotCapturedAt && (
           <p
             className="absolute left-3 right-3 z-40 rounded-xl border px-3 py-2 text-center text-xs font-medium"
@@ -287,6 +275,7 @@ export function DnjApp() {
           </p>
         )}
         {isMain && <BottomNav active={activeNavScreen} onNavigate={navigate} />}
+        {isMain && onboardingOpen && <DnjOnboarding onClose={() => { try { localStorage.setItem("dnj.onboarding.2k26", "1"); } catch {} setOnboardingOpen(false); }} />}
         <ConnectivityStatus
           idleContent={(
             <InstallPromotion
@@ -305,12 +294,4 @@ export function DnjApp() {
         />
     </AppShell>
   );
-}
-
-function recordTesterPresence(session: AuthSession) {
-  void fetch("/api/test-users/presence", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ externalKey: session.user.email || session.user.document || session.user.id, name: session.user.name, email: session.user.email, points: session.user.points }),
-  });
 }

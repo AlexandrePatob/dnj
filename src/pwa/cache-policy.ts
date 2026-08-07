@@ -7,7 +7,7 @@ export type CacheStrategy =
 const IMAGE_EXTENSIONS = new Set([".avif", ".ico", ".jpeg", ".jpg", ".png", ".svg", ".webp"]);
 const FONT_EXTENSIONS = new Set([".woff", ".woff2"]);
 const MANIFEST_EXTENSIONS = new Set([".webmanifest"]);
-const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"]);
+const LOCAL_HOSTNAMES = new Set(["localhost", "::1"]);
 
 export function isLocalDevelopmentOrigin(origin: string): boolean {
   return LOCAL_HOSTNAMES.has(new URL(origin).hostname);

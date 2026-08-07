@@ -23,6 +23,6 @@ describe("QrScannerModal", () => {
 
     expect(await screen.findByText("Este QR Code não é válido.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tentar câmera" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Escanear QR Code" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Trocar câmera" })).toBeInTheDocument();
   });
 });

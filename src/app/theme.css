@@ -23,7 +23,7 @@
 
   /* ── Typography ── */
   --font-size: 16px;
-  --font-sans: var(--font-poppins), 'Poppins', sans-serif;
+  --font-sans: var(--font-space-grotesk), 'Space Grotesk', sans-serif;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
