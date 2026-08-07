@@ -1,0 +1,914 @@
+# Frag night
+
+  Meeting started: 04/08/2026, 20:12:48
+  Duration: 183 minutes
+  Participants: Alexandre B, Tiago de Andrade
+
+  [View original transcript](https://app.tactiq.io/api/2/u/m/r/y5VzSSqwYLwtiGMZDeU3?o=txt)
+
+    
+
+  
+
+  
+    ## Highlights
+
+    > 01:35:19 Alexandre B: Você tem compromisso Ou você tem deadlines?
+
+  ## Transcript
+
+  00:00 Tiago de Andrade: E aí meu negão, você poderia deixar meu marido em paz, por gentileza?
+00:03 Alexandre B: Eu posso ser que eu me deixe em paz.
+00:06 Tiago de Andrade: Eu sei.
+00:08 Alexandre B: E aí como é que vocês estão?
+00:11 Tiago de Andrade: Só um exemplo então.
+00:15 Alexandre B: Acabei de voltar de férias e preciso de umas férias. Não tô dando um exemplo, né?
+00:28 Tiago de Andrade: Vamos que vamos dar muito tempo hoje.
+00:31 Alexandre B: E aí bota lá Que é isso?
+00:43 Tiago de Andrade: Eu deixei até 8:30.
+00:51 Alexandre B: Deixa eu só subir os negócios que tem aqui daí a gente mexe no que tá atualizado.
+00:56 Tiago de Andrade: Olá, estou transcrevendo esta chamada com minha extensão Tactiq AI. https://tactiq.io/r/transcribing
+00:56 Tiago de Andrade: Diga.
+00:56 Alexandre B: Olá, estou transcrevendo esta chamada com minha extensão Tactiq AI. https://tactiq.io/r/transcribing
+01:23 Alexandre B: Freak Fred
+01:54 Alexandre B: O quê? galeria interativa curtidas comentários dos registros fotos mocadas suporte As coisas da empresa e o dnj aqui vai continuar fazendo Não deu no computador. Que se peidou.
+02:35 Tiago de Andrade: Mas o computador a Rio?
+02:38 Alexandre B: Mas não importa porque não sou travar tudo daí eu falei. Ah, então não dá para deixar os dois. ao vivo É porque na hora do outro da empresa, né?
+03:00 Tiago de Andrade: Entendi.
+03:03 Alexandre B: Meu local tem uns moquezinho mais bonitinho.
+03:36 Alexandre B: Mas podia fechar funcionalidade hoje que eu tava pensando.
+03:40 Tiago de Andrade: Então eu só tô preocupado com duas coisas finalizar o app a partir de funcionalidade e começar e o negócio do gestor como é que vai funcionar se a gente montar o pré layout do gestor? A gente aplica ele para quase tudo. O problema é ter que ser mobile é mais chatinha com essas coisas preencher e
+04:04 Alexandre B: sim
+04:08 Tiago de Andrade: tal.
+04:09 Alexandre B: Não não é tanto não. quer dizer sim sim, mas Temos os funcionários do mês aqui para trabalhar para nós. Ela faz uma alteração é a roda todos os testes. Tá tudo Tá tudo para tudo para Não. Ela trocou uma cor de botão e ela roda Bill inteiro para esse projeto não quebrou dessa p****. Só que tá meio meio meio Jaguara assim. Podemos com o Matheuzinho atrás muito melhor.
+05:39 Alexandre B: Entendi.
+06:26 Tiago de Andrade: 240 pessoas já voluntário inscrição do voluntário Cara, tava atrasadaço, né? Tá pegando o tranco agora atrasado, porque essa semana é a última semana para grupo de jovens. mas trazer um pouco da Gente cortou né o período. então Ficou mais tenso. Não acredito nisso.
+07:07 Alexandre B: Sabe quanto tempo demora para publicar? 30 segundos
+07:27 Tiago de Andrade: Quantos tá
+07:29 Alexandre B: Tá vendo?
+08:40 Tiago de Andrade: agora tá
+08:54 Alexandre B: Isso aqui é o botãozinho de compartilhar. já vai direto no feed ou no Stories ou Tempo fazer parte se quiser aqui, só que ele não tá tem que pensar como é que eu vou fazer isso aqui porque vamos lá visualmente aqui tá assim, né? Só que eu tenho que fazer a marca d'água, tem que fazer ela.
+09:23 Tiago de Andrade: Então cara, sabe qual que é a ideia?
+09:26 Alexandre B: Não.
+09:28 Tiago de Andrade: Lembra que o João mostrou lá?
+09:31 Alexandre B: sim
+09:31 Tiago de Andrade: pior que sem querer o dele tava bem na Bem no estilo. Deixa eu te mandar que o site do dnj para você ver.
+09:44 Tiago de Andrade: https://lightsalmon-stork-960949.hostingersite.com/
+09:45 Alexandre B: estilo
+09:50 Tiago de Andrade: Eu posso fazer aqui rapidinho para te mandar? mas
+09:58 Alexandre B: Ah bem esse estilo assim do passaporte.
+10:01 Tiago de Andrade: Esse negocinho ali tipo selo que tá o santo.
+10:11 Alexandre B: É porque eu pedi para ela fazer tipo Instagram.
+10:12 Tiago de Andrade: Entendeu? um rolê Não não mas cara não é para mexer no formato.
+10:23 Alexandre B: Mas dá para fazer um.
+10:25 Tiago de Andrade: É só fazer a borda. Entendeu? A gente sobe a borda que nesse tempo de JM tá ali no cantinho, a gente faz a borda em png e aplica em cima de todas as fotos, entendeu? O ruim é que tipo se a pessoa vai tirar foto e tipo o cara também no cantinho, talvez não apareça né? Mas Você lembra do John É pode ser você lembra do John lá tava mais ou menos assim, né?
+10:55 Alexandre B: Cara dele tava.
+10:56 Tiago de Andrade: Você tem aí o vídeozinho dele ela no WhatsApp?
+11:01 Alexandre B: acho que
+11:02 Tiago de Andrade: Está fervendo cara, meu WhatsApp aqui. do espaço
+11:41 Tiago de Andrade: É só do santidade que ele não tinha colocado a estrutura e iluminação, entendeu? Aí ficou esse valor aí do Sol de santidade dele não mandou outro de novo lá porque ele achou que era só esse enfim é difícil, né conversar com os velhos. Mas é isso, entendeu? Considere o valor de santidade para comparação dos outros perdão.
+12:04 Alexandre B: É então, esse daqui é o feed que é o equivalente, esse é o nosso certo.
+12:05 Tiago de Andrade: Cara eu acho que vamos tirar o comentário tem ali do John nem tem né?
+12:13 Alexandre B: Isso aqui é aqui ó, a gente colocou tipo esse aqui pode ser o nome do grupo, né? Tipo beleza aqui, eu acho que ele ganhou um tem duas coisas que dá para arredondar fazer igual ele fez aqui arredondado bordas deixar a foto mais equalizada, talvez aí tem que ver se é interessante, né? Mas talvez a curtida assim e o aviãozinho também sei é outro botei algum outro lugar o comentário, cara que eu Sinceramente, tô repensando faz sentido.
+12:49 Alexandre B: Só que o que que eu tô pensando cara, se isso aqui vai ser usual, entendeu? Porque cara é mais tipo o Instagram. Tem vamos dizer assim é mais consolidado as pessoas vão interagem, mas eu acho que aqui vai ser mais um tipo. Sei lá, não sei talvez só um título se mas acho que a interação de comentário durante o evento acho difícil.
+13:15 Tiago de Andrade: É assim é legal por um lado, mas eu acho que pode dar um trabalho para gente que não tem tempo eu até te vi lá que você colocou negócio e tal falei cara, nem tem como colocar aquilo e não vai ter tempo para não ficar moderando isso.
+13:30 Alexandre B: O que que eu pensei a gente vai ficar travado, entendeu? Esse que é uma
+13:32 Tiago de Andrade: Mas tira então, cara.
+13:36 Alexandre B: receita.
+13:38 Tiago de Andrade: O que dá para a gente fazer?
+13:41 Alexandre B: outra coisa que eu pensei são talvez dois displays que é o feed e aqui vamos lá revendo funcionalidades em vez de ser galeria de i***** dos meus momentos fazer um pouco mais minimalista igual o John fez aqui e talvez até Porque o que que ele ganhou aqui, né? Ele tem um reader que é fixo e que é genérico para todas as páginas que o nosso também a gente tem o laranjinha aqui em cima, só que o nosso não faz nada.
+14:11 Alexandre B: E o dele tem tipo ele clica aqui é o meu perfil, por exemplo aquilo conta já assumiria aqui em cima, o agenda talvez podia ter um cronograma também já ganha uma força aérea menos espalhada no lugar já estaria ali outra coisa também poderia fazer por aba mudar alguma coisa. Alguma interação mais dinâmica lá em cima sabe? Mas eu nessa parte aqui que eu pensei ter essa visualização e em vez dos meus momentos, se algo moderado que os meus momentos basicamente as fotos que eu tirei. Em vez disso aqui ser assim. Se nessa linha aqui. E aí poder talvez englobar tipo as fotos suas e do teu grupo.
+14:59 Alexandre B: Não sei aí tipo aí tipo as fotos suas e de todas as pessoas que estão no mesmo grupo que você sabe, eu acho que talvez faria um pouco mais sentido aí. Aqui também a gente conseguiria ter um pouco mais essa experiência de compartilhar que estou no dnj ou compartilhar uma foto etc etc aí aqui seria tipo cara, só vê curte. E só ficaria um pouco mais de chuva. Não sei o que
+15:24 Tiago de Andrade: Sim, vamos lá.
+15:25 Alexandre B: que você acha.
+15:28 Tiago de Andrade: Eu acho que a gente tem que menos é mais agora.
+15:31 Alexandre B: É tô pensando.
+15:32 Tiago de Andrade: Tá Primeiro, vamos lá? Eu acho que esse negócio tem que ser um momento de NJ daí é ali embaixo pode ter colocado, mas só momentos no menu a gente coloca momentos certo.
+15:44 Alexandre B: Vamos dizer assim, não vou dizer propitando, mas organizando as ideias. Acho
+15:49 Tiago de Andrade: Porque a meia Vibe lá é entre o Instagram e entre o instante lá sabe? Do Instagram agora eu posso na hora é meio que é um intermédio dos dois. Então acho que cara não precisa mexer nisso deixa na curtida.
+16:17 Alexandre B: que o tic tac tá gravando aí, mas até ele pegar talvez depois a gente só consulta.
+17:08 Alexandre B: Tá vamos lá então a ideia aqui seria.
+17:14 Tiago de Andrade: É uma teria praticamente que tá só vou falar nomenclatura usaria ali embaixo momentos da galeria de NJ no menu.
+17:23 Alexandre B: menu de baixo trocar galerinha PJ por momentos DJ momentos
+17:29 Tiago de Andrade: momentos É só momentos. Não sei se vai caberj momentos idiotas momentos.
+17:50 Alexandre B: momentos
+17:53 Tiago de Andrade: Aí ali onde que tá escrito memórias que Juventude está criando, vamos ver se tem um versículo que fala sobre sei lá memória ou amigo a gente bota ali. Onde a galeria dnj no botão momento Daniel?
+18:15 Alexandre B: Vai manter esse. se
+18:20 Tiago de Andrade: Calma aí que eu pensei na onde a galeria agora no momento NJ aí que nem que tá aparecendo. Eu acho que mantém o fedizão mesmo e deixa tira o comentário deixa só curtida. Eu compartilhamento desse por falar de layout, já eu acho que do jeito que tá aí. Tá bom? Acho que você conseguir fazer aquela bordinha fica mais bonitinho, né redondar os cantos. Esse compartilhar deveria estar do lado direito ou um botão maior o botão que
+18:52 Alexandre B: a direita
+18:56 Tiago de Andrade: nem tá galeria ali, né? Uma pílula né? compartilhar e o símbolo do lado
+19:04 Alexandre B: Mas acho que o aviãozinho aqui. Acho que resolve.
+19:06 Tiago de Andrade: É eu acho que funciona. Beleza, eu ia até falar. Tipo, a gente podia criar uma pilha assim de ter um coração e outro símbolo. Mas acho que nem precisa ficar pirando essas coisas. Deixa só o coração e a gente segue.
+19:19 Alexandre B: Ah uma outra pessoa tá.
+19:20 Tiago de Andrade: Ah, sei lá que nem tem o sorrisinho, entendeu? Podia ter coração uma cruz um sei lá, mas nem é muita viadagem também, eles não vão entender. Eu nem sei se vocês vão usar muito isso, mas vamos testar. É que eles vão usar porque é ponto né? Então eles vão usar.
+19:39 Alexandre B: Vai ganhar ponto estranho.
+19:44 Tiago de Andrade: Então é isso que eu ia falar porque daí o que acontece quando ele sai em algum lugar. A ideia a gente incentivar que ele tire a foto no lugar. Por isso que tem que ser tipo fluxo, tem que ser ele bipo QR Code abre o modal compartilhe esse momento agora mais 10. Sei lá tá ligado? Aí ele vai vai para
+20:05 Alexandre B: E para outra parte que esse passaporte aqui, né? Já vem para já ganha dois,
+20:05 Tiago de Andrade: câmera. Ele tirou vem para cá sacou. essa ideia E daí se ele quiser. É daí vai para os meus momentos os meus momentos seria esse passaporte do
+20:20 Alexandre B: só que aqui no fim de pontua.
+20:23 Tiago de Andrade: jonk, né? Que é um compilado de tudo que ele participou. É isso aí nos meus momentos vai aparecer tudo pode até ser menorzinho que nem O João fez assim tipo 3, né? Cada e daí se ele clicar ele vê maior. E é isso e se clicar a única coisa que vai ter que ter tipo modal também,
+20:40 Alexandre B: Fique aqui.
+20:42 Tiago de Andrade: talvez modal dessa como se fosse esse esse feed aqui em modal como curtida curtida não né? Mas compartilhar pelo menos entendeu?
+20:55 Alexandre B: Se a gente usar vamos lá tudo que ele tirar foto aqui no app entrar no feed a gente já ganha esse bônus que tudo pode ser curtida, então a gente até reaproveitaria o mesmo toda a mesma lógica de tudo para os dois lugares, né?
+21:12 Tiago de Andrade: sim
+21:12 Alexandre B: Só uma dúvida que fica agora aqui continuaria galeria TJ.
+21:18 Tiago de Andrade: Não aí é momentos.
+21:21 Alexandre B: Mas daí momentos DJ meus momentos ficaria assim. botão no momentos Eu confesso que eu tenho um pouco incomodado com essa se render aqui.
+21:41 Tiago de Andrade: É que laranja é f***, né?
+21:43 Alexandre B: Mas tá beleza, então aqui acho que tá tudo certo. Deixa ver se não tem do
+21:44 Tiago de Andrade: E a gente fez bem battadão, né? Dá para dar uma melhorada se quiser.
+21:54 Alexandre B: lado direito.
+21:57 Tiago de Andrade: Ideia mecânica cara, é que assim aí a única coisa que eu não sei. Daí nós podemos fazer duas formas. a mecânica de ganhar pontos seria só E desde que eu não sei escrever uma regra que é muito difícil, mas a gente pensa junto. Só se ele estivesse em algum evento lá certo, então ele bateu aquele code eu libero a possibilidade de ligar Ponto naquele naquela hora. Fechou perdeu ou a não ser que enquanto ele tá no momento lá com aquele time, sabe?
+22:33 Alexandre B: Eu gosto não vejo problema nenhum é só isso. Só separar isso na verdade, eu
+22:36 Tiago de Andrade: Porque aqui daí a minha dúvida só para completar aqui a minha dúvida é ser ele entrou no Galeria dnj ele vai poder tirar uma foto. Se ele quiser se ele não tiver em lugar nenhum, se não tiver participando Teoricamente com QR. Code aí a gente teria que fazer o quê usar mesmo eurídica do QR. Code seria um botãozinho demais aqui na direita embaixo flutuante o cara. Tira foto só que daí se ele tira por aqui, ele não é ponto, entendeu?
+23:08 Alexandre B: acho que dá para fazer adicionar.
+23:10 Tiago de Andrade: Eu só não sei se na mecânica do game não fica muita coisa, né? Daí você me disse.
+23:13 Alexandre B: Não mas aqui o que vamos lá pensando na lógica aqui seria tipo. E aí no QR. Code a gente fala assim, pode ter até o mesmo é de ponte com mesa lógico. Ah, mas só que a gente passa uma pontuação que aí o único lugar que vai ter e saber a pontuação é lá no DJ game que aí lá QR Code vai mandar para app as informações eu guardo e talvez até coloca um tempo de Que eles falou ó se o cara tirar uma foto Compartilhar esse momento em 10 minutos, sei lá, cinco minutos eu pontuo a foto dele, senão eu já sobe sozinho, mas beleza é poder criar foto de tirar foto. Compartilhar sim por todos. Beleza, aí, agora acho que já vão aproveitar a vibe aqui. Isso daqui eu acho que apareceria.
+24:26 Alexandre B: Talvez a gente podia pensar nisso daqui.
+24:28 Tiago de Andrade: Então aí o que que acontece pato? Vamos lá o cara bipou no lugar. Ele teria que ter o cheque, eu acho que no mesmo modal ele podia ter o cheque
+24:39 Alexandre B: A gente sabe que a Espaço Esperança.
+24:44 Tiago de Andrade: lá o check Zinho, você está participando de tanana. certo
+24:54 Alexandre B: tá
+24:57 Tiago de Andrade: E embaixo é Aproveita e compartilhar esse momento botão compartilhar momento. Se ele clicar ali, ele já vai para foto Compartilhe o momento. E Volta para Página aí do game isso se ele fechar o modal que vai ter xizinho
+25:14 Alexandre B: Sim que esse cara aqui.
+25:19 Tiago de Andrade: lá em cima ou clicar fora da tela. Enfim fora do modal. Ele sai quando ele entrar nessa tela de que que seria ideal você está no tanana no Espaço
+25:31 Alexandre B: sim
+25:36 Tiago de Andrade: Esperança. E o timer que tá vinculado no banco de dados então tipo, lembra que por exemplo de falar no Esperança nesses lugares, né que tem um cronograma a gente colocar uma um padrão de 15 minutos certo, então ficaria um timer de 15 minutos contando nesse quadrado que tá pense num Quadradinho que tá o momento NJ o lado esquerdo. Em cima Thalia, você está no tanana embaixo na esquerda, teria o contador do lado direito o botão tirar momento criar momento, sei lá compartilhar momento.
+26:13 Tiago de Andrade: Ele clicou no botãozinho. Ele vai para a câmera e durante aquele período ele vai vincular a pontuação que ele porque ele tá no espaço. Entendeu? Aí é única coisa que daí são as falando em regra então para quando é o lugar esperança ou palco juventude que ele esteja ali no momento, né? Vai ser o que Ele carrega o Code fixo, ele vai estar com cronograma rodando. Beleza a gente vai ter lá o timer de 15 minutos.
+26:47 Tiago de Andrade: Só tem que ver as questões naqueles lugares que não tem timer, né? Por exemplo.
+26:53 Alexandre B: só que ele ele por exemplo daria para
+26:56 Tiago de Andrade: Seria o ideal. Os QR codes de da Feira vocacional, lembra? Você quer coisas da Feira vocacional e daí cada um vai ter um tipo não tem tempo, né? Porque o cara pode conversar, mas isso é legal, cara, tá na feira tirar foto lá com os cara e ganhar ponto. Só que daí ele vai ter que ter que ser só no botão, entendeu? Depois não.
+27:25 Alexandre B: A gente pensar agora daria para a gente manter esse timer de 15 minutos para tudo.
+27:30 Tiago de Andrade: Na questão da foto do momento.
+27:30 Alexandre B: só que aí Dá bom mesmo. Só que daí a gente seria uma outra regra que é o cara escaneou uma vez algum dos eventos não pode cair mais aquele lá do É que agora não vou lembrar, mas tinha algumas regras que a gente já tinha conversado lá e tal que era justamente para isso esse aqui você pode eles não pode e tal e aí eu acho que
+27:54 Tiago de Andrade: Regra que eu tinha te colocado era assim pensando em lugares que são banda lixo. Sei lá, a gente colocaria um timer fixo. Descer lá 7 minutos vai enquanto tivesse timer 7 minutos, o cara seria que tentar sair mesmo que não esteja lá tentou sair tentou sair ele não vai ganhar nada certo nos outros lugares não vai bipar não vai contar ponto.
+28:23 Alexandre B: Tu quer code sim.
+28:25 Tiago de Andrade: Mas aí tem a situação feira vocacional e tem a situação por exemplo. que é o santo papo que é a conversa lá com Nesse lugar vai ter um QR. Code com o cara ali, sei lá ou na mesa lá, enfim nesse caso teria que ter um timer diferente porque tipo ali você vai ficar o quê dois minutos? Você pode ficar dois minutos, entendeu? Então já tinha feito lembra que tinha feito por tipo?
+28:53 Alexandre B: sim
+28:54 Tiago de Andrade: E daí ainda tinha outro tipo lá que era o especial, mas isso daí nem vai ter compartilhar o momento, né? O timer lá que conta a gente teria que fazer o timer contando na tela lá para aparecer nos telões e tudo mais então só essa
+29:05 Alexandre B: Que é?
+29:06 Tiago de Andrade: regra que a gente teria que definir bem. E não mudaria a questão do timer, né?
+29:12 Alexandre B: Não acho que ficaria tipo assim, a gente poderia reaproveitar. Nossa regra de travar o cara o cara não me limpar o outro QR code. para esse
+29:26 Tiago de Andrade: Não sim, mas é a regra mesmo exatamente a regra de tempo que o cara vai ter
+29:28 Alexandre B: É então aí reaproveita.
+29:31 Tiago de Andrade: para não bipar é a mesma que vai estar aparecendo para o cara compartilha no
+29:33 Alexandre B: Exato. Então é isso?
+29:34 Tiago de Andrade: momento, só que o tempo são diferentes, entendeu?
+29:44 Alexandre B: Entendi.
+29:46 Tiago de Andrade: Você acha que funciona assim?
+29:49 Alexandre B: Eu acho que funciona.
+29:52 Tiago de Andrade: E no fim eu regra que a gente vai colocar junto, né. Então pense até a gente pode colocar como? Dispensar que agora tem que lembrar as situações, né?
+30:06 Alexandre B: No começo, né?
+30:08 Tiago de Andrade: Porque ó um QR Code é esse que tem o espaço e tem um timer contando maior outro é fervocacional e Santo Papo que os cara vão ter um QR. Code que tipo também na hora, mas ele ainda vai gastar um tempo ali outro vai ser os QR. Code especiais que ele vai bipar, ele só ganha ponto na hora certo. Tinha mais um. Aí daí tinha o QR Code das provas, lembra? Isso isso das provas das ações aqui chamou de ações, o cara tá numas ações lá é quem daria o Play e o pause Seria tipo a fila, né? Então, o cara que vai dar aí não tem tempo também o cara que vai tipo fazer ali. O negócio né para funcionar.
+31:10 Tiago de Andrade: Que a ideia era que tinha dado lá que eu não lembro se o cara bipava no final todo mundo. E daí ele selecionava quem era o primeiro, né? Ou era no começo todo mundo me paga.
+31:22 Alexandre B: Era no começo é tipo era o começo entrava todo mundo para o jogo executava o
+31:27 Tiago de Andrade: isso
+31:28 Alexandre B: jogo. O cara falava primeiro.
+31:31 Tiago de Andrade: É isso daí, a gente teria já as pontuações pré-fixadas.
+31:31 Alexandre B: Mas eu acho que não é ponto mais fácil para a gente.
+31:39 Tiago de Andrade: ou a gente deixarei no gestor lá para sei lá mudar a pontuação mas Então é isso. Só nesse caso que quando é o cara bipa antes ali que ele vai estar nesse exato nessas ações que compartilhar o momento vai ser meio tenso, né? Não é então, deixa assim, vamos fazer nas outras três.
+32:05 Alexandre B: ações
+32:12 Tiago de Andrade: E a gente pode fazer tipo? Aqui no tipo no compartilhar momentos. Lá que vai ficar na página. Não aí no Tipo na galeria lá a gente bota a bolinha ali.
+32:27 Alexandre B: Tá sim sim é que ela não vai alimentar aqui, né? Bastante tipo hoje vai ser.
+32:27 Tiago de Andrade: O cara se ele quiser compartilhar, mas sei lá vale um ponto, entendeu? Para não dizer que não pontua. Se o cara colocar a foto. Tô dando exemplo para dizer que não pontua a gente pontua ali um ponto. Já diz aí incentivo, cara, tipo, ele tá vendo a galera correr de saco lá, ele vai tirar foto dos cara correndo, sei lá. Entendeu? Uma coisa que vai ser tipo seria legal também, mas não vai conseguir fazer é Se a gente pudesse marcar a galera, né? Tipo? Ah, você tá na minha foto ou não para tipo, eu marquei você apareceria no mesmo momento mas
+33:05 Alexandre B: Se por exemplo se eu e você a gente é do grupo de jovens cursilho.
+33:07 Tiago de Andrade: Mas isso não vai rolar. aí o máximo que Mas vai amarrar.
+33:20 Alexandre B: Aqui que eu tava pensando aqui vai aparecer todas as suas nessa linha nessa linha, né? Vai aparecer as suas fotos e do seu grupo de jovens. Quem sabe até dá para pensar em uma Binha alguma coisa visual aqui mas
+33:32 Tiago de Andrade: eu acho que é vai ter que falar só isso, então vamos fazer que nem a gente fez no Ranking lá né? Então vai ter meus momentos depois em baixo eu e o meu grupo, sei lá.
+33:46 Alexandre B: É individual é tipo aqui mesmo layout na verdade, né?
+33:47 Tiago de Andrade: Isso exatamente.
+33:51 Alexandre B: Que daí acho que fica legal.
+33:52 Tiago de Andrade: Daí se o cara vai ter que só fazer a regra de layout, né do front ali que se
+33:55 Alexandre B: É porque aí a gente.
+34:02 Tiago de Andrade: o cara não tem grupo vinculado no usuário dele, só aparece direto ele né.
+34:08 Alexandre B: Então meus momentos aparece igual. dentro
+34:26 Tiago de Andrade: Coloca eu
+34:31 Alexandre B: Não se não somente se não não coloca nenhum botão meus amores não é possível. compartilhar foto de outra pessoa Aí aqui vai conseguir usar do grupo para compartilhar.
+34:56 Tiago de Andrade: Como assim
+34:58 Alexandre B: Tipo assim, tá cursinho inteira. Nossa, galera aí o Marcos tirou uma foto. Ele tá aqui, eu tô vendo a foto. Eu tô vendo aqui no feed.
+35:06 Tiago de Andrade: Não deixa mesmo, cara. Faz assim, ó, isso que tá aqui. Isso que tá nessa tela vira um modal. Entendeu igual?
+35:14 Alexandre B: Não só que daí é isso que eu tô falando. Se todo mundo tiver acesso do grupo de jovens de compartilhar qualquer coisa beleza, mas é assim, se você tirar uma foto ele tá aqui no grupo eu posso compartilhar.
+35:27 Tiago de Andrade: Isso só que ele vai ter que entrar porque ele não vai achar na galeria com sei lá 1500 fotos. A não ser que ele veja na hora daí ele vai vir no mesmo
+35:33 Alexandre B: Aqui acho que agora já essa parte da galeria que eu tinha mas aí fechou.
+35:36 Tiago de Andrade: momento vai achar o grupos vai pegar a foto vai abrir o modal modal, vai exatamente igual o que tá na galeria com curtida até se quiser e compartilhamento ou só com o botão de compartilhar mesmo tirar uma curtida. Você bem que dá também, né? E daí vai ter ali é legal, deixa curtida e compartilhamento. O cara quem tirou a foto também vai ver se tem curtido ou não, sabe? Daí a gente bota isso. E daí, se a gente for fazer vai ter que ver se a gente faz mesmo. Uma borda ali ou não.
+36:26 Alexandre B: Eu acho que é layout, depois a gente quem sabe.
+36:29 Tiago de Andrade: Dá para fazer tipo, ele fez se conseguir chegar perto tá legal. Aquele Alt dele, né? Deixa mais redondinha ali e tal.
+36:37 Alexandre B: Esse daqui ou esse daqui?
+36:38 Tiago de Andrade: os dois copiem
+36:40 Alexandre B: Esse não esse daqui eu tenho esse aqui dá para fazer é que eu sou.
+36:43 Tiago de Andrade: Não só não precisa ser curtida, como é que ele fez deixa curtir do jeito nosso.
+36:46 Alexandre B: Não sim, mas a foto né a foto acho que fica legal aqui.
+36:47 Tiago de Andrade: É redonda ali as cantinhos.
+36:52 Alexandre B: É tipo aqui ficou legal, né? Aqui já tá na mesma ideia, mas é por foto ficou meio c*****. Mas beleza aí aqui eu acho que também essa parte daqui. Acho que dá para Cara sou baseado. Deixa eu ver aqui, acho que ele abriu aí para ver como ficaria. Ele fez um negócio mais legal aqui. Mandou para o feed aqui.
+37:25 Tiago de Andrade: Sim, não mas esses rolê não precisa cara.
+37:27 Alexandre B: É mas acho que vai ser tipo.
+37:29 Tiago de Andrade: Tudo vai para o vídeo. É isso. Tá única coisa vocês vão ter que ficar dando uma olhada se alguém não tira uma foto nada a ver, né? Mas
+37:40 Alexandre B: Uma página uma página só de sódio e a gente controla lá direto.
+37:43 Tiago de Andrade: E tem como excluir esse negócio rápido, só isso. Então, daí você tinha falado lá o negócio do cabeçalho, eu acho que dá para gente dar uma melhorada. Por exemplo, até dá para deixar uma forma melhor arredondar os cantos também fica já bonitinho já é melhor, eu acho que até o menu se é tudo embaixo, eu não acho ruim sabe só tem que ver porque tá dependendo do celular, às vezes ele fica meio escondido sabe o responsivo dele tem que ver isso. Mas eu acho que não é ruim ficar tudo embaixo.
+38:23 Alexandre B: Será que ficaria muito ruim colocar esse essa frase aqui no meio e aqui do lado, talvez o cronograma porque o cronograma tá aqui hoje. Que foi meio que né? Depois a gente arruma isso.
+38:42 Tiago de Andrade: É cara, você é bem sincero cronograma como ele é uma coisa.
+38:46 Alexandre B: dinâmica cada uma coisa dá para arrancar fora
+38:49 Tiago de Andrade: Não é eu acho que seria muito top a gente fazer. ali tipo Como é que é pneu? Aí? Já fez ali, né bonitinho que se escolhe espaço pa pa seria ótimo lindo maravilhoso, mas a gente vai ter que fazer lá no gestor para preencher esse Trabuco aí.
+39:13 Alexandre B: O que eu penso só que tipo assim, vamos lá aqui isso aqui poderia isso aqui é
+39:13 Tiago de Andrade: Mas os outros anos que a gente fez que Inclusive era o site, né? Tinha um site lá a gente botou PDF baixar um pdfzão e era PDF que é comunicação já ia criar. Sabe então, sei lá.
+39:33 Alexandre B: muito legal, mas o cara poderia vir aqui. Ou até aqui mesmo, sabe tipo nesse cara e daí ele fala assim p***, tô aqui no
+39:39 Tiago de Andrade: Não deu uma tabelinha, né?
+39:43 Alexandre B: santidade. Que que vai rolar o cara clica tem a lista, entendeu? E cara sinceramente. É mas podia eu pensei numa numa árvorezinha aqui sabe tipo aqui tá Espaço santidade. O cara clica vai abrindo uma árvore.
+40:01 Tiago de Andrade: Sim o Acorde e nem tá ali não pode ser entendeu? Só que a gente vai ter que só colocar o negócio para preencher depois horário nome e atração.
+40:09 Alexandre B: Não. É mas isso é
+40:13 Tiago de Andrade: Horário nome e atração vai ter que ser sei lá.
+40:15 Alexandre B: Você provavelmente vai ter que ter essa informação não vai?
+40:18 Tiago de Andrade: Ou não Sim.
+40:19 Alexandre B: Você você tendo e passando para mim, cara e aprende isso aqui é hardcold code acho que também não vamos ser surpresas assim, tipo agora não vai mais ter esse evento aqui vai fechar também publicar.
+40:36 Tiago de Andrade: Sim aí só daí questão de layouts, se a gente for falar da home já não precisa ter esse quadrado laranja do evento verdinho ali embaixo, ele criou esse aqui por último aleatório.
+40:52 Alexandre B: não eu não sei mas acho que é trabalho trabalho já mas
+40:53 Tiago de Andrade: É que eu entendi que ele falou agora no dnj, mas não vai ter como fazer agora no dnj, né? É muita coisa junto determinado tripa. seria legal, mas eu acho que é muito trampo e se você quiser fazer achar que é válido, mas Porque assim se tiver os dados.
+41:22 Alexandre B: É que ele faria por aproximação de horário, né às 14 horas, o cara é 1:20, p****. Agora já coloca está próximo tal coisa, talvez nos Big eventos assim sabe tipo na missa, por exemplo. Sei lá, não sei se vai ter alguma coisa assim mais os papos lá o show não sei se é uma coisa dessa.
+41:47 Tiago de Andrade: É as coisas que tem cronograma é que várias coisas vão ter tipo um cronograma, né? Aí Claro, a gente pode colocar seria bem legal. Só que daí eu tô pensando que ele por aproximação ele pegaria streaming de cada espaço e teria que jogar tudo ali aproximado, né? E vão ter várias coisas acontecendo no mesmo momento. Então vai ser sei lá, às vezes acontecer cinco coisas ao mesmo tempo
+42:07 Alexandre B: Linguiça tudo também.
+42:09 Tiago de Andrade: cinco linhas, aí tem que pensar nisso, né? Tipo espaço Juventude nome e horário não né? O horário vai estar ali nome espaço Juventude tal coisa espaço santidade tal coisa Arena talk tal coisa. sei lá
+42:29 Alexandre B: Cara, seria muito legal, porque pela experiência porque o cara saber o que tá
+42:32 Tiago de Andrade: Não ajuda para caramba, eu acho legal também é outro nível, né?
+42:36 Alexandre B: rolando em várias coisas ao mesmo tempo, só que aí tem dois problemas, né? Primeiro é esse que você falou. Quer como mostrar? Não é? porque a home Roma tá meio p****, nós fizemos aquela versão lá e Abrir mapa. Eu descobri uma sociedade aqui.
+43:00 Tiago de Andrade: Vamos lá então seu objetivo primeira que eu acho que tem muita coisa misturado. Se for fazer isso isso vira o principal ali em cima.
+43:15 Alexandre B: Por hora sim.
+43:16 Tiago de Andrade: Agora no dnj se a gente vai preencher os negócios você consegue puxar ali o dado por sei lá meia hora de diferença dos horários. Dá para fazer ou atualiza em casa 15 minutos, não sei como é que vai ser porque tem os horários quebrado e tal, qual que é a regra que você vai colocar ainda para puxar informação.
+43:39 Alexandre B: Aqui certinho.
+43:41 Tiago de Andrade: E daí a gente vai ter que só pensar porque daí vai ter que ser vamos dizer que esse quadrado laranja, né? Ou a parte de cima teria que ser agora. E daí tá acolhido e missa de abertura espada de juventude. Tipo isso mas ao contrário né? Eu colocaria espaço primeiro. Ou a experiência que tem. A gente chamou diferente tem experiências que tem horário, entendeu? Eu não
+44:07 Alexandre B: Podia ser.
+44:10 Tiago de Andrade: tô chamando espaço. Mas enfim a mesma coisa. No final das contas é um lugar que vai ter alguma coisa acontecendo no horário
+44:15 Alexandre B: tá
+44:16 Tiago de Andrade: então, por exemplo daria em cima, né espaço Juventude embaixo acolhido missão de abertura duas horas Arena Natal. tal sei lá capiau sobre liderança não sei liderança Rafael Medeiros Que mais? Essa santidade. Yuri Costa aí a gente tem que ver porque ele vai meio que tem que criar uma listinha certo bonitinha ali. E daí embaixo vai ter um botãozinho.
+44:58 Alexandre B: que demora para
+44:59 Tiago de Andrade: cronograma completo Daí ele pode entrar nessa páginazinha, ele tira aquele negócio certo não vai ter mais aquilo.
+45:14 Alexandre B: sem
+45:17 Tiago de Andrade: E eu prefiro bem mais que ele fosse Limpo assim a verdinho Limpo assim bem melhor.
+45:22 Alexandre B: O que é esse de cima?
+45:25 Tiago de Andrade: É esse lá que tá laranja, tipo forno modelo mais ou menos que tá o cronograma do evento ali embaixo, sabe onde tá cronograma espaço embaixo é o nome ali do que tá acontecendo. E o horário, né?
+45:46 Alexandre B: agora
+45:49 Tiago de Andrade: Então, entendeu vai ficar uma sei lá no máximo cinco coisas simultâneas vai aparecer aqui, eu acho. Dá para simular isso?
+45:59 Alexandre B: Mas é os pontos na verdade, né?
+46:19 Tiago de Andrade: Aí aí que que eu faria eu achei bem legal. Esse negócio aqui tá a bolinha girando essa viadagem missão ativa, só que eu entendi, mas tipo ficou um trambonhão aqui por mais que eu gosto de animação e tal. Ele não é muito prático. Que que eu pensei em fazer? Lá em cima ou lá Alexandre. Eu colocaria no lado direito aqui. Né do outro lado ali hoje pode até ver lá em cima que a gente falou. Não sei eu coloco lá em cima lá Alexandre, aí eu colocaria aqui tipo nível. E o XP do lado.
+47:08 Tiago de Andrade: Como como se fosse o contador de ponto lá que tem sabe? Só que eu não sei se não vai confundir com os pontos, a gente tem que pensar nisso também. É Ah então, beleza, então. Fechou então, já colocarei aqui.
+47:19 Alexandre B: Tudo é uma coisa só. É ele vai tirando foto vai participando esse nível. Esse é o nível que vai subir, entendeu?
+47:29 Tiago de Andrade: Tá então dá para colocar na home já? Tipo mais ou menos que tem ali. Acho que no game.
+47:42 Alexandre B: Outra coisa que a gente até que eu passei aqui falou para equalizar isso a gente vai chamar XP vai chamar de pontos vai chamar de glorificação. Para equalizar em todos os lugares chamado do mesmo jeito, entendeu? Porque senão na home vestir uma XP aí eu chamo pontos daí no outro é?
+48:02 Tiago de Andrade: Não não sim sim, tem que ser a mesma coisa. Mas pode ser pontos mesmo é mais fácil todo mundo entende isso aí.
+48:09 Alexandre B: É isso que eu pensei talvez o aqui do ladinho assim colocar o XP do cara.
+48:11 Tiago de Andrade: Já tá lá meus pontos também no ranking. Aí talvez dê para usar o cabeçalho para isso, entendeu? Isso foi o caso tira essa frase. Enfim, não precisa se a gente colocou para encher a linguiça. Aí que que era minha questão a gente vai ter essas Missões.
+48:36 Alexandre B: ela falou que
+48:42 Tiago de Andrade: Porque uma das coisas que eu falei que era possível que determinante tem que pensar, mas se for muita coisa é supérfluo. É lançar desafios das fotos, lembra? Que é tipo agora, vamos tirar foto para Tirem uma foto para tá fino é 100 pontos, sei lá ganha outro ponto. Ah, tira foto no chafariz lá tira foto. Sei lá onde a barraquinha de cachorro quente.
+49:10 Alexandre B: Só que isso daí Seria tipo um evento especial.
+49:13 Tiago de Andrade: Isso que daí eu acho que ele te liga, parecia uma tarde aqui em cima tipo esse negócio que tem reconstrou um passo por vez. Só que ali em cima e bem tipo do tamanho do cronograma do evento ali, tá vendo? No embaixo ali onde tá aquela tardinha ali cronograma tipo desse tamanho no máximo lá em cima. ali do laranja como se fosse Uma tarde assim tipo. evento especial e um timer assim, sei lá Um minuto dois o cara clica vai para câmera. Fala ali né? Tirar foto no desafio 3 minutos. Se tivesse um timer seria ótimo, senão ele some só.
+49:58 Alexandre B: mas é mas é
+50:00 Tiago de Andrade: E daí? Ele clicou Ali vai ter um botãozinho, né? Alguma coisa, eu acho que até o botãozinho podia ser um quadradinho que nem tá tipo assim uma câmera, só isso. Do lado direito ali quadradinho, o cara clicou ele tem que tirar foto lá. E daí ele ganha o ponto. o problema Que daí eu não sei né? Tipo, o cara foi lá e tirou foto em qualquer lugar e ganhou ponto que a gente vai saber que o cara tirou foto lá, né? é só esse bo que daí talvez você tivesse que dar uma mina ali na hora meio manual parada porque
+50:45 Alexandre B: é que não vai dar para Qualquer Code com isso. A gente conseguir se deixar um. específico para eventos especiais O ruim que também tem isso, né, teria que ter alguém que vai lá no chafariz Cola QR Code lá. Vou deixar uma placa, sei lá, qualquer coisa um pouco maior.
+51:20 Tiago de Andrade: É mas esse foram.
+51:25 Alexandre B: Mas ele também não vira evento especial deve virar evento especial que tem que escanear o QR. Code não faz sentido, né? Porque se o cara escanear aquele QR Code ele vai ser especial? Como a gente vai estar lá, eu não vejo problema também, a gente vai ser um bom coisa 50 60 fotos ou mais a gente vai dar uma aí, a gente fala modera mesmo. Talvez não nem arranca foto. Só tipo, tira o ponto, sei lá.
+51:59 Tiago de Andrade: Não é mas é só você vai ter que só que isso que eu tô falando tudo é você, tem que pensar isso no gestor, né? Daí começa a ficar um monstro.
+52:03 Alexandre B: É manual, né?
+52:08 Tiago de Andrade: Entendeu?
+52:12 Alexandre B: Esses dois aqui ainda faz sentido.
+52:12 Tiago de Andrade: Mas assim, eu acho que isso. É superfície. Vamos fazer um negócio funcionar? Vamos lá? Espaços isso vai ter no site. Eu não sei se faz sentido a gente colocar aí sabe? Ou se a gente vai colocar o negócio do cronograma esse textinho que tá ali a
+52:39 Alexandre B: Sim, é isso aqui isso aqui.
+52:42 Tiago de Andrade: gente pode colocar espaço de juventude ou descrição, tipo uma descriçãozinha e daí a lista do cronograma, entendeu? Já resolve mata isso aí o mapa.
+52:53 Alexandre B: o mapa eu acho que
+52:56 Tiago de Andrade: O mapa deixa eu te mostrar aqui.
+52:58 Alexandre B: Devido às complexidades cara, podia ficar por último qualquer coisa sabe tipo.
+53:00 Tiago de Andrade: É que isso daí é de menos também, né?
+53:06 Alexandre B: E dá para colocar lá no 55 segundo tempo, entendeu? Não precisa ser agora.
+53:12 Tiago de Andrade: Cara se não mostra zonas. Deixa eu mandar aqui uma Pinha para você ver temos duas possibilidades.
+53:31 Alexandre B: Esse aqui que tinha feito.
+53:33 Tiago de Andrade: não work, não dá cara, vai ser muito pesado e tem que ter api, o cara é quatro é bem legal, mas É legal para ficar três tesão, né? Você consegue fazer ângulo tal, mas eu vi lá sem chance. Já te mando. Calma que tem duas possibilidades. Que uma é do Google, mas eu acho tipo é legal porque é do Google e cara interage no Google ali no Maps. E o outro é o que eu fiz bonitinho. Esse aqui né o Primeiro nem sei se mandei certo. O link mas acho que sim.
+54:18 Tiago de Andrade: Então tem esse e daí tem um outro que esse aqui que daí que a gente poderia fazer só teria que o cara do front teria que arrumar. que é o seguinte, deixa só achar aqui para te mandar meu Deus, quanto converso com Vou ter que atualizar.
+54:54 Alexandre B: Pensar nas duas possibilidades.
+55:02 Tiago de Andrade: Que parece também. Não sei pior porque ele não dá muita opção lá não. Achei. Aí tem esse aqui que é mais bonitinho que é mais só que daí que a gente tem que fazer ele teria que abrir um tamanho maior. Ou ele teria que abrir um tamanho que é do tamanho da tela. E disse o cara clicar de novo ou clicar da gente colocar um botão de maximizar ele aumentava e o cara pudesse arrastar na tela sacou.
+55:38 Tiago de Andrade: Bem sim, é para ele poder ver melhor, né? Que no celular vai ficar um negócio neste momento para você. Que tem uma imagem só entendeu? Não vai ter nada interativo, é só uma imagem e daí já dá para a gente colocar a imagem ali embaixo, entendeu? Já foi sofrido para conseguir fazer essa parada aí cara. Nossa, tive que achar um software dele era gringo pagode eu dei meu jeito e copiei de dentro do software. Se o Cláudio conseguir deixar isso daí 3D boa sorte, mas eu acho difícil.
+56:37 Alexandre B: É que assim isso. Nós estamos difícil.
+56:45 Tiago de Andrade: Aí eu posso mandar isso aqui para você em png, né? Tipo sem esse Brancão aí do lado. esses você clica ele tem informação ali mas Veja agora também. nos espaços
+57:05 Alexandre B: Cara, tem que testar botar aqui para ver mapa. duas possibilidades foto esse consumidor para Beleza acho que o mapa é isso aí. O mapa ficaria isso essa parte arranca fora. O que é isso, né?
+57:51 Tiago de Andrade: Aí eu não sei cara, se quiser tipo ver a questão da fonte que tinha te falado.
+57:56 Alexandre B: Se quiser me mandar cara, eu só utilizo.
+57:59 Tiago de Andrade: Então deixa eu ver qual é a fonte que é usada, eu não sei nem sei lá do Google.
+58:04 Alexandre B: A fonte que tá aqui.
+58:06 Tiago de Andrade: Não essa aí é né, mas eu tô falando para você importar web, né? A ponto que eu tô falando que é do dnj dessa vez, entendeu?
+58:16 Alexandre B: Entendeu?
+58:18 Tiago de Andrade: Ele tá com essas coisas mais pastel, zona aí. Mas eu acho é não sei se é o caso, né? Melhor deixar mais chatezinho, né o aplicativo.
+58:35 Alexandre B: Ele podia ficar home e os momentos laranja o game com vermelho até para dar um
+58:43 Tiago de Andrade: Pode ser, mas cara é difícil você juntar o vermelho verde e o laranja eles são cores. Análogas Mas é difícil?
+59:03 Alexandre B: destaque no game e esses dois verdes. sim
+59:11 Tiago de Andrade: Não sei acho que fica muita salada, deixaria o game se quiser até Talvez Mas é claro. É um amarelinho, né?
+59:35 Alexandre B: Esse esse fundinho do lado do verde que eu gostei. Que isso, cara? Já foi lá o negócio. Tudo de graça as fotos aqui.
+59:58 Tiago de Andrade: Eu fiz.
+01:00:00 Alexandre B: c******
+01:00:05 Tiago de Andrade: Não é só Carrossel assim.
+01:00:20 Alexandre B: Ia ficar muito grande.
+01:00:37 Tiago de Andrade: Eu mandei as fotos já selecionar.
+01:00:45 Alexandre B: esse aqui
+01:00:46 Tiago de Andrade: Ah eu tenho aluga agora aqui em png, se quiser tipo nesse formato colagem sabe? Talvez Deu um chute também.
+01:00:59 Alexandre B: p****, eu acho que
+01:01:01 Tiago de Andrade: Deixa-me mandar aqui já vai dar um grau também.
+01:01:12 Alexandre B: Tá vamos por parte então 98 não finalmente. Ó o que eu acho que beleza. Eu acho que é isso histórico de pontos, não sei se você vê alguma coisa diferente o nível dele vai ser basicamente a mesma coisa desse cara aqui de iniciante, só que aqui. Uma progressiva ali sabe? Os pontos aqui em cima, talvez até pensar se vai ficar aqui em cima no que a gente tira lá de cima então.
+01:02:00 Alexandre B: Aí pontos altos aqui primeiro segundo terceiro. Acho que fica tá metido, né?
+01:02:09 Tiago de Andrade: Ficou legal.
+01:02:11 Alexandre B: Daí o quarto para baixo tá aqui, beleza?
+01:02:15 Tiago de Andrade: Esse aí tá certo. Não só para ele tava no individual, né no grupo.
+01:02:22 Alexandre B: É do grupo pessoal, eu coloquei essa coroazinha no primeiro aqui e o nome do grupo aqui 10 membros 12 membros faz sentido aqui. Se esquece que até mais sossegada.
+01:02:43 Tiago de Andrade: Tem que testar.
+01:02:47 Alexandre B: Acho que aqui.
+01:02:48 Tiago de Andrade: Aí aqui você ganhou 20 pontos.
+01:03:35 Tiago de Andrade: Esse é o momento.
+01:03:39 Alexandre B: Android
+01:03:45 Tiago de Andrade: botãozinho em vez de continuar E dá para colocar embaixo da ideia para deixar o xizinho. Né? O cara clica fora, clica no xizinho ou embaixo se quiser ainda tinha mais embaixo em hiperlink e fechar. Só que eu deixei ali o contrário aqui, né? Tipo, deixaria a participação confirmada deixaria, talvez maior ali roda de conversa dentro sabe o nome do lugar um pouco maior inverter. É o lugar que limpou lá maior.
+01:04:24 Alexandre B: Espaço mais nome ou não entendi. a trocar
+01:04:36 Tiago de Andrade: E daí participação confirmada, entendeu? Mais embaixo de uma frase, né? Tipo?
+01:04:45 Alexandre B: participação confirmada desce o roda de comer sobe Fica Negrito.
+01:05:08 Tiago de Andrade: ganhe mais x pontos compartilhando seu momento botão daí
+01:05:13 Alexandre B: Tire uma foto para compartilhar esse momento.
+01:05:14 Tiago de Andrade: compartilhar momento aí virei o timer de
+01:05:56 Alexandre B: Aí aqui.
+01:05:59 Tiago de Andrade: Não tirei uma foto aí Compartilha esse momento. Ou já dá para falar, né? Tipo ganhe mais pontos compartilhando esse momento.
+01:06:22 Alexandre B: Cara, agora ficou legal, né?
+01:06:24 Tiago de Andrade: sim e que ele
+01:06:26 Alexandre B: Acho que tá meio cagada aqui. É para trocar a câmera.
+01:06:33 Tiago de Andrade: Então piá tem um negócio que dá uns BO. que eu lembro isso por causa que deu BO na no credenciamento alguns celulares não para cá no momento até mais no QR Code, às vezes ele pega 6.0.5 lá sabe 0.6 por padrão é a primeira câmera aí ela não lê QR Code de jeito nenhum. Eu daí eu não sei se a gente deixa usuário escolher. Ou se ele puxa isso de nativo, né do aplicativo de pergunta. Qual câmera quer ou se tem como assim ou se tem como a gente definir que é sempre é um né? Sabe como é que vai saber, né? só que isso dá bo porque às vezes não lê o que
+01:07:23 Alexandre B: Aí aqui.
+01:07:26 Tiago de Andrade: como eu não sei mas
+01:07:28 Alexandre B: É vou botar vou dar um estudante aí aqui por exemplo para tirar foto vai salvar ó publicar o momento, confira essa foto e autoriza a publicação.
+01:07:41 Tiago de Andrade: A única coisa que tem que ter.
+01:07:43 Alexandre B: É né, então. O ar autorização de publicação virou foto de pontuação, mas publicação.
+01:08:02 Tiago de Andrade: É isso.
+01:08:02 Alexandre B: Aqui seria legal. Sabe o que? Eita que é só um momento enviado. Beleza, eu até anotei que já mudar o feedback visual, né? Porque eu não tinha pensado nisso, mas é que os pontos já tá até funcionando, rapaz. E aqui também. Olha só cara.
+01:08:39 Tiago de Andrade: vira para sala
+01:08:48 Alexandre B: Deixa eu ver. Tá longe, espera aí. eu acho que é assim, essa é
+01:09:02 Tiago de Andrade: Só que tem uns que tipo Android que o 0.6.
+01:09:04 Alexandre B: Acho que por padrão. Que é isso, rapaz?
+01:09:11 Tiago de Andrade: E não pega QR Code ou ele não foca, tá ligado? Tem que ver se o problema não.
+01:09:24 Alexandre B: aqui ó Registrou esse momento em espaço Juventude.
+01:09:35 Tiago de Andrade: É interessante, né?
+01:09:38 Alexandre B: Rafael e amigos
+01:09:39 Tiago de Andrade: Acho que dá cara.
+01:09:43 Alexandre B: porque Deus
+01:09:44 Tiago de Andrade: E daí, se a gente colocar legenda já viram um monte de Ferro.
+01:09:56 Alexandre B: Financiando aqui tô fingindo surpresa.
+01:09:58 Tiago de Andrade: Aí aí nesse onde tá esse J game ou a gente coloca a marca que te mandei agora ali.
+01:10:03 Alexandre B: Eu me perdi.
+01:10:04 Tiago de Andrade: Não não é isso a gente vai puxar para o meio se for do ponto lá para cima e não eu te mandei o logo do dnj tipo stickers ou eu faço uma outra borda. Que daí agora a gente tem que definir a borda, entendeu? a borda São duas coisas essa que eu te mandei essa logo a gente pode usar lá em cima.
+01:10:36 Alexandre B: Qual que é a diferença?
+01:10:37 Tiago de Andrade: Em vez de usar branquinho lá não é? Isso é oficial. NJ game pode manter Ou se quiser eu faço uma versão dessa também tipo de sticker, né? Posso fazer né? Fica legal também para ficar mais o padrão e daí na foto lá que hoje tá com o dnj game ali tá subindo marca d'água. Daí usaria essa aí, entendeu? Nenhuma tá com sombra outra tá sem. Você vai chegar nesse fundo preto aí, mas se colocar ali no branco você vai
+01:11:14 Alexandre B: Tá no branco.
+01:11:15 Tiago de Andrade: ver.
+01:11:22 Alexandre B: Me desconcentrei então aqui de cima, beleza? Esse daqui também pode fazer uma.
+01:11:27 Tiago de Andrade: Não esse esse mantém o que eu falei que eu se quiser eu posso deixar nesse padrão Sticker.
+01:11:32 Alexandre B: tá
+01:11:33 Tiago de Andrade: aí eu já era outra fonte outra logo e te mando mas mas
+01:11:37 Alexandre B: Ela era isso.
+01:11:39 Tiago de Andrade: Eu falei só que daí na foto lá na galeria. Você colocou uma marca da água
+01:11:42 Alexandre B: Aqui a marca d'água aqui podia ser esse aqui.
+01:11:43 Tiago de Andrade: do dnj Limão. Pode ser esse aí exatamente.
+01:11:48 Alexandre B: Mas depois desse alguém aí se você fizesse o game eu podia usar ele aqui.
+01:11:52 Tiago de Andrade: mas eu acho que é como o pessoal pode compartilhar e tem mais a ver com o dnj, não sei se pensar
+01:12:00 Alexandre B: É porque se for esse Sticker aqui. Abrir o site aqui se for assistir. Ainda sabe que ele parece que é tipo um adesivo e colado na foto mesmo.
+01:12:12 Tiago de Andrade: Tá hoje a gente faz um eu posso fazer uma composição PNG?
+01:12:17 Alexandre B: Como é que é o nome?
+01:12:23 Tiago de Andrade: Que daí ele fica com esses elementos do DNA. Mas eu vou pensar. E que horas a gente se resolve?
+01:12:37 Alexandre B: quarta das fotos Verificar porque a marca da água. E passando a imagem. Como fazer para quando compartilhar usar a marca? beleza Tá bem aqui agora o game aqui já acho que dá para qualquer coisa a gente vê visualmente aqui Ok? Isso aqui acho que já Tem uma estrutura legal, né de Tipo o que ele fez? Aonde que ele ganhou fotos. O ranking tava vendo também. Acho que tá tudo ok isso aqui também questão muito fácil de arrumar.
+01:13:39 Tiago de Andrade: É agora tava pensando aqui se tiver um desafio. Desses que daí a gente usaria desafio só para foto. dentro do app certo
+01:13:55 Alexandre B: Em todas as páginas.
+01:13:55 Tiago de Andrade: Mas fora do épico QR Code especial ele sairia onde sairia, né? Pode ser numa TV ou pode ser lá no palco certo? O cara teria que tá na frente do que é coisa para poder captar e ganhar ponto mas aqui seria compartilhar momentos lá que seria um desafio especial, teria que Obrigatoriamente baixar o layout ali tem a barra, né? Laranja ali teria que baixar o layout se entre.
+01:14:28 Tiago de Andrade: tudo
+01:14:36 Alexandre B: Aqui eu penso até que talvez não pois notification para quem tá o aplicativo avisando. Tá, beleza.
+01:14:51 Tiago de Andrade: E a fila?
+01:15:02 Alexandre B: a fila cara confesso para você que eu Só larguei nesse layout feio tosco. Cara, tem duas possibilidades, tá? Eu preciso ver como o ator. Como é que posso dizer? Se isso aqui caberia lá na estrutura dele e se o primeiro se ele vai ter tempo para fazer se não a gente aproveita que tem tá pronto já.
+01:15:46 Tiago de Andrade: Não.
+01:15:48 Alexandre B: Tem dois ganhos aqui, né da fila primeiro que tá pronto e com a ya eu consigo falar assim usa tudo que está configurando lá para cá. E aí vai ser copia e cola e vai funcionar igual. Hoje a gente faz a parte dele, mas aqui eu eu vou lá o aplicativo antigo tava mais fluido as coisas Sabe não tinha discutido mais sobre. Ver se eu consigo abrir ele aqui não lembro acho que eu tinha te ativado ele aqui.
+01:16:27 Alexandre B: Aí aqui ó, tá vendo tem entrar na fila de confissão aí o cara já entra na
+01:17:23 Tiago de Andrade: Você pode falando pode?
+01:17:30 Alexandre B: fila tem esse aqui tá secando. E aqui tá vendo que a gente tinha preparado essas partes aqui. Sempre de consciência, procura sacerdote tal tal dá para fazer todo esse rolê que ele acompanha a posição da equipe. mesmo esquema, só que Acho que não gostei do layout aqui só na verdade e outra coisa que eu pensei. Acho que aqui beleza funcionalidades, ok aqui embaixo da seleção as regras já pegadeira aqui também, não pode entrar em duas já tá tudo configurado lá. Mas aqui eu pensei o seguinte se o cara tá na fila.
+01:18:25 Alexandre B: mesmo Pensei o seguinte aqui igual o evento especial que fica lá em cima o carinha dizendo qual posição que ele tá talvez ficar isso também em geral, não é? Porque inteiro sabe? Tipo o cara sai daqui o cara vem para galeria. Por exemplo. Tem algum lugar que ele saiba, tipo assim, ó, está na sua confissão outra posição é 39 por exemplo. O layout tem que melhorar mil por cento, você acha que podia ficar assim? sim
+01:19:24 Tiago de Andrade: Mas eu acho que é isso mesmo. Só você vai ter que prever. Quando tiver o cara tiver na fila e acontecer o evento especial vai ficar duas barranas lá em cima. Entendeu?
+01:19:53 Alexandre B: Talvez no header que alguma alguma coisinha ali diferente, talvez se vai jovens reconstrua a minha igreja colocar eles. Um embaixo do outro para ganhar mais espaço ali, mas isso eu vou vendo depois. Beleza aí aqui. A minha conta vai ser que tem né? Carimbo seriam os elementos especiais daqui a pouco aqui.
+01:20:26 Tiago de Andrade: Se mudou bastante também, deixa eu ver aqui.
+01:20:30 Alexandre B: É especiais. Continua escaneia de problemas tá aqui o seu perfil, a gente tem mostra só o e-mail do cara CPF, fico protegidos ali Teoricamente. Se o cara quiser clicar depois isso a gente faz sentido a gente.
+01:20:49 Tiago de Andrade: Eu acho que esse seu perfil aqui com o e-mail, não faz sentido não.
+01:20:53 Alexandre B: Não.
+01:20:55 Tiago de Andrade: não é porque O cara já tá online. Ele não vai poder mudar vai poder fazer nada.
+01:21:04 Alexandre B: privacidade o modo
+01:21:09 Tiago de Andrade: Ah legal ativar as notificações e clicar nele ele pergunta né? Se quer isso era interessante quando o cara acabasse de baixar né? Vim já direto permitir, né?
+01:21:21 Alexandre B: Ativar notificações perguntar quanto custa instalar ou junto com o melhor cara, até tem uma parada legal aí tipo até ver.
+01:21:38 Tiago de Andrade: Eu acho que dá para ser então pontos ranking desafios. mesmo Escaneia uma atividade para ganhar pontos em novo carimbo, não ficaremos não, né? E o novo desafio. Ou o novo desafio tem que ser. Privacidade protegido CPF das pessoas não aparece no perfil público tá só para dizer também, né? Mas tá bom.
+01:22:04 Alexandre B: Assim notificações. Deixa eu fazer um teste aqui. teste Eu aqui não foi.
+01:22:22 Tiago de Andrade: O meu também pega 0.6 aqui. Deixa eu pegar aqui um QR code para ver.
+01:22:34 Alexandre B: hoje Service
+01:22:45 Tiago de Andrade: É o meu funcionou com 0.6, né? Mas tem um celularzinho, mas tinha um brega. Cara o dnj game. O botão ali do menu ele podia ser inteiro, eu acho que ele devia ficar inteiro.
+01:22:59 Alexandre B: Não chega para mim, né? Mas eu prometi eu vim aqui ver.
+01:23:04 Tiago de Andrade: Inteiro com fundo verde, entendeu de outra game em branquinho também não tem essa borda em cima, sabe? Você aqui ó. Não chega para seus comentários nada.
+01:23:44 Alexandre B: Você gay só que tá tudo você, né? Eu não coloquei a lógica tipo cartão nova.
+01:23:58 Tiago de Andrade: Você está nos meus momentos também.
+01:24:02 Alexandre B: Não sabe. Tá subiu de novo sem mexer ele parar agora. Que aqui já tá tudo parado texto em branco.
+01:24:25 Tiago de Andrade: Se quiser manter mantém só tem que ver se vai funcionar em tudo. Já caga ali.
+01:24:40 Alexandre B: jovem
+01:24:48 Tiago de Andrade: É as flechinha tudo tão Preto, né? Daí deu uma bugadinha mas
+01:24:53 Alexandre B: Tá outra coisa que eu preciso de você como a gente já não tem mais.
+01:25:19 Alexandre B: Gostou desse vídeo? Aqui também entra.
+01:25:29 Tiago de Andrade: só que ele não dá para
+01:25:35 Alexandre B: Mas beleza agora aqui CPF meio não faz mais sentido, né?
+01:25:59 Alexandre B: eu acho que
+01:26:03 Tiago de Andrade: Não acho que faz sentido quer dizer.
+01:26:08 Alexandre B: Não faz mais que isso não tá preenchendo. O cara não tem.
+01:26:15 Tiago de Andrade: Nem me fale que m****. Mas esse não vai ser como criar conta que a gente tá pedindo aí no criar conta.
+01:26:22 Alexandre B: Não que a conta dele é do zero, né? nove e meio telefone eu até fiz isso aqui para mais legal
+01:26:41 Tiago de Andrade: aí eu ia ver a fonte para você que
+01:26:50 Alexandre B: É um pouquinho dos etapas, só que aqui agora já tô pensando que é conta, ele é louco. Porque não vai mais ter login, né?
+01:27:09 Tiago de Andrade: Não tem que ter né?
+01:27:10 Alexandre B: Vai ter.
+01:27:13 Tiago de Andrade: Tem que ter.
+01:27:14 Alexandre B: não vai ter o login, só que Se o cara criou uma conta.
+01:27:18 Tiago de Andrade: Ele vai virar com o e-mail dele vai ter que ter um e-mail porque vai ter que vincular com o e-mail. Lembra vai ter que mandar.
+01:27:24 Alexandre B: Não mas o único cenário Vamos pensar o único Senado o cara precisamos ao login de novo. Se ele entrar aqui e meteu sair lá. Só isso.
+01:27:38 Tiago de Andrade: Sim, ele tem um usuário próprio.
+01:27:40 Alexandre B: Sim, não isso sim. Mas é tipo aqui, beleza e grupo de jovens. Criar conta aí vai receber o e-mail.
+01:27:52 Tiago de Andrade: Então esse daí do grupo de jovens. Aí eu vou ter o eu vou ter lá planilhona dá para subir a planilha, né? Nome dos grupos. Então o Cláudio já puxa direto.
+01:28:15 Alexandre B: editar só baixar Participante ativo muito interessante usuários. é
+01:28:52 Tiago de Andrade: Eu tô aqui já. Ixi de cliquei aqui ele permissão bloqueada pelo navegador.
+01:29:15 Alexandre B: Esse é o de mim que tem o gestor não mas é com admin vai ser eu e o
+01:29:22 Tiago de Andrade: Ele já fez aí um gestor. Então isso aí vai ser f*** não. Mas é quase a mesma coisa só muda o nome.
+01:29:42 Alexandre B: Matheuzinho.
+01:29:42 Tiago de Andrade: Eu sei velho, mas eu digo que é a layout você come a mesma coisa se a gente tivesse das autorização não.
+01:29:50 Alexandre B: Só para nós ver uma coisa.
+01:29:56 Tiago de Andrade: Admite, vocês vão usar desktop, então não dá nada esse problema. Acho que notificações. Não mas as configurações não consigo mais que eu já desbloqueei vou ter que ir nas configurações do celular.
+01:31:01 Tiago de Andrade: Não tinha notificações pronto.
+01:31:03 Alexandre B: Ele só tá
+01:31:57 Tiago de Andrade: Que não chegou nada.
+01:32:23 Alexandre B: site
+01:32:37 Tiago de Andrade: Eu atualizei.
+01:32:48 Alexandre B: Na Conta Certa conta cancelar daí você vai ter que entrar de novo.
+01:32:48 Tiago de Andrade: Deixa eu.
+01:33:03 Alexandre B: Colocou de novo?
+01:33:11 Tiago de Andrade: De novo?
+01:33:21 Alexandre B: um de um só
+01:33:42 Alexandre B: Isso aqui. depois depois onde
+01:34:04 Tiago de Andrade: A outra coisa né? Parece ali os ícones para foto e não tem para onde o cara subir a foto dele. a conta também
+01:34:20 Alexandre B: conta
+01:34:21 Tiago de Andrade: Não veio na conta vai na conta lá Alexandre Borges que aparece lá no YouTube foto aí, né dele.
+01:34:33 Alexandre B: subir a foto ao invés de
+01:34:35 Tiago de Andrade: Daí teria que ser o talvez o círculozinho em cima do nome nome embaixo e as informações. Ele abre o negócio mudar pode ser anexar foto.
+01:34:56 Alexandre B: Era para colocar um lapisinha aqui embaixo na galeria ou tira uma foto coloca. OK, tá então, beleza.
+01:35:15 Tiago de Andrade: não tô para isso mas
+01:35:19 Alexandre B: Você tem compromisso Ou você tem deadlines?
+01:35:34 Alexandre B: primeiro que vai ter Primeiro ponto né? um gestor por evento s
+01:35:59 Tiago de Andrade: os modos é que eu acho que
+01:36:08 Alexandre B: Tá então aqui ó.
+01:36:13 Tiago de Andrade: Mandei a fonte aí, não sei se vai orar muito, mas se quiser testar. É a fonte original do NJ e desse ano da identidade. Space Ghost
+01:36:54 Tiago de Andrade: abrir
+01:37:04 Alexandre B: Então seriam quatro eventos, né? Um evento que nesse termina que os eventos da corrida do saco, por exemplo.
+01:37:18 Tiago de Andrade: Não. Ia terminar. eventos relacionados com a programação
+01:37:28 Alexandre B: Hornet game as ações aqui, né verdade, tá então é isso aí o tempo fixo como temos determinado para os olhos não validar outros QR codes vivência. Aí tem as ações que a criação de game com relação de usuário. E aí tem os Gerais cavaleiros? ação especiais que são a TV Que são eventos que vão ficar no app gigante lá, né? Então vai ter que ser mais umas.
+01:38:07 Tiago de Andrade: É deixa eu ver aqui. É que aqui a gente tinha pensado negócio que daí agora a gente pensou de uma maneira mais fácil, né? No inicia e terminar evento a gente tinha falado da galera. da um input de início o impulso de final Mas daí depois a gente. a gente falou de na verdade colocar o Fazer a mesma coisa do tempo fixo ali sabe?
+01:38:48 Alexandre B: Sim, sim.
+01:38:49 Tiago de Andrade: Se basear no cronograma e Seja o que Deus quiser. o problema se sair do cronograma Fodeu. Mas qual que é outra questão que eu acho também que acho que é mais fácil do que a gente deixar um cara para ficar clicando no botão em cada lugar, entendeu? um cronometrista Eu acho que se alguma coisa atrasar muito tá para galera avisar e vocês trocarem lá, entendeu? No gestor.
+01:39:19 Tiago de Andrade: E a partir do próximo ele já reajusta, né?
+01:39:22 Alexandre B: Eu calculo assim.
+01:39:24 Tiago de Andrade: Que que você acha?
+01:39:27 Alexandre B: Eu acho que funciona cara, por que que a gente tinha colocado para terminar mesmo.
+01:39:33 Tiago de Andrade: Não é porque tem é porque a gente pensou não vai cravar tudo né?
+01:39:33 Alexandre B: Tudo daria para unir esses dois aqui então.
+01:39:39 Tiago de Andrade: Entendeu? Aí tipo se o cara terminasse o evento. O QR. Code não valia mais por exemplo, né durante aquele período. Só que depois a gente pensou cara, mas o cara vai às vezes por exemplo tem um show de meia hora ele vai assistir 15 minutos do show, mas ele assistiu, entendeu? Ele não quis ficou até o final que ele queria ver outra coisa, então ele ganhou ponto entendeu? Ele foi lá e participou não participou tudo, mas participou para não prender as pessoas, entendeu? Isso daí a gente faria tudo tempo fixo.
+01:40:16 Tiago de Andrade: aí a gente O que é code seria dinâmico no sentido de que?
+01:40:23 Alexandre B: Um problema se a pontuação for igual não é um problema.
+01:40:24 Tiago de Andrade: O por exemplo dos espaços, né que vai ter um cronograma bateu duas horas e duas horas tá no cronograma que é sei lá Yuri. Costa ele vai contar como Yuri Costa. Qual que é o problema se atrasar muito né muito rolê? Vai bater errada ali, né? Vai tipo vai estar acontecendo uma coisa e vai estar no map vai estar escrito outro. E daí?
+01:40:53 Alexandre B: Ó é um problema de habilidade, vamos dizer assim, mas é feita poupando igual que é o propósito final, né?
+01:41:02 Tiago de Andrade: eu a ideia que as pontuações diferentes sejam ou entre espaços realmente Tipo na juventude pontua mais ou menos, mas eu acho que até não É e as ações, né, entendeu? Aí sim uma prova mais difícil ou
+01:41:18 Alexandre B: eu acho que
+01:41:20 Tiago de Andrade: Aí sim entendeu ou os desafios ações e desafios tem pontos diferentes mesmo.
+01:41:26 Alexandre B: Maiores que os normais esses dois aqui podiam ter muito parecidos assim similares.
+01:41:32 Tiago de Andrade: E eu acho cara que não gestor. Sinceramente eu colocaria tipo colocaria para o cara preencher, né? Tipo horário nome e ponto. Entendeu é nove horário ponto e timer. quatro Campos certo E nesses quatro Campos aí por exemplo, se eu tô e daí a gente pode fazer assim para pensar no banco de dados como uma coisa só. Eu imputando o dado. De um cronograma, né que é um dos casos aqui.
+01:42:12 Tiago de Andrade: Ele já ele já alimenta lá o cronograma mesmo, entendeu?
+01:42:18 Alexandre B: Não.
+01:42:20 Tiago de Andrade: Você vai botar lá, por exemplo espaço Santidade a gente vai ter categorizar isso também, né? O local.
+01:42:26 Alexandre B: sim
+01:42:28 Tiago de Andrade: Espaço santidade tá dentro do espaço entidade vai abrir Campos lá para você. Você vai vai abrir quatro Campos horário que vai ser horário programado para atividade nome da atividade. pontuação da atividade E timer de atividade certo. Aí eu vou lá 9 horas da manhã, DJ não sei o quê Ponto 50 timer 10 minutos. Daí eu dou mais Zinho ali embaixo, ele abre de novo esses quatro Campos eu vou preenchendo 10 horas, sei lá.
+01:43:09 Tiago de Andrade: talk show 50 pontos 10 minutos e eu vou preenchendo esse cronograma já é o meu cronograma que aparece no cronograma mesmo da home. Sacou você puxa o dado para lá, aproveita o mesmo input para mandar, entendeu?
+01:43:28 Alexandre B: entendi, mas eu não sei se Não sei.
+01:43:36 Tiago de Andrade: Aí o que que você quer? Se você quiser, tipo, acho que não é bom a gente deixar o timer ali, tira o time ele deixa padrão.
+01:43:44 Alexandre B: Eu até penso que o seguinte. Até a pontuação cara.
+01:43:51 Tiago de Andrade: Você quer?
+01:43:53 Alexandre B: Não vou desamarrar. Mas é porque A experiência que teve com a fila lá na vez passada. Era que cara foi tava engessadasso, né? Tipo não tem muito que o cara fazer não tem. Tipo assim, não tem cara fazer o cara tem que clicar dois botão, é isso então, cara. Não precisa escolher vou chamar esse aqui não esse aqui ou esse daqui então fica muito mais fluido e a experiência do cara é melhor pensando que
+01:44:30 Tiago de Andrade: Mas esse aqui eu tô falando disso. Porque eu não tô pensando tanto eu não vou não. Quero entregar isso aqui para ponto para o pessoal lá no dia, entendeu?
+01:44:40 Alexandre B: Está pensando em que estrutura de banco de dados?
+01:44:41 Tiago de Andrade: Seria até mais pode ser até mais de mim. Aí a gente pode tipo dar uma limitação do que o cara vai enxergar lá como como gestor que é por exemplo a gente imputa esses dados que eu falei esses quatro dados certo, mas a gente deixa flexível que vai que precisa essa p****.
+01:45:00 Alexandre B: Não, ah não tá não. Então entendi errado. Eu achei que
+01:45:03 Tiago de Andrade: Aí para o gestora parece por exemplo, né? É horário e nome.
+01:45:08 Alexandre B: os eventos cadastrados e para ele dar um
+01:45:12 Tiago de Andrade: Se o cara quiser alterar, ele pode entrar Tipo, na verdade não vai estar orar enorme vai ter do lado do lapisinho lá editar a cara Dita e ele atualiza o resto. Tô dando exemplo, nem sei se isso também é viável.
+01:45:26 Alexandre B: Não é é porque todos eles pegam do banco. Daí ele leva o nome atualizado.
+01:45:26 Tiago de Andrade: Entendeu?
+01:45:31 Alexandre B: Isso é um problema. Eu tava eu tava pensando que estava falando na tela do gestor do gestor colocar o cronograma não aí se a gente pensar o seguinte
+01:45:39 Tiago de Andrade: Não.
+01:45:41 Alexandre B: estrutura de tabela e a gente colocar o cronograma com isso que você falou e é isso ser alterado, cara. E aí tudo que a gente alterar aqui de cronograma de eventos e tudo mais alterar puepe lá onde tá falando home lá não isso é tranquilo. Agora eu entendi.
+01:46:00 Tiago de Andrade: Então vamos pensar nisso e vamos pensar. Daí a mesma coisa. Aí o das ações é realmente aquele negócio de botão, né? Iniciar atividade. Que daí isso eu confesso que eu não sei se a gente vai ter um cronograma então.
+01:46:22 Alexandre B: Espera aí então sem entidade, pode ter.
+01:46:28 Tiago de Andrade: Não coloque espaços, né? Não é necessariamente.
+01:46:31 Alexandre B: Não é tô colocando exemplo aqui 1300. Mas pode haver alteração de pontuação. E como é que você
+01:46:46 Tiago de Andrade: Pontuação é a não ser que você eu não sei que você tá falando de mim.
+01:46:48 Alexandre B: Fala inspiração de nome.
+01:46:52 Tiago de Andrade: Você tá falando.
+01:46:53 Alexandre B: é o
+01:46:55 Tiago de Andrade: Sim pontuação timer.
+01:47:00 Alexandre B: ração timer
+01:47:01 Tiago de Andrade: timer nome e horário
+01:47:06 Alexandre B: É isso que eu tava só anotei o que você tá falando. Tá, mas aí você volta. Onde você tava?
+01:47:16 Tiago de Andrade: Então isso está resolvido certo.
+01:47:18 Alexandre B: Sim a gente vai ter uma aba lá de mim que provavelmente vai ficar ou comigo com o Matheuzinho ou sei lá, acho que acho que só com a gente você talvez mas isso talvez a gente até configure antes, a gente vai ter lá.
+01:47:29 Tiago de Andrade: Não eu nem vou falar eu vou passar um rádio para vocês gritando, tem que mudar tal coisa.
+01:47:33 Alexandre B: É não, mas acho que a estrutura vai ficar assim, a gente vai olhar um cronograma e vai estar lá os espaços igual ao que tem muito parecido porque tem lá na App um acorde ou com os espaço que vai clicar no espaço vai abrir e a gente vai conseguir editar aquilo lá em tempo real editor, todo mundo tá vendo atualizado, só que isso isso não tá amarrado com os eventos.
+01:47:50 Tiago de Andrade: Quais eventos?
+01:47:56 Alexandre B: Tá tá amarrado com os eventos da santidade?
+01:47:59 Tiago de Andrade: Sim, é o cronograma dos espaços. É definitivamente os espaços.
+01:48:05 Alexandre B: Exato está Eu só vou ter que Matheus tem algum problema que ele tem algum problema, mas acho que não acho que não.
+01:48:11 Tiago de Andrade: tá beleza aí vai ter as experiências É que é f*** que nem todo espaço também tem cronograma e experiências existem cronograma. Mas enfim ou dá para gente dividir mesmo que tem cronograma e que não tem cronograma. certo Vamos falar assim, então sem cronograma.
+01:48:48 Alexandre B: tem um barulho que
+01:48:48 Tiago de Andrade: tranquilo
+01:49:33 Tiago de Andrade: Quais são os casos
+01:50:02 Alexandre B: cara feia
+01:50:16 Tiago de Andrade: feira vocacional estantes da Feira educacional e roda de vivência Que é o santo que o nome é? voracionalmente e Santo Papo Tô dando exemplo, mas assim não precisa ser que assim eu sempre penso flexível, cara, pode acontecer que a gente precisa. Então já montar o motor que a gente é que precisa ter nisso. nome e timer Nome do evento vai falar assim, sei lá o que vai acontecer ali.
+01:51:04 Tiago de Andrade: nome e timer
+01:51:05 Alexandre B: Não sei não sei se é assim que a gente vai pensar.
+01:51:08 Tiago de Andrade: Ai pontuação. Tá certo? É que eles até podia deixar não se bem que dá pontuação diferente mesmo vocacional vai ter 50 estandes. Aí a gente deixa uma pontuação menor certo, a gente vai ter cadastrar esse 50 instantes, cada um vai ter um QR Code é um QR Code. Então esse tem que ser que cada um gera um QR Code certo. diferente do espaço que no espaço ele segue o cronograma a partir de um recurso único Entendeu? Não. Sim era sim sim.
+01:51:51 Alexandre B: é assim, daí a gente a gente faz aproximação de horário com
+01:51:52 Tiago de Andrade: É assim, ó. Não não tem nada de qualquer coisa, o cara é fixo. Todos são fixos não é dinâmico que é a única coisa vai ser dinâmica é assim nos Espaços espaço Juventude tem um cronograma certo. Ele bipo o QR. Code na hora que ele bipar ele vai buscar que horário quitado o cronograma ele vai puxar esse dado vai mostrar para o cara agora é o show do Yuri. Costa você pontuou nesse horário certo? Então, ele é dinâmico nesse sentido é o mesmo que code vai estar impresso uma lona.
+01:52:32 Alexandre B: Sim, por espaço.
+01:52:34 Tiago de Andrade: Por espaço cada espaço vai ser o teu certo e daí vai ele vai só buscar esse
+01:52:37 Alexandre B: certo
+01:52:40 Tiago de Andrade: dado do cronograma. Na feira vocacional que não tem problema é diferente. Cada um vai ter tipo um QR Code próprio. Que as pessoas validam quando forem participar daquele evento ali. Então, por exemplo feira vocacional. Ah, e esse também só pode ser bipado uma vez, entendeu?
+01:53:05 Alexandre B: Mais uma vez na feira vocacional ou uma vez aquele evento.
+01:53:10 Tiago de Andrade: Uma vez aquele evento. Porque temos 50 feirantes certo? Temos 50 feirantes certo.
+01:53:23 Alexandre B: Com nome bonitinho deles.
+01:53:24 Tiago de Andrade: Cada feirante tem o seu QR Code ok? E está comunidade colo de Deus Congregação dos calabreanos, sei lá o que?
+01:53:36 Alexandre B: perfeito
+01:53:37 Tiago de Andrade: Cada um deles eu tenho um desse. E daqui a gente vai acertar nome então comunidade calabrenianos. Ponto 10 vai ter que ser menor, né? Porque eles podem nos 50 rapidinho e a gente vai dar um timer de dois minutos, ou seja, o cara tipo não ficaria dois minutos, ele não vai conseguir tipo sair de pano todo mundo e pedindo QR Code caçando QR Code só dá um limite de tempo pequeno, mas dá para que isso aconteça e cada um deles lá no dia da trevas nova entregar para cada um esse aqui tem o QR. Code vai funcionar assim, você mostra só se o cara conversar com você blá blá. Na mesa cola no crachá dele, sei lá que eles vão fazer.
+01:54:14 Alexandre B: perfeito
+01:54:16 Tiago de Andrade: certo Aí a gente vai fazer na vivência a mesma coisa, vamos dizer que vão ter quatro ou cinco vivências, a vivência é um Ah quero ser vocacionado, o que que eu faço? O cara que é o mediador lá que é o padre religioso vai receber o QR. Code daquilo lá. E ele vai durar. Sei lá deve ser um tempo maior, né? 15 minutos vai 10 minutos a roda pelo menos ele tem que ficar.
+01:54:42 Tiago de Andrade: Mas é o mesmo Campo, entendeu? A gente vai definir isso dinamicamente e vai em vez de valer 10 pontos vai valer 50, sei lá. Aí temos as ações
+01:54:52 Alexandre B: Suave, isso é tranquilo agora. Agora ficou mais fácil. A tabela vai ser a mesma talvez só tem uma flagzinha. Pera aí, o que que tem diferente? Tem alteração tem pontuação temer tem horário? Talvez uma Flag de
+01:55:18 Tiago de Andrade: Esses daí não tem horário, né? Não.
+01:55:21 Alexandre B: Mas isso tem que deixar se ficar nua não né? Beleza.
+01:55:23 Tiago de Andrade: Tá agora vamos para ações. não já consegui pegar só para ações basicamente é o radicalidade Pode ser que surge outra coisa, mas a princípio é isso. Qual que é a mecânica? Que é isso? Que é isso que eu acho que vai ser mais dinâmico? Que a gente pode pré-cadastrar. Que essa ideia eles vão ter os jogos definidos até lá se Deus quiser. Mas como né? Como vai ser o negócio de às vezes, ele acha que ia durar 20 minutos durou cinco.
+01:56:16 Tiago de Andrade: Pode ser que eles precisem adicionar não eu acho que dava para a gente criar uma pré definição para deixar certo. Aí o fulaninho lá que é o gestor. Dessa área né que a gente vai liberar. Ele precisa se já tiver pré cadastrado que não quer seria nome. Se tiver pregação na verdade é nome. pontuação 9 pontuação não tem
+01:56:44 Alexandre B: pontuação Sim, é na verdade, pode ser um timer de um minuto dois minutos.
+01:56:49 Tiago de Andrade: certo É pode ser um timer Tá bom pode ser um timer de 5 minutos vai 3 minutos, sei
+01:56:54 Alexandre B: pequeno
+01:56:57 Tiago de Andrade: lá que seja beleza.
+01:56:59 Alexandre B: Porque pensando que o cara tem fila, né? O cara não vai conseguir fazer a corrida do saco ainda não sei que não vai ninguém, mas tipo não vai
+01:57:05 Tiago de Andrade: Tá então nome.
+01:57:06 Alexandre B: conseguir fazer alguma coisa atrás da outra digamos assim.
+01:57:13 Tiago de Andrade: pontuação e timer certo Se ele tiver na pré-definido quando ele abrir lá telinha dele no celular dele vai ter a lista das atividades.
+01:57:23 Alexandre B: do gestor
+01:57:24 Tiago de Andrade: Gestor ela clicou naquela atividade agora a corrida do saco tá corrido do saco, ele vai clicar. E vai dar uma iniciar. Vai ter dois botão lá iniciar e parar ou vai dar um iniciar quando clicar vai aparecer o botão parar no lugar.
+01:57:41 Alexandre B: Na verdade esse iniciar é diferente, né iniciar? Ele ativa aquele cara.
+01:57:50 Tiago de Andrade: No iniciar. Ele ativo QR Code todo mundo Vip QR Code e vai participar. E daí, eu também não sei se isso poderia funcionar em paralelo para dois celulares pensando na dinâmica lá. Eu tô pensando tipo. Ah, cara, tem sei lá 20 pessoas vão participar se tiver
+01:58:13 Alexandre B: Mas porque dois?
+01:58:20 Tiago de Andrade: dois caras de qualidade.
+01:58:22 Alexandre B: Ah sim, não dá sentido vamos dizer assim tá com o mesmo login a gente dá para fazer os dois vão ver a mesma tela. os resultados Com medo. do celular
+01:58:48 Tiago de Andrade: Isso a gente tinha falado, né? Beleza então.
+01:58:53 Alexandre B: Vamos dizer assim, vai ser a mesma tela para todo mundo que entrar com aquele com aquele cara, então o QR Code vai ser o mesmo os Beatles vai ser o mesmo só. Descobri porque é code aí quantos quantos caras vai ter um limite. Ou eles
+01:59:11 Tiago de Andrade: Me poupe.
+01:59:18 Alexandre B: vão colocando quando eles quiserem.
+01:59:18 Tiago de Andrade: Não eu acho que eles colocam a gente precisa ficar limitando.
+01:59:23 Alexandre B: E aí eles iniciam a atividade.
+01:59:24 Tiago de Andrade: Vai saber brincadeira que eles vão inventar. Isso então ele ele clica na Atividade. Aí vai ter que ter alguma coisa diferente de iniciar né? Sei lá.
+01:59:35 Alexandre B: Talvez Abrir atividade, sei lá.
+01:59:37 Tiago de Andrade: Ou captar é Abrir atividade. Pode ser então Abrir atividade aparece QR Code é carta dos participantes.
+01:59:46 Alexandre B: É mas acho que é mas o caput vai ser o que que eu pensei ele vai falar abrir quando ele abrir. Dá para ter um título em cima assim tipo instrua os participantes QR Code aí o QR Code na tela aí quando ele e o outro botãozinho
+01:59:59 Tiago de Andrade: Sim, é isso aí isso.
+02:00:02 Alexandre B: do playzinho assim do lado. Aí o cara vai apertar o play fecha aquela atividade. E aí E aí vale tipo aí roda começa a atividade. Depois que terminar ele recebe a lista de todo mundo que iniciou fez lá vai tá um tipo atividade de andamento é o cara consegue fazer um pausei aí pausou Vista os participantes. Entrega pontuação para primeiro segundo e terceiro e tchau aí o cara o cara
+02:00:40 Tiago de Andrade: isso É só que daí tem só que daí a gente tem que pensar também. Isso é um
+02:00:42 Alexandre B: veio.
+02:00:48 Tiago de Andrade: pouco diferente a dinâmica.
+02:00:50 Alexandre B: participação
+02:00:51 Tiago de Andrade: Agora que eu lembrei de pontuação, porque os três primeiros tem pontuações diferentes. E os outros ganham pontuação de participação. Então vai ter que pensar nisso. Nesse caso das ações tem primeiro segundo terceiro pontuações diferentes e de participação. Então são quatro pontuações.
+02:01:15 Alexandre B: Até estou pensando aqui, porque Beleza o gestor vai ter essa dinâmica, mas o participante vai chegar lá. Vai pegar o celular dele abrir e fazer o QR Code. A partir do que ele deu QR. Que ele já tipo entre naquele cara com o login dele. Para que a gente vincule o Thiago no evento tal, entendeu?
+02:01:47 Tiago de Andrade: Sim, tem que ser. Tudo assim, né?
+02:01:51 Alexandre B: tão tudo assim, mas
+02:01:54 Tiago de Andrade: E o cara vai bipar em qualquer lugar, mas ele vai ter que estar sabendo que é usuário dele, né? Porque ele vai isso vai replicar nas fotos vai replicar em tudo no ponto.
+02:02:04 Alexandre B: Não é verdade, é verdade é que na verdade o único diferença é que ele
+02:02:06 Tiago de Andrade: Esse é o padrão.
+02:02:09 Alexandre B: não vai pontuar naquele momento.
+02:02:11 Tiago de Andrade: Mas daí que a gente vai ter que fazer daí nesse caso que o QR Code é de ação, a gente vai ter que dar um feedback. Provavelmente na tela do aplicativo dele.
+02:02:22 Alexandre B: atividade então
+02:02:22 Tiago de Andrade: De participando da e ele não consegue ele não vai conseguir tipo fechar o modal nem nada vai ficar travadão lá.
+02:02:30 Alexandre B: sim
+02:02:30 Tiago de Andrade: O cara finalizou finalizar atividade finalizar são Sei lá cara. Clicou aí é
+02:02:35 Alexandre B: E ele deu a pontuação.
+02:02:39 Tiago de Andrade: clicou né? Finalizar ele vai dar a pontuação vai estar lá ainda rodando para o carinha que tá participando e ele entregar a pontuação, sei lá finalizar finalizar e finalizar né? Aí aí aparece para cara. Ah, você foi primeiro
+02:02:50 Alexandre B: sim
+02:02:54 Tiago de Andrade: Parabéns, não sei o quê aí vai dar o feedback na tela do cara e a pontuação.
+02:03:01 Alexandre B: Eu só tô pensando o seguinte porque o QR Code o cara pode ler sem estar no app.
+02:03:11 Tiago de Andrade: Como assim
+02:03:13 Alexandre B: Le de QR code.
+02:03:14 Tiago de Andrade: Não não faz tudo pelo Épica.
+02:03:17 Alexandre B: Não tudo bem, mas o que que impede do cara Abrir a câmera e escanear a p****.
+02:03:22 Tiago de Andrade: Mas ele vai conseguir pontuar e não.
+02:03:24 Alexandre B: Não, mas é isso que eu tô falando. Talvez a gente faça um fallback para o cara, tipo assim. Ele escaneou. Tá no app ou não, tá? Aí a gente manda ele.
+02:03:39 Tiago de Andrade: Tá mas é que assim todo os caras vão falar tem que escanear dentro do app. se tocar no pontua a gente vai criar um p*** de um rolê ali para Tipo a regra para o cara participar daqui a pouco ele escaleia dentro, ele está usando é entendeu?
+02:03:56 Alexandre B: Ah tá, então tá então entendi. É que eu só pensei nesse cenário. Daí o
+02:03:57 Tiago de Andrade: Tipo assim, se a pessoa de louco vai escanear com o celular dela normal, não é
+02:04:01 Alexandre B: cara pode escanear.
+02:04:05 Tiago de Andrade: para acontecer nada.
+02:04:08 Alexandre B: tá
+02:04:08 Tiago de Andrade: Teoricamente
+02:04:10 Alexandre B: É tem que ver o que que vai ter nesses cartões, beleza? Tá valeu. Então
+02:04:10 Tiago de Andrade: Entendeu?
+02:04:14 Alexandre B: participante vai escanear qualquer code e em participando da
+02:04:22 Tiago de Andrade: a
+02:04:24 Alexandre B: Atividade x né? quando O Ester finalizar pontuar Recebemos. atividade cuidamos Do feedback irmão para ele. Cara isso aqui porque isso é mais chatinho de fazer né?
+02:04:57 Tiago de Andrade: Esse outro ultimamente.
+02:04:59 Alexandre B: Mas acho que é isso e aí e aí no pisão, né? Aquela opção, né? Tipo
+02:05:06 Tiago de Andrade: Aí tipo, o que que acontece.
+02:05:06 Alexandre B: criatividade.
+02:05:08 Tiago de Andrade: Só que a ideia né? Vai ter os pré feito que pode ser uma lista a gente pode até colocar buscar lá, sei lá o cara filtrar ali o nome da atividade, mas se ele quiser tem que ter um botãozinho mais lá seja flutuante ou não para o cara criar na hora.
+02:05:20 Alexandre B: sim
+02:05:22 Tiago de Andrade: Eu acho que nesse caso teria que ter.
+02:05:26 Alexandre B: Para criar atividade.
+02:05:33 Tiago de Andrade: Aí por exemplo deve ter esquecido, mas por exemplo tem o skate e tem o circuito de Flávio mesma coisa, mas não vai não vai usar esse vai usar de antes. Ou que nem o devocional.
+02:05:45 Alexandre B: s
+02:05:46 Tiago de Andrade: skate A rampa de skate né? Vai ter os infláveis. também Aí a gente pode colocar por exemplo para esse também a gente pode colocar para prata fina que a patrocinador principal.
+02:06:09 Alexandre B: Onde ele ficaria?
+02:06:12 Tiago de Andrade: É mas aí a gente cria, entendeu? Eu vou passar uma lista eu criei esses aqui para a gente.
+02:06:23 Alexandre B: Talvez depois a gente Abstrai isso no de mim lá para ficar bem fala no friendly não ficar se perdendo cara. É experiência. cara mais uma coisa de ação que você pensa que
+02:06:37 Tiago de Andrade: Não acho que é isso.
+02:06:38 Alexandre B: Ação basicamente é o radicalidade que funciona em games que o cara vai ter lá corrida do saco, vai ter outra coisa o cara quiser, sei lá pulando argola amarelinha, o cara vai inventar o cara que criou lá, coloca o nome que ele quiser pontuação que ele quiser e o gestor fica totalmente na mão disso, então toda uma lógica f***** aqui por trás, mas fica na onde.
+02:06:57 Tiago de Andrade: A gente só pode dar um limite de pontuação, talvez alguma coisa assim o cara não pirar também, né? tipo
+02:07:08 Alexandre B: É na verdade. Vamos vamos falar desses outros, mas é pontuação é um ponto importante.
+02:07:17 Tiago de Andrade: Que daí? Qualquer coisa a gente pode colocar um limite geral assim se tipo a maior não vai passar de 300 pontos, sei lá, a gente pode pensar uma coisa assim, ele fica no Range, entendeu? Fica num numa média ali para não ficar vai com o cara perigosa.
+02:07:37 Alexandre B: Aí Aqui tem o último evento que seria os especiais. Só que aqui tem alguma coisa eventos sociais para cima. Tá aqui, deixa eu ver usuário final e aqui as eventos sociais, é? Tá então aqui a gente vai ter um literalmente. Criar evento com tudo que tem
+02:08:11 Tiago de Andrade: Tá instante time. Eu acho que esse daí a gente tem que ver porque eu acho que isso era melhor ficar.
+02:08:21 Alexandre B: Com a gente né?
+02:08:23 Tiago de Andrade: É só tô pensando na dinâmica. Porque vai que alguém pira lá na hora do palco e fala para criar e tal vocês não voltar lá, né? Aí o cara tem que passar o rádio. Vamos pensar no geral, vamos pensar na mecânica, depois a gente vê se a gente
+02:08:39 Alexandre B: Tá bom. É que assim.
+02:08:46 Tiago de Andrade: dá o usuário por gestor ou não?
+02:08:48 Alexandre B: tá
+02:08:50 Tiago de Andrade: Então, o que que seria isso? É uma ação especial.
+02:09:00 Alexandre B: Tem tudo, né 9 pontuação timer e horário. Só que em vez de ser vamos lá é uma ação.
+02:09:07 Tiago de Andrade: O horário não tem também esse aí não tem horário.
+02:09:10 Alexandre B: É uma ação. Vamos pensar o seguinte é uma ação da radicalidade para todo mundo.
+02:09:18 Tiago de Andrade: Essa aqui só que é só que daí ele muda ele muda o efeito, né? O jeito que
+02:09:18 Alexandre B: Vamos dizer assim basicamente falando né?
+02:09:23 Tiago de Andrade: ele vai funcionar porque ele precisa ser.
+02:09:24 Alexandre B: Não sim é um evento diferente, né? Mas é assim.
+02:09:27 Tiago de Andrade: Ele vai ter que mexer no front, né? Ele vai ter que ser uma tela que a gente possa expandir da maximizar e tal e se responsivo ainda por cima. Então vamos lá situações para gente pensar. E aí não estaria aí não estaria? Que são dois tipos de eventos especiais.
+02:09:50 Alexandre B: o da galeria
+02:09:51 Tiago de Andrade: É porque um é o da foto lá, lembra? um é da galeria E outra é esse aí que é o da do QR Code na tela na hora. Então vamos lá. Vamos pensar nisso?
+02:10:20 Alexandre B: Da galeria, não é?
+02:10:24 Tiago de Andrade: A gente podia chamar então separar as patas, acho que dá para ser Desafio o da galeria o nome. eventos especiais
+02:10:37 Alexandre B: onde é o
+02:10:38 Tiago de Andrade: É esse aí melhorzinho lá, se for o caso para vocês.
+02:10:43 Alexandre B: A galeria é?
+02:10:46 Tiago de Andrade: Ou daria no app.
+02:10:51 Alexandre B: Poderia pensar o seguinte pensar?
+02:10:53 Tiago de Andrade: nome descrição
+02:10:56 Alexandre B: descrição
+02:10:58 Tiago de Andrade: É porque às vezes você vai ter que dar uma explicadinha, entendeu? É melhor? Se você não colocar nada não aparece mas é bom ter tipo desafio desafio para
+02:11:05 Alexandre B: filme
+02:11:08 Tiago de Andrade: tá fina vá até a prata fina e tira uma foto com as atendentes. É isso desafio timer. Então nome de inscrição. timer de pontuação E esse sempre vai ativar o botão da foto. Esse é um Desafio até para colocar o desafio da foto, sei lá. Desafio galeria desafio momento acho que desafiou o momento pode ser?
+02:11:48 Alexandre B: tá
+02:11:57 Tiago de Andrade: E daí você gerou isso? Você vai ter que dar um input lá de tipo que nem ali enviar mesma coisa.
+02:12:06 Alexandre B: Porque ele já tem o timer. Então mas tipo meio que rodou agora e esqueça.
+02:12:11 Tiago de Andrade: Sim, é enviar desafio enviar desafio e é isso. Aí fez daí que que vai acontecer aí eu já não sei se dentro dessa tela também. Vocês conseguem vincular tipo porque a galera vai subir naquele meio tempo vinculado o desafio, né?
+02:12:28 Alexandre B: A gente pensava.
+02:12:28 Tiago de Andrade: Daí tipo o cara clicando naquela câmera naquela hora. Ele é vincula ao desafio. Essas fotos caem para vocês numa galeria ali, sei lá e vocês seleciona. sacou
+02:12:45 Alexandre B: Fazer uma alteração das fotos. Para ver se atende Desafio ou não. Como é que é o nome do negócio? Você falou não é biqueira, né a cachoeira
+02:13:03 Tiago de Andrade: Prata Fina chafariz
+02:13:06 Alexandre B: foto do pé no olho.
+02:13:08 Tiago de Andrade: cha
+02:13:19 Alexandre B: beleza Só que daí aqui vamos pensar na dinâmica, né? O cara foi lá e tirou foto. Como a gente vai moderar você algo rápido, né? Três minutos a gente vai sei 5 minutos a gente o que que eu penso em dar o start. Como deixa que se matem quando der a gente pode pegar ela fala assim ó evento finalizado. Daí a gente pode ir lá faz a moderação e fala assim, beleza? Todas as pessoas e aí mostra lá talvez.
+02:13:56 Alexandre B: Não sei teria que ver se apaixonar direitinho ou se o cara não recebeu ele entra lá e daí no histórico de pontuação tá lá foto no chafariz, ok?
+02:14:18 Tiago de Andrade: Não eu acho que lá no histórico vai ter que aparecer histórico eh desafio, né e vai aparecer se liga no ponto ou não. E se o cara não deu ponto não sei nem se precisa ter feedback, o cara sabe que ele foi burlado e viu Putz não vale. Mas se quiser dar um feedback é legal tipo, né? Que que eu pensava as Galerias, se a gente conseguir pensando em o ex aqui, parecia a galeria ali, cara, vocês tipo.
+02:14:47 Tiago de Andrade: Só um x nos que vocês deram x eles são matados. Não precisa ter ah confirmar
+02:14:51 Alexandre B: Só não pontua.
+02:14:52 Tiago de Andrade: todo mundo tá? Todo mundo confirmado você só tira quem aí quando você tiver quando você der o X. Ele pode mandar o feedback para esses cara do X falar só falta não foi validada e ele vai receber esse negócio e é isso né? Mas daí a gente precisa ele vai entrar na galeria ou não. né, mas
+02:15:21 Alexandre B: Vai deitar.
+02:15:22 Tiago de Andrade: Pode colocar um X tipo. Agora pirando aqui de novo, né? Porque pode acontecer a foto é não dá para subir, né? Aí sei lá o cara sei lá o foto do cara manda né?
+02:15:35 Alexandre B: Uma caveirinha é sei lá.
+02:15:36 Tiago de Andrade: Aí por exemplo. Um x e um outro símbolo ali um lixo, entendeu? É uma caveirinha ele vai colocar a foto e a pontuação se for só o X é só pontuação, você pode fazer alguma coisa assim?
+02:15:51 Alexandre B: Não é de mim. todas as fotos enviadas Isso para não atuar.
+02:16:22 Alexandre B: Na verdade isso meio que a gente vai ter que fazer meio que uma curadoria. A cada um tempinho, né? Para ver se eu acho que é aquilo também, né? O que a gente acha mas não sei pode ser que a gente não tenha nenhum. Mas pode ser que tenha 10.
+02:16:41 Tiago de Andrade: Ele tá preparado. Então é isso é o momento seria isso, tá?
+02:16:43 Alexandre B: Então beleza então
+02:16:49 Tiago de Andrade: É aí, esse é o tá esse é mais tenso por causa do front, né? Que que ele precisa fazer. Pode ser é o título, né?
+02:16:58 Alexandre B: Agora eu tô pensando cara. Vai ter que ter um esse especiais vai ter que ter a melhor.
+02:17:07 Tiago de Andrade: Não, pode ser.
+02:17:09 Alexandre B: Porque daí vamos lá? Vai ter que essa tela do gestor pode virar.
+02:17:18 Tiago de Andrade: Sim, não então.
+02:17:19 Alexandre B: Então, tipo os caras do telão e até essas TVs. Como que você pensa? Como que vai ser essa TV? Ela vai estar rodando o quê?
+02:17:31 Tiago de Andrade: Nas TVs ela só roda o ranking.
+02:17:35 Alexandre B: Que é o nosso ranking. Ah, então tá tranquilo.
+02:17:37 Tiago de Andrade: Nosso ranking só que ela vai ela vai estar em horizontal, se eu acionar esse cara aqui.
+02:17:43 Alexandre B: Não isso é tranquilo, isso é dá para ficar lendo.
+02:17:45 Tiago de Andrade: Ele precisa sobrepor o ranking e aparecer durante aquele time, entendeu? Então é tipo um URL lá sei lá, né? O do app barra ranking o barra TV barra, sei lá na TV aí o cara quando criar aí que isso que eu tô falando aí começa o c, né? Não é nada demais é um título. O timer e de um timer normalmente mais curto certo, tipo a 30 segundos um minuto. Sei lá, ele vai ficar na tela ele vai gerar. Qualquer coisa tem que ficar grandão Centralizado se for porque lá nas telas laterais, elas são tipo mobile, né? Ela é vertical, então o título em cima tempo ou QR. Code tempo
+02:18:29 Alexandre B: No telão né? Sim.
+02:18:33 Tiago de Andrade: embaixo, é isso ele e tipo ele tem que gerar aí isso que eu tô falando. Talvez ele teria que Gerar um pop-up ali uma outra sabe isso que eu tô pensando que o cara vai estar tipo nesses casos você vai estar no Browser, entendeu? Não vai estar no celular. Então, eu pensei que ele já era um pop-up, né? Ou alguma coisa assim uma página mais sei lá uma nova aba. Teoricamente seria né uma nova página.
+02:19:04 Tiago de Andrade: E aí essa nova página de maximizando né? Ou deixando na dimensão que ele precisa ele arrasta lá para o negócio e aparece no telão. Na hora que ele está gerando. Então são dois momentos telão e TV certo. Só tem esses dois duas possibilidades. No telão ele vai basicamente vai ser vertical, mas ele pode jogar no fundo lá também. Aí eu não sei como é que ele faz isso lá, enfim se ele redimensiona o browser ou não, mas aí é o problema lá depois para se virar. Então seria tipo um browser. Aquele clube da vida. Ela fuma né um f11. E aí. Na hora dele ele disparar isso teria que ter então título.
+02:19:52 Tiago de Andrade: Timer que vai ter que ter um contadorzinho bonitinho lá tá tá? E só basicamente e o fundo lá sei lá o fundo preto fundo branco fundo verde, pode ser um bolha ou pode ser um cheque mesmo um checkbox ou um boler é um outro,
+02:20:05 Alexandre B: Como você quiser.
+02:20:13 Tiago de Andrade: né?
+02:20:14 Alexandre B: sim
+02:20:15 Tiago de Andrade: É que pode ser os dois também, não seria problema então daí eu não daria certo então pode ser um cheque tipo TV. circuito de TV
+02:20:29 Alexandre B: Ah sim
+02:20:30 Tiago de Andrade: Se ele ficar circuito de TV. Ele vai para esse disparo automático nas TVs, entendeu? Ele manda o script para aquela tela do ranking, se ele não selecionar isso ele vai estar só com telão sacou.
+02:20:48 Alexandre B: sim
+02:20:49 Tiago de Andrade: Nem sei se precisa dos dois cheque, talvez só.
+02:20:52 Alexandre B: Na verdade podia ser assim, ó, se ele não pregar.
+02:20:53 Tiago de Andrade: Mandar para todo mundo ou não, né? Tipo?
+02:21:03 Alexandre B: Não flegou vai para todo mundo flegot TV frevou positivo. TV flegou negativo telão não flegou. Ou desligou ou daria fazer um suíte, né? Três posições ou tipo aqui todo mundo aqui sua TV aqui só até logo aí o cara escolhe o que ele quer.
+02:21:24 Tiago de Andrade: isso
+02:21:25 Alexandre B: Mas tá Vamos por partes primeiro eu preciso criar rota de ranking de TV. Que que eu pensei nisso?
+02:21:34 Tiago de Andrade: Isso é outra coisa. Tá isso daqui, não é o disparador que
+02:21:40 Alexandre B: Essas rotas é o que é o que vão.
+02:21:41 Tiago de Andrade: Ah entendi da Rota entendi.
+02:21:49 Alexandre B: Que vai estar lá meio que necessário para que isso funciona então tipo vai eles vão fazer essas telas TV vai aparecer o ranking barra TV.
+02:22:04 Tiago de Andrade: É que as TVs elas vão estar ligada. No RL o dia todo.
+02:22:09 Alexandre B: Perfeito não isso é tranquilo, isso é tranquilo.
+02:22:10 Tiago de Andrade: Esse URL tem que ser dinâmico no sentido de que quando tiver evento especial, ela vai aparecer lá se tiver esperado. O telão ele basicamente é o browser vai ter que ficar bonitinho no formato que a gente quer ele arrastar para lá. É isso.
+02:22:28 Alexandre B: Que eu pensei é se aí tem que aí você vai me dizer faz sentido fazer um evento especial só para te ver.
+02:22:38 Tiago de Andrade: Faz porque a ideia é que tipo a minha ideia.
+02:22:43 Alexandre B: Tenha mais mais eventos especiais sem vincular exatamente o palco que vai estar lá acontecendo alguma outra coisa e tal. Beleza, mas também existe
+02:22:49 Tiago de Andrade: isso
+02:22:52 Alexandre B: possibilidade de tipo as TVs estão rolando e o cara no palco motivou alguma coisa, eu quero criar um evento lá especial. Eu quero te mostrar só no telão então por isso que eu pensei em duas rotas separadas. Porque daí a gente fica o ranking da TV vamos lá. Vai estar aqui barra ranking/tv isso daqui vai estar escutando o uma peido Matheuzinho que eu vou estar passando por meio de um parâmetro TV para ele. E aí tudo que entrar de evento especial com a Flag TV Ativa eu pego e faço tudo escrito Alô e aí eu posso colocar telão? E aí também mesma coisa vai estar lá se chegou em vez de telão aqui e aí você chegou dos dois. Ele vai receber dos dois, né? Mas aqui então
+02:23:42 Tiago de Andrade: É que o problema a questão pato, eu entendi isso só que eu tô pensando tá? O Alisson lá que está na transmissão ou o Lucas. Vai ter a hora lá que o cara vai tá falando mal.
+02:23:53 Alexandre B: Ao RL vai ser a mesma para eles a URL vai ser essa daqui para eles.
+02:23:58 Tiago de Andrade: Tá, mas eles que vão ter que gerar o start.
+02:24:02 Alexandre B: Então mas isso então isso daqui é a visualização final é o que eles vão arrastar, pois eles vão fazer isso aqui aí eles vão estar lá vai estar o ranking. Quando ele gerarem. Evento Ou eles ou alguém fala assim, ó, vamos gerar evento tal mudou aqui os caras não é pum. Nossa organizam a tela para estelão. O único detalhe é Se eles tipo derem mole lá sabe que vai ficar totalmente independente deles que daí tipo o evento começou tem que ser um minuto, só que o cara se perdeu aqui vai subir lá no telão com 30 segundos faltando isso é?
+02:24:48 Tiago de Andrade: Não não tá mas isso daí é legal porque tem dificuldade porque daí antes do cara soltar ele já joga com a telão e vai estar no ranking certo.
+02:24:56 Alexandre B: exato
+02:24:56 Tiago de Andrade: Na outra tela do gestor ele vai dar o start certo?
+02:25:00 Alexandre B: hoje
+02:25:02 Tiago de Andrade: Ele dá o start vai estar no ranking. Então vai estar com alguma coisa legal, ó arranque ainda estamos aqui o cara então vamos lá soltar tesão desafio vai mudar a tela para o negócio, é isso?
+02:25:19 Alexandre B: Ou até a gente pode fazer uma coisa que pode ser legal que é só que teria que organizar melhor, né? É que quando o start duro do negócio não dá para ter muito problemation, mas se a gente por exemplo, sei lá 5 segundos 10 segundos, o cara podia concorrer o ranking a gente podia receber o evento e esperar um tempinho e reorganizar a tela sabe fazer quase que uma mágica ali para tipo vai aparecer o QR. Code aqui. Prepare seu celular aí aparece qualquer coisa.
+02:25:52 Tiago de Andrade: Não, pode ser. Tá aí vai ter que fazer só ali só um texto mesmo atenção. Prepare seu celular QR Code especial, sei lá ou
+02:26:01 Alexandre B: Que eu pensei é que é.
+02:26:06 Tiago de Andrade: Sei lá ganha pontos especiais, sei lá, qualquer coisa assim vai ter que pensar na frase daí vira dá uns 5 segundos. É uma é um teaser. Tá legal.
+02:26:27 Alexandre B: dar tempo de telão sincronizar e pessoal Entre entre o seu F se prepare para escanear o QR. Code surpresa, sei lá.
+02:26:46 Tiago de Andrade: isso
+02:26:50 Alexandre B: mensagem grandes Então aqui basicamente são duas rotas prontas para o desenvolvimento os alimentos. gestor cria o evento por padrão Coloca 15 segundos de trânsito são para dizer Dando o stark já avisa. os terminando fecha tudo e usuário escaneia e recebe pontuação com mais animação especial Mas eu confesso é diferente de tudo, sei lá duas rotas prontas vai estar lá vai tá rolando o cara cria legal start por padrão aqui em segundos faz a transição na tela. Estamos chegando a um QR. Code o timer terminou timer sair fora volta o ranking fechou o usuário abriu o app.
+02:28:30 Alexandre B: Foi lá escanear escaneou pontuação. Olha você participou de uma vida especial aqui no telão especial geral ganhou 50 pontos é muito bem compartilhe esse momento sei lá, ele pode ver esse vídeo.
+02:28:48 Tiago de Andrade: Esse não né? Esse não tem como partir no momento.
+02:28:55 Alexandre B: Bom não foi tão difícil. falar sobre
+02:29:01 Tiago de Andrade: Eu acho que daí só o fluxo a gente vai ter que fazer é que tipo nesses input de dados, né que vai ter. Os impulsos dele criar um sei lá um bloco ali uma coisa assim visualmente e daí Alice era uma ação não de iniciar ter um botão do lado alguma coisa.
+02:29:17 Alexandre B: Sim, é o que eu pensei é o tipo playzinho de tipo de música mesmo. Sabe o playzinha do lado específico cardzinho assim e principalmente para esses eventos especiais aí até já não sei deixaria tipo.
+02:29:35 Tiago de Andrade: Eu acho é melhor botão verde iniciar e botão vermelho. Finalizar né? Se tiver quando tiver né nesse caso com o timer e acaba.
+02:29:44 Alexandre B: É pode ser um verdezinho verdezinho X o Chuck e o x tanto faz isso é tranquilo.
+02:29:49 Tiago de Andrade: Porque acho que tá escrito ali como o pessoal não vai ter muito tempo da gente explicar muita coisa. Tem que ser bem intuitivo, né? Então às vezes tá escrito ali o botão. Iniciar terminar já resolve sabe que nem tava lá na fila.
+02:29:59 Alexandre B: É mais fácil. O eventos especiais por exemplo, vamos lá o padre resolveu fazer entrou na brincadeira.
+02:30:16 Tiago de Andrade: Vou soltar o que é curto especial aqui.
+02:30:17 Alexandre B: Vou soltar um carregador especial vai valer não precisa Vale lembrar vai ser padre. Pedro na no dnj, vamos organizar. Eu tenho um padre Pedro, mas tem outro como é que é o nome.
+02:30:45 Tiago de Andrade: para Renê
+02:30:46 Alexandre B: Ele que vai ter pelo menos o ano passado, ele estava mais não.
+02:30:49 Tiago de Andrade: Cleiton Esse ano pode Pedro que vai ser o apresentador.
+02:31:00 Alexandre B: eventos sociais mas algum ponto se pensa que
+02:31:09 Tiago de Andrade: Só isso.
+02:31:11 Alexandre B: é isso uma última coisa, que engloba todos os estudos aqui tá antes só então a gente vai ter um gestor para gestores Geral você dizer pode ser esse aqui que é o santidade, por exemplo.
+02:31:48 Tiago de Andrade: E aqui se Alice falou que vocês iam ficar com uma de mim, né? Vocês vão preencher o cronograma.
+02:31:56 Alexandre B: Aí tem no experimento.
+02:32:03 Tiago de Andrade: Esse é um nome ruim também, porque vai ter. Na verdade eu sem cronograma, né é tipo
+02:32:10 Alexandre B: sem tudo isso aqui seria o
+02:32:18 Tiago de Andrade: Que esse daí também na verdade seria vocês, né de mim vocês querem putariam lá uma lista para vocês. Não vai não precisa ter uma versão. Espaços né? Mas é que tem experiências que tem cronograma também, por isso que eu Mas dá para dá para você?
+02:32:47 Alexandre B: Gestor queria ação.
+02:32:53 Tiago de Andrade: Ação do radicalidade que é basicamente radicalidade, né? Não sei se alguma coisa. Vocês também vão ter só. Desafio momento é vocês também para vocês.
+02:33:07 Alexandre B: assim E aqui seria os eventos especiais. Acabou que ficou tomando no rabo.
+02:33:32 Tiago de Andrade: hã
+02:33:34 Alexandre B: Mas vou ter que vou ter que organizar se é de mim, eu achei que ia fazer só de mim só ficar vendo os usuários.
+02:33:43 Tiago de Andrade: Não se você quiser que nem você falou.
+02:33:44 Alexandre B: Vou ter que levar essas três telas aqui fica um dashboard em tempo real.
+02:33:50 Tiago de Andrade: É vai dar para se quiser porque nem falei vocês veja Conversem. Se quiser passar para o usuário dá para a gente deixar alguém lá que fique coordenando isso, né? Mas Aí você vai ter que pensar na versão mais mobile essas questões.
+02:34:09 Alexandre B: Acho que esses dois aqui. Até não seria problema de ter um gestor, talvez alguém de confiança assim que você vai falar ó.
+02:34:19 Tiago de Andrade: É que eu terei que tem um cara. Em cada lugar desse entendeu? Então, teria que ter um lá no Juventude ou Santidade e uma arena, mas são os
+02:34:27 Alexandre B: Aí a gente vai ter em todos na verdade, a gente vai ter todos historicamente.
+02:34:30 Tiago de Andrade: três também não é muita coisa né? Só que eu vou ter que ensinar eles bem lá, tipo, eles vão ter que ser anometrista e tipo eventualmente, eles vão revezar no medo disso. Que f*** né? Tipo não é o mesmo cara. Às vezes muda isso que é m****. Porque daí o outro chega já não sei direito.
+02:34:46 Alexandre B: E a gente conseguiria fazer porque você ia ficar gripando a gente.
+02:34:50 Tiago de Andrade: É eu líderes, né? Eu teria que deixar também os líderes sabendo que vocês estão lá à disposição nesse sentido aí alguém por exemplo lá no palco não vai dar o tempo inteiro lá aí alguém do palco falar vai ter que ter o canal de vocês falar ó, preciso Que altere aqui deu ruim cronograma atrasou 15 minutos, aí vocês vão lá. Por isso que vocês vão ter que também tá com o cronograma do lado, né? Se for o caso, se for vocês para vocês irem entendendo? O que que eles estão falando? Tipo agora era para estar acontecendo que nem Retiro cara. Era para estar acontecendo alguma coisa atrasou aqui.
+02:35:23 Alexandre B: Sim era para estar na confissão, mas não tá ainda aí altera lá é um cronometrista basicamente.
+02:35:29 Tiago de Andrade: É o que tem que ver daí, se for fazer o cálculo que agora eu pensei que não tinha pensado é tempo de duração, né no caso dos cronogramas a gente não tem que ter esse campo também. Que é o horário que ele vai começar, mas quanto que ele vai durar? Entendeu? Ou tempo de início e tempo de final que daí ele vai fazer esse cálculo de tipo a tempo do início duas horas tempo de final 2:30, então, ele durou meia hora porque se eles falam para você apesar nem Retiro atrasou aqui era para ter terminado duas e meia terminou duas e 45. Então o próximo começa 2,45.
+02:36:15 Alexandre B: O que dá para fazer pensando?
+02:36:18 Tiago de Andrade: Se tivesse inteligência já dele, né? Que nem a nossa planilha lá no cursinho que ele já atualiza tudo, entendeu? Joga para frente.
+02:36:28 Alexandre B: O que dá o que eu tô pensando agora, só que obviamente arrumando ela não vai c**** com tudo né? Mas é O cara que tá em cada espaço. A gente pode filtrar para aquele espaço do cronograma dele e ele vai e ele vai
+02:36:46 Tiago de Andrade: sim
+02:36:47 Alexandre B: dando start então tipo assim cara a palestra do padre Pedro. Começou agora 10:53, só que era para terminar 11 horas, só que é 11 10 eu não terminou o que tá bom. A partir do momento que o cara falou assim. Ah não agora começou a palestra do Thiago deu start pausado Padre Pedro e começa o Tiago, só que aí existe o problema da falha humana, né? Se o cara se entreteu lá e já trocou já tá no Thiago, não sei o que a gente tá apontando que o padre Pedro.
+02:37:22 Alexandre B: Não problemaço, mas tipo agora pensando seria uma coisa menos para gente porque cara pode dar tudo certo e a gente fala assim. Ah ajustar uma coisinha ali e tal outra coisa, pode ser? Precisamos ajustar gritar com a gente é justo o cronograma daí gritaram você por exemplo. Precisamos fazer um evento. Esse ano tá acionando eu não sei que não vai dar certo, entendeu? Só por isso. Então aqui eu acho que a que eu colocaria.
+02:37:57 Alexandre B: gestor por espaço E aí aqui colocaria start. Somente start do evento para saber quando começou iniciou o próximo para bem simples. Acho que nem precisa nada, esse aqui é o que menos vai dar problema porque é só é tipo pré-cadastrado lá já era. E esse daqui um momento também. Acho que é até melhor para a gente.
+02:39:13 Alexandre B: Basicamente são três. Três não, né, mas vamos dizer assim, o gestor tem três três acessos. E aí cada acesso vai ter uma funcionalidade específica? Até acho que até bom para separar bem sabe? Acho que até no final a tela pode ficar muito parecida. Você é f***
+02:40:10 Alexandre B: Saquei
+02:40:33 Alexandre B: Tensão. Tá bom vou colocar aqui. Bom, então, é isso cara. Tem aqui eu acho que dá para ficar na próxima
+02:41:59 Tiago de Andrade: de cada um entrega um Fica dois com vocês lá, sei lá ficar coordenador ali do coordenador do Lá do feira vocacional e ele se der BO e sabe que ele é o ponto de apoio, ele entrega outro. Entendeu? Daí se a gente alinha com a Maísa, porque isso daí é praticamente tudo mais. E Pato, deixa eu te falar, eu tô pensando em resolver as coisas. Mas se a gente colocasse uma regra só.
+02:42:05 Tiago de Andrade: Que tipo de tolerância De sei lá 15 minutos vai 10 minutos 12 minutos colocar no meio do caminho. E se o cara não deu iniciar em 12 minutos, ele segue o cronograma, entendeu? Mas o cronograma teria Obrigatoriamente que seguir a ordem. Então, tipo. Teoricamente era para terminar duas horas. Mas tá mas é duas ideias ainda não terminou.
+02:42:07 Alexandre B: rodada, eu vou pensar aqui.
+02:42:08 Tiago de Andrade: Beleza cara tá lá. Mas deu duas e quinze se o cara esqueceu ele troca. Que daí tipo a gente não fica com esse negócio de tipo perder tanta coisa, o problema é se atrasar mais que 15 minutos. Sei lá, um botão de escape daí só que tipo é o Flex, time que a gente tem isso no cronograma que se chama Flex, time seu horários que eles têm uma
+02:42:11 Alexandre B: Os estruturas prontos melhores aqui já para os gestores.
+02:42:11 Tiago de Andrade: margem para que tipo deu ruim, eles ajustam nesse horário, entendeu? Então é tipo 15 minutos entre alguns intervalos que o cara vai ficar falando lá e tal tal se tiver tudo no cronograma, ele vai ser 15 minutos de falação lá falar patrocinador música. Vai tocar vai ser enrolation, mas se tipo perdemos tempo ele tem esse Flex, time que não mata entendeu? O evento. Daí seria um botão de fuga ali, tipo a flex time, talvez e daí eles deixam que fica nesse intervalo que não acontece nada. Vamos dizer assim. Teoricamente
+02:42:16 Alexandre B: E a gente já tem uma visão pelo menos para próxima vez que a gente conversar
+02:42:16 Tiago de Andrade: não tem não tem nada em cronograma. Que eles podem usar ou para escape mesmo? Tá errado. Deu errado aqui a gente precisa de um tempo eles deixam ali até se resolver. Só que enfim vai complexando, né, cara? Tem que pensar nessas coisas que vale a pena.
+02:42:22 Alexandre B: a gente já tem uma cara do tipo do gestor. Que que a gente pensa cara, não vejo até uma tela, né aqui no que eu fechei aqui, mas aqui ó. Não tem tudo isso daqui eu vejo que o gestor vai ter cara, nem vai precisar disso daqui, né? Vai ser uma coisa só talvez duas telas bem simplesão. Dá para usar o meu melhor de tudo mais.
+02:42:44 Tiago de Andrade: Não é bem de boa mesmo.
+02:42:46 Alexandre B: Cara O Último Ponto nós já passamos.
+02:42:48 Tiago de Andrade: Eu até penso que o layout pode ser até mais parecido ali com que você já tem ali, né de mim com menos layout do dnj necessariamente.
+02:42:56 Alexandre B: Esta aqui mais mais simples.
+02:42:57 Tiago de Andrade: E daí o cara só tem ele que ele precisa ver mesmo.
+02:43:03 Alexandre B: Cara uma coisa também, já tomou um bagaça laranja aqui estando diferente, mas uma coisa a gente precisava pensar é qual que é o limite e quais são os níveis de pontuação? Não isso sim, mas por exemplo o que que eu tô pensando?
+02:43:20 Tiago de Andrade: Mas é iniciante Peregrino.
+02:43:28 Alexandre B: Como que ele sobem? Como que a gente vai definir isso o teto vai ser 10 mil pontos. Porque vamos dizer assim com base nos eventos que a gente tem na programação se o cara participar de tudo o cara chega, sei lá 12 13 mil pontos a gente pode travar em 10 mil pontos é o cara extremo só que aí o cara vira nível tnj Master Pro Plus, só que aí fica contando mais tipo vai dando mais estrelinha e aqui. No ranking dele, principalmente no individual ele vai pondo todo para cima. Então tipo o máximo que a gente pensou que o cara é participando de tudo.
+02:44:12 Alexandre B: Seja 15 mil. Só que os níveis são 10. O cara tá todo mundo conseguir chegar no nível. Peregrino, por exemplo.
+02:44:19 Tiago de Andrade: sim
+02:44:20 Alexandre B: Só precisava definir isso porque aí tinha que definir com base nisso definir as pontuações, porque se a gente falar que o Peregrino é 100 pontos daí não faz sentido a gente fazer o evento especial de 100 pontos, entendeu? Que daí o cara vai entendeu?
+02:44:34 Tiago de Andrade: Não Sim, claro. É que a gente tem que o iniciante ali para sair do iniciante, tem que ser algo mais simples saia logo esse motivar na gameficação para de nós, já ganhou um negócio um Bad aí os outros estão ficando mais difícil, tipo a gente triplica quadriclista. Sei lá, mas cara basicamente é pegar aqui a programação que a gente tem. Fazer uma divisão de pontos sim, vamos começar em 10 mil divididos por quantos quantas coisas tem? Sei lá no Juventude, a gente vai se ter uma média de pontos aí a gente consegue já ter uma noção.
+02:45:13 Alexandre B: E assim não há nada para agora, mas algo importante do game, né? Como é como alguém o dnj game o game. Tem que fazer sentido, né? Tipo o nível o nível 1
+02:45:22 Tiago de Andrade: Sim, tem que fazer sentido.
+02:45:25 Alexandre B: é o mais fácil, né?
+02:45:29 Tiago de Andrade: aí
+02:45:33 Alexandre B: Eu tinha mandado lá, acho que tem umas sugestões ali e é só que assim eu
+02:45:36 Tiago de Andrade: Dá para fazer.
+02:45:36 Alexandre B: acho também não deve ser muito grande, né?
+02:45:43 Tiago de Andrade: Missionário Daí dá para zoar tipo o último sétima moral lá de teresa D'ávila.
+02:46:02 Alexandre B: É bom que aí a gente tem que pensar, mas por exemplo radicalidade os cara pode
+02:46:05 Tiago de Andrade: Dá para brincar
+02:46:10 Alexandre B: ficar brincando radicalidade o dia inteiro e de pegar um desafio especial desafio do momento e os cara escalar muito rápido, entendeu?
+02:46:19 Tiago de Andrade: É então, por isso que é legal os desafios, porque a galera tem que ficar ligada, né uma coisa que eu esqueci pato. Talvez ali na home a gente vai ter que fazer um eu acho que pode ser um um botão mesmo. Ou aquele boxzinho tipo que nem tava do cronograma. é Ou no dnj game mesmo, né? Faria mais sentido, sei lá, enfim, tem que pensar só e daí tem. Um explicando sabe vai ter que explicar alguém.
+02:46:50 Tiago de Andrade: Formas de pontuar tam tam tam tam tam sabe eu acho que vai ter que ter um negocinho assim porque tipo cara, tipo. Eles não vão saber que vai ter desafio. A gente precisa avisar eles né?
+02:47:00 Alexandre B: E se fosse no primeiro acesso?
+02:47:03 Tiago de Andrade: Pode ser?
+02:47:04 Alexandre B: Tipo quase um tutor assim, né?
+02:47:05 Tiago de Andrade: legal É dá para ser aquele negócio assim, né? O cara entra tipo. Carrossel ali Você está entrando? Você pode participar de fila de confissão, ele já saiba mais alta game explicando.
+02:47:30 Alexandre B: desafios especiais mas
+02:47:33 Tiago de Andrade: Vou te mandar.
+02:47:34 Alexandre B: Compartilhe momentos aí que é para pomar. participe de brincadeiras No radicalidade para pontuar conforme. assim não aqui eu já
+02:48:11 Tiago de Andrade: Aí te mandei a programação para você. Dá para pedir para olhar também sugerir.
+02:48:23 Alexandre B: atrás antes de começar
+02:48:31 Tiago de Andrade: E talvez a gente vai ter que fazer o desafio aqui dentro, né? Tipo na missa, né? Seria massa, mas Z tem que pensar nisso a gente criava. Talvez um especial ali, né dentro do app mesmo para não ficar não porque a galera vai estar tudo correndo tudo correndo
+02:48:50 Alexandre B: Mas esse da missa podia ser um Talvez um que como é a última coisa Seria tipo.
+02:48:51 Tiago de Andrade: lá na palco daí é f*** a gente ficar querendo fazer muita coisa. Então talvez não é? A gente tem ainda o show, né?
+02:49:08 Alexandre B: assim Se para fazer sentido Ponto Alto do evento né? Porque apontasse lá 500 pontos a missa e deixar lá, tipo uns três minutos, sabe também que todo mundo conseguir. Dar uma subida legal. Queria o cara que não participou assim, se alguém não participou isso, p****, não vi e tal deixou cinco minutos, qualquer coisa e tal. Não beleza podemos pensar em várias coisas. cara 1200 mais ou menos aí, mas tem bastante coisa mas esclarecedor, principalmente os ajustes aqui. Acho que agora vai ficar bem top.
+02:49:54 Alexandre B: Vou ter que sentar com o mateusinho para gente definir várias coisas, eu acho que a fila vai acabar.
+02:50:01 Tiago de Andrade: puxando o mecânico
+02:50:01 Alexandre B: Vamos lá, vamos lá?
+02:50:03 Tiago de Andrade: Tá aí o negócio do WhatsApp já tem que ver isso aí também. Acho que é importante.
+02:50:12 Alexandre B: Pensar em uma que daria.
+02:50:15 Tiago de Andrade: Eu acho que o erro tá no palco. eu participei do eu participei do Negócio lá que você pegavam que é coisa para participar de uma promoção agora no Congresso que eu tava os caras esperto velho, eles jogaram para uma página e dele se lavar para você participar você precisa mandar um oi aqui no WhatsApp aí tipo ele ia clicava abrir o WhatsApp com aquela textinho já tinha um código lá já eles vinculavam. Eu achei legal, né? Porque eu brigava o cara dá um oi lá. Só que daí para fazer essa essa mecânica. Aí eu já não sei.
+02:50:57 Alexandre B: Sim, não isso não é fácil não é difícil é igual aquele do tipo da Marcela aqui no Instagram da das bolacha. Vou te mandar no Whats.
+02:51:22 Tiago de Andrade: deixa
+02:51:32 Alexandre B: Daí ele ele já abre ele já tipo já entra no teu WhatsApp, você entra no
+02:51:37 Tiago de Andrade: Tem que ver tudo isso, como é que tá lá e tal e trocar o erro.
+02:51:37 Alexandre B: celular, né? Dá para usar? né Centralizar para o teu número lá e beleza já abriu o canal. Tem que ver como é? Não mas não tem a ver-me mais, né a VM.
+02:52:05 Tiago de Andrade: Teria que fazer. Ah, é verdade. Cara, o Matheuzinho vai ter um caminho, entendeu?
+02:52:25 Alexandre B: eu até acho que
+02:52:26 Tiago de Andrade: Coisa toda que não tem tanto tempo tem que correr atrás. Se não.
+02:52:40 Alexandre B: Quando que é mesmo? Quanto tempo ele tem?
+02:52:41 Tiago de Andrade: Voltou. Então tem que ver lá, só apei do metro e tal como é chatinha veio logo que não tem muito tempo, né? Tem que testar. Dia 12 de Setembro, né? Mas era bom de testar, né?
+02:52:56 Alexandre B: E Vai ter fluxo completo, né de todos.
+02:52:57 Tiago de Andrade: Aí se você quiser a gente pode testar de verdade na reunião de vontade, né?
+02:53:05 Alexandre B: Que é quanto?
+02:53:05 Tiago de Andrade: Vai ser dia 20/02 e dia 29 se eu não me engano.
+02:53:10 Alexandre B: de agosto agora p*** que pariu.
+02:53:14 Tiago de Andrade: 29 vou ter duas reuniões. Vai para 29 era bom a gente ter pelo menos boa parte.
+02:53:25 Alexandre B: 29 o app a gente tem. Eu tô naquela né, como ele manja, ele também tá fazendo que tava assim. Mas ele já deu as letras para gente do back lá também que é pi as coisas estão tudo configurado eu eu vou esperar ele ele falou acho que essa semana ele tá mais corrido, mas a semana que vem a gente se do dia 10 dia 11 aqui ele não der nenhum sinal de fumaça aí não vai ter Márcio não vai querer lá vou fazer As Faces que eu preciso vou vou fazer um negócio funcionar as coisas mais complexas que vai ser talvez você talvez outras coisas.
+02:54:14 Tiago de Andrade: Tá mas assim para tu. Não vamos já deixa marcado lá ver com ele, deixa marcado eu entro ali. Se precisar dar um grito que agora vou ter que fazer, né? Agora a gente vai ter aula, né? Mas assim eu digo para o mateusinho de boa só
+02:54:31 Alexandre B: Vamos fazer.
+02:54:35 Tiago de Andrade: quando ele tá com os negócios.
+02:54:37 Alexandre B: Não é ele e ele fala tava antes migração e pronto é um negócio grande da empresa, então não não tô tipo eu não tô falando que ele tava fazendo por
+02:54:42 Tiago de Andrade: Com certeza
+02:54:45 Alexandre B: uma vontade, mas é porque tá f***** a cabeça.
+02:54:49 Tiago de Andrade: Não e tudo bem. Daí a gente vê só ele também com coisa eu troco uma ideia ele falou piá, como é que você tá de real aí e tal? Mas ele vai pegar ali é? Só isso, às vezes até final de semana às vezes rola aí de noite, vocês pegam umas duas horas e resolve tudo porque tá aí o que precisa ser feito, né? Eu sei que é bastante coisa e tal mas
+02:55:11 Alexandre B: Eu vou dizer que assim não menosprezando né, mas todos os backings que eu conheço é assim os cara faz umas apisinha sem vergonha lá e quem tá se f****** para experiência controlar e ranking, não sei o que não sei o quê querendo ou não a parte mais difícil é essa não que seja assim, mas é mais difícil aqui a gente já venceu que é tudo funcionar aí tem a parte do gestor que também já tá aqui maquiado já vai fazer e eu admin que eu também já consigo fazer e depois cara basicamente vai ser Mateus.
+02:55:54 Alexandre B: No dia 29, eu garanto que dá para a gente fazer um teste, então o 22 já não garanto tanto. Vai dar podemos tentar.
+02:56:04 Tiago de Andrade: Não de boa, mas se você quiser tipo isso que eu tô falando dia 22, se quiser vai ter os voluntários dá pra gente testar alguma coisa, sei lá o que tá funcionando ou não hoje só apresenta lá ó tá em desenvolvimento, mas tá aqui tipo pra galera ter um grau lá, mas é isso, cara.
+02:56:18 Alexandre B: Já que você tá empolgado então é o dnj, Curitiba tá com você, como é que era viu? Mas não tá com você o negócio não é? Você que está controlando.
+02:56:28 Tiago de Andrade: Tá mas está f***** Os cara ai o cara tá apontando nesse hoje, mas o cara é bem burro. Para apontar do INSS, o cara tá me dando trabalho, você acredita? Não o DNS o registro. O cara da cura é tipo um funcionário público sem vontade. Aí que aconteceu eu perdi a hosting que tava tudo configuradinho. Daí a gente não pagou mais, né? E ele acha que os 90 dias lá se você não restaurar ele se perde tudo que tinha aí eu Restaurei a conta do hosting, mas ele não restaura o resto eu tive que apontar tudo de novo, entendeu?
+02:57:13 Alexandre B: Entendeu?
+02:57:13 Tiago de Andrade: A pia tá com o site pronto ali que eu te mandei, mas não tá apontado aí.
+02:57:19 Alexandre B: tá
+02:57:19 Tiago de Andrade: tem até amanhã se rola, sei lá, quanto tempo vai demorar essa droga, mas
+02:57:23 Alexandre B: É bom aqui para mim, eu vou colocar o negócio aqui não vai dar já aquele CDM lá aquele cm lá você vai colocar e tal não tem muito segredo não.
+02:57:34 Tiago de Andrade: Sim, sim de boa, né? Só que eu não estou ainda vinculado no site.
+02:57:39 Alexandre B: Aqui poderia por exemplo nesse daqui Podia colocar dnj. Curitiba eu acho né.
+02:57:45 Tiago de Andrade: Aqui eu vou ter que colocar o botão depois do game para o cara baixar tudo isso, né?
+02:57:49 Alexandre B: Sim, mas aí eu pensei em colocar em subiu RL.
+02:57:54 Tiago de Andrade: Sim, pode ser Daí eu vou ter que ver onde que faz isso mesmo no hosting mesmo. ou no
+02:58:02 Alexandre B: Domínio está lá é seu domingo tá lá? qualquer coisa Não.
+02:58:36 Tiago de Andrade: Ah dá para criar subdomínio aqui. Tá escrito pasta personalizado para subir. crio pasta Pública underline htbl tá fixo aqui acho que não né? Então deixa
+02:59:00 Alexandre B: é
+02:59:12 Tiago de Andrade: Ele criou um diretório aqui.
+02:59:42 Alexandre B: o Facebook
+03:00:12 Tiago de Andrade: Eu tenho que ver como faz porque o cara é f*** e o cara ainda pode estar de
+03:00:15 Alexandre B: Mas é isso
+03:00:20 Tiago de Andrade: férias então. Cara é um negócio de domínio, o cara ficou me perguntando umas coisas besta, né? Acho que meu Deus é só apontar lá o negócio copiar o negócio. Valeu então, Deus abençoe aí, desculpe.
+03:00:39 Alexandre B: Amém eu só não conseguia antes porque Fiz uns testes de final de semana e fiz um teste. uma empresa aí também daí dia 29 de 28 ela me deu me enrolou uma semana falei nada, né? Fez a entrevista não ia falar te mando o teste agora não mandou foi quicada, nem achei do bem não, sei lá, daí deu uma semana depois ela não te mandei o teste e tal.
+03:01:32 Tiago de Andrade: Onde que é?
+03:01:34 Alexandre B: É uma tipo uma agência de softwares, mas é a vaga era para uma. lá da Negócio fiscal tipo de nota fiscal contabilidade assim lá do Canadá era multinacional.
+03:02:00 Tiago de Andrade: Mas é para por onde mesmo?
+03:02:01 Alexandre B: Tem chance de crescer não fui? Daí coçar. Mas foi bom o teste eu gostei. Daí eles pediram para não sairá
+03:02:12 Tiago de Andrade: E meu querido.
+03:02:20 Alexandre B: preguiça do c****** de fazer senha. Mas parece que nosso cérebro como é que fala definha. Sabe aquele negócio, você sabe o conceito mas não sabe botar. Que fala, eu sei como que a água chega na minha casa. Ah, então faz ela chegar na tua casa.
+03:02:46 Tiago de Andrade: mas fica incomodado
+03:02:53 Alexandre B: Mas se Deus quiser vai ser vai ser bom se não não. Vou dar. Fechou então, meu querido, vou descansar que amanhã é.
+03:03:04 Tiago de Andrade: Tá bom, conversamos. Tchau, tchau.
+03:03:08 Alexandre B: Um abraço para ele também. Bom descanso. Vai descansar vai descansar.
+03:03:12 Tiago de Andrade: Tem que tá louco.
+  
