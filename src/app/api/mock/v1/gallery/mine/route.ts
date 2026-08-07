@@ -5,6 +5,6 @@ export async function GET(request: Request) {
     return Response.json({ code: "UNAUTHENTICATED", message: "Entre novamente para continuar." }, { status: 401 });
   }
   const url = new URL(request.url);
-  const page = await repositories.gallery.listMine({ cursor: url.searchParams.get("cursor") ?? undefined, limit: Number(url.searchParams.get("limit") ?? 20) });
+  const page = await repositories.gallery.list({ scope: "mine", eventId: "event_dnj_curitiba_2026", cursor: url.searchParams.get("cursor") ?? undefined, limit: Number(url.searchParams.get("limit") ?? 20) });
   return Response.json(page);
 }

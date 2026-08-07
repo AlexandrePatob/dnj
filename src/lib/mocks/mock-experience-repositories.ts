@@ -48,6 +48,7 @@ export function createMockExperienceRepositories(options: MockExperienceOptions 
         likesCount: 0,
         likedByCurrentUser: false,
         comments: [],
+        groupId: "mock-group",
       };
       moments.unshift(created);
       momentByKey.set(input.idempotencyKey, created.id);
@@ -62,17 +63,12 @@ export function createMockExperienceRepositories(options: MockExperienceOptions 
   };
 
   const gallery: GalleryRepository = {
-    async list({ cursor, limit = 20 }) {
+    async list({ scope, cursor, limit = 20 }) {
       const approved = moments.filter((item) => item.moderationStatus === "approved" && item.publicationStatus === "public");
+      const scoped = scope === "feed" ? approved : scope === "mine" ? moments.filter((item) => item.participationId === mockParticipation.id) : approved.filter((item) => item.groupId === "mock-group");
       const offset = cursor ? Number(cursor) : 0;
-      const items = approved.slice(offset, offset + limit);
-      return resolveMockScenario(scenario, { items, nextCursor: offset + items.length < approved.length ? String(offset + items.length) : null }, latencyMs);
-    },
-    async listMine({ cursor, limit = 20 }) {
-      const mine = moments.filter((item) => item.participationId === mockParticipation.id);
-      const offset = cursor ? Number(cursor) : 0;
-      const items = mine.slice(offset, offset + limit);
-      return resolveMockScenario(scenario, { items, nextCursor: offset + items.length < mine.length ? String(offset + items.length) : null }, latencyMs);
+      const items = scoped.slice(offset, offset + limit);
+      return resolveMockScenario(scenario, { scope, items, nextCursor: offset + items.length < scoped.length ? String(offset + items.length) : null }, latencyMs);
     },
     async toggleLike(momentId) {
       const selected = moments.find((item) => item.id === momentId);

@@ -1,3 +1,5 @@
+import type { ApiUserRole } from "@/lib/api/roles";
+
 export type Screen =
   | "login"
   | "register"
@@ -22,7 +24,7 @@ export interface User {
   email: string;
   document: string;
   mobilePhone?: string;
-  role?: string;
+  role?: ApiUserRole;
   group: Group | null;
   points: number;
   rankPosition: number;

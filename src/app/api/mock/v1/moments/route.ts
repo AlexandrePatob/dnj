@@ -1,4 +1,16 @@
 import { mockExperienceRepositories as repositories } from "@/lib/mocks/mock-experience-store";
+import type { MomentScope } from "@/types/experience";
+
+const validScopes: MomentScope[] = ["feed", "mine", "group"];
+
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const scope = url.searchParams.get("scope") as MomentScope | null;
+  if (!scope || !validScopes.includes(scope)) return Response.json({ code: "IMAGE_INVALID", message: "scope deve ser feed, mine ou group." }, { status: 400 });
+  if (scope !== "feed" && !request.headers.get("authorization")) return Response.json({ code: "UNAUTHENTICATED", message: "Entre novamente para continuar." }, { status: 401 });
+  const page = await repositories.gallery.list({ scope, eventId: "event_dnj_curitiba_2026", cursor: url.searchParams.get("cursor") ?? undefined, limit: Number(url.searchParams.get("limit") ?? 20) });
+  return Response.json(page);
+}
 
 export async function POST(request: Request) {
   if (!request.headers.get("authorization")) {

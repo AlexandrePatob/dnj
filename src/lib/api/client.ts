@@ -28,7 +28,8 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const timeout = window.setTimeout(() => controller.abort(), 10_000);
 
   try {
-    const response = await fetch(`${env.apiUrl}${path}`, {
+    const baseUrl = env.localHomologation ? "/api/v1" : env.apiUrl;
+    const response = await fetch(`${baseUrl}${path}`, {
       ...options,
       credentials: "include",
       signal: controller.signal,

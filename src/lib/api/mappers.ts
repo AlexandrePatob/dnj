@@ -10,7 +10,7 @@ export function mapApiUser(user: VerificationResponse): User {
     mobilePhone: user.mobilePhone,
     role: user.role,
     group: user.group,
-    points: 150,
-    rankPosition: 9,
+    points: user.points,
+    rankPosition: user.rankPosition,
   };
 }

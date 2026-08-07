@@ -6,16 +6,14 @@ export const groupsApi = {
     apiRequest<ApiGroup[]>(`/groups?search=${encodeURIComponent(search)}`, { token }),
 
   updateUserGroup: (
-    userId: string,
-    group: { groupId?: string; groupName?: string },
+    group: { groupId?: string },
     token: string,
   ) =>
-    apiRequest<ApiUser>(`/users/${userId}/update-group`, {
+    apiRequest<ApiUser>("/users/me/group", {
       method: "POST",
       token,
       body: {
-        groupId: group.groupId ? Number(group.groupId) : 0,
-        groupName: group.groupName ?? "",
+        groupId: group.groupId,
       },
     }),
 };

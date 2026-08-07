@@ -3,6 +3,7 @@ export type IsoDateTime = string;
 export type ParticipationStatus = "active" | "completed" | "expired";
 export type ModerationStatus = "pending" | "approved" | "rejected";
 export type PublicationStatus = "private" | "public";
+export type MomentScope = "feed" | "mine" | "group";
 
 export interface EventSummary {
   id: string;
@@ -39,13 +40,16 @@ export interface Moment {
   thumbnailUrl: string;
   shareImageUrl: string;
   placeName: string;
+  authorName: string;
   capturedAt: IsoDateTime;
   moderationStatus: ModerationStatus;
   publicationStatus: PublicationStatus;
   pointsAwarded: number;
+  moderationMessage?: string;
   likesCount: number;
   likedByCurrentUser: boolean;
   comments: GalleryComment[];
+  groupId?: string;
 }
 
 export interface GalleryComment {
@@ -58,6 +62,10 @@ export interface GalleryComment {
 export interface GalleryPage {
   items: Moment[];
   nextCursor: string | null;
+}
+
+export interface MomentScopePage extends GalleryPage {
+  scope: MomentScope;
 }
 
 export type ExperienceErrorCode =

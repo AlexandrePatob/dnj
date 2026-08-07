@@ -30,6 +30,7 @@ export const mockMoments: Moment[] = [
     thumbnailUrl: "/mock/moments/dnj-feed-01.png",
     shareImageUrl: "/mock/moments/dnj-feed-01.png",
     placeName: mockPlace.name,
+    authorName: "Mariana",
     capturedAt: "2026-10-18T17:35:00.000Z",
     moderationStatus: "pending",
     publicationStatus: "private",
@@ -37,6 +38,7 @@ export const mockMoments: Moment[] = [
     likesCount: 8,
     likedByCurrentUser: false,
     comments: [{ id: "comment_mock_001", authorName: "Mariana", body: "Que momento lindo!", createdAt: "2026-10-18T17:40:00.000Z" }],
+    groupId: "mock-group",
   },
   {
     id: "moment_mock_approved",
@@ -45,6 +47,7 @@ export const mockMoments: Moment[] = [
     thumbnailUrl: "/mock/moments/dnj-feed-02.png",
     shareImageUrl: "/mock/moments/dnj-feed-02.png",
     placeName: "Palco principal",
+    authorName: "Rafael",
     capturedAt: "2026-10-18T18:10:00.000Z",
     moderationStatus: "approved",
     publicationStatus: "public",
@@ -52,5 +55,6 @@ export const mockMoments: Moment[] = [
     likesCount: 13,
     likedByCurrentUser: false,
     comments: [],
+    groupId: "mock-group",
   },
 ];
