@@ -25,7 +25,7 @@ export default function AdminLoginPage() {
       <label style={{ display: "grid", gap: 6 }}>E-mail<input autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" required style={{ border: "1px solid #cbd8d3", borderRadius: 9, padding: 11 }} /></label>
       <label style={{ display: "grid", gap: 6 }}>Senha<input autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} type="password" required style={{ border: "1px solid #cbd8d3", borderRadius: 9, padding: 11 }} /></label>
       {error && <p role="alert" style={{ color: "#b33d24", margin: 0, fontSize: ".82rem" }}>{error}</p>}
-      <button type="submit" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, border: 0, borderRadius: 9, padding: 12, background: "#e87425", color: "white", cursor: "pointer" }}><LockKeyhole size={17} /> Entrar na central</button>
+      <button type="submit" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, border: 0, borderRadius: 9, padding: 12, background: "#1e7958", color: "white", cursor: "pointer" }}><LockKeyhole size={17} /> Entrar na central</button>
       <p style={{ margin: 0, fontSize: ".7rem", color: "#66827b" }}>Use as credenciais administrativas configuradas no ambiente.</p>
     </form>
   </main>;
