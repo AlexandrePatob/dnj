@@ -1,4 +1,4 @@
-const defaultV2Upstream = "http://localhost:8080/v2";
+const defaultV2Upstream = "https://ttwkfudhvvhuhp5yvsoydxggum0ictpg.lambda-url.sa-east-1.on.aws/v2";
 
 export const env = {
   apiBaseUrl: "/api/v2",

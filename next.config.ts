@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   async rewrites() {
-    return [{ source: "/api/v2/:path*", destination: `${process.env.DNJ_V2_UPSTREAM_URL ?? "http://localhost:8080/v2"}/:path*` }];
+    return [{ source: "/api/v2/:path*", destination: `${process.env.DNJ_V2_UPSTREAM_URL ?? "https://ttwkfudhvvhuhp5yvsoydxggum0ictpg.lambda-url.sa-east-1.on.aws/v2"}/:path*` }];
   },
   turbopack: {
     root: process.cwd(),
