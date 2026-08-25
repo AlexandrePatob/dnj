@@ -343,6 +343,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 **Gate**: quick
 
 ### T17: Add the V2 notification adapter
+**Status**: ✅ Complete
 
 **What**: Add typed notification list, mark-read and preference operations without creating a new screen.
 **Where**: new `src/lib/api/notifications.ts` and `notifications.test.ts`.
