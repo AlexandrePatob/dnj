@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import type { IScannerControls } from "@zxing/browser";
 import type { ExperienceError, Participation } from "@/types/experience";
 import { storage } from "@/lib/storage";
+import { gameApi } from "@/lib/api/game";
 
 type ScannerStatus = "starting" | "reading" | "error" | "success";
 type CameraFacing = "environment" | "user";
@@ -82,24 +83,11 @@ export function QrScannerModal({
       setStatus("starting");
       setMessage("Validando participação...");
       try {
-        const token = storage.getSession()?.identityToken;
-        const response = await fetch("/api/v1/qr/validate", {
-          method: "POST",
-          headers: {
-            ...(token ? { authorization: `Bearer ${token}` } : {}),
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            qrToken,
-            idempotencyKey: crypto.randomUUID(),
-          }),
-        });
-        const body = await response.json();
-        if (!response.ok) throw body;
+        const body = await gameApi.validateQr(qrToken);
         setStatus("success");
         setMessage("Participação confirmada. Preparando a celebração.");
         window.setTimeout(() => {
-          void onValidated(body.participation);
+          void onValidated(body.participation as unknown as Participation);
         }, 450);
       } catch (error) {
         setStatus("error");
