@@ -10,6 +10,7 @@ import { MomentComposer } from "@/features/moments/moment-composer";
 import type { AnimDir } from "@/features/app/types";
 import type { GalleryPage, Moment, Participation } from "@/types/experience";
 import { storage } from "@/lib/storage";
+import { momentsApi, type MomentScope } from "@/lib/api/moments";
 
 const motion = (dir: AnimDir) => ({ animation: dir === "left" ? "slideInLeft 280ms cubic-bezier(.22,1,.36,1) both" : "fadeUp 220ms cubic-bezier(.22,1,.36,1) both" });
 
@@ -77,7 +78,7 @@ function FeedCard({ moment, index, onOpen, onChanged }: { moment: Moment; index:
   const [sending, setSending] = useState(false);
   async function toggleLike() {
     setSending(true);
-    try { const token = storage.getSession()?.identityToken; await fetch(`/api/v1/gallery/${moment.id}/likes`, { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {} }); onChanged(); } finally { setSending(false); }
+    try { await momentsApi.like(moment.id); onChanged(); } finally { setSending(false); }
   }
   return <article style={{ background: "var(--card)", boxShadow: "var(--shadow-card)" }}>
     <header className="flex items-center gap-3 px-4 py-3"><span className="grid h-9 w-9 place-items-center rounded-full text-xs font-black" style={{ background: "var(--primary-alpha-15)", color: "var(--primary)" }}>DNJ</span><span className="flex-1"><strong className="block text-sm">{moment.authorName}</strong><small style={{ color: "var(--muted-foreground)" }}>Juventude DNJ</small></span></header>
@@ -110,16 +111,14 @@ export function GalleryScreen({ animDir, group = "" }: { animDir: AnimDir; group
   useEffect(() => {
     let active = true;
     const scope = tab === "public" ? "feed" : tab;
-    const token = storage.getSession()?.identityToken;
-    fetch(`/api/v1/moments?scope=${scope}`, { headers: token ? { authorization: `Bearer ${token}` } : {} }).then((response) => response.ok ? response.json() : Promise.reject()).then((value: GalleryPage) => { if (active) { setPage(value); setLoadState("ready"); } }).catch(() => active && setLoadState("error"));
+    momentsApi.list(scope as MomentScope).then((value) => { if (active) { setPage({ items: value.items, nextCursor: value.nextCursor ?? null }); setLoadState("ready"); } }).catch(() => active && setLoadState("error"));
     return () => { active = false; };
   }, [attempt, tab]);
   function changeTab(next: "public" | "mine" | "group") { if (next !== tab) { setLoadState("loading"); setTab(next); } }
   async function openComposer() {
     setOpeningComposer(true);
     setComposerMessage("");
-    const token = storage.getSession()?.identityToken;
-    const headers: HeadersInit = token ? { authorization: `Bearer ${token}` } : {};
+    const headers: HeadersInit = {};
     try {
       const current = await fetch("/api/v1/participations/current", { headers });
       if (current.status !== 204 && current.ok) {
