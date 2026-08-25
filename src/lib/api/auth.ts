@@ -1,36 +1,14 @@
-import { ApiError, apiRequest } from "@/lib/api/client";
-import type { VerificationResponse } from "@/lib/api/contracts";
-import { env } from "@/lib/env";
-
-export type SimulatedSmsDelivery = {
-  channel: "sms";
-  verificationCode: string;
-  expiresAt: string;
-};
-
-async function simulatedAuthRequest<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = await response.json() as T & { message?: string };
-  if (!response.ok) throw new ApiError(data.message ?? "Não foi possível validar o código.", response.status, data);
-  return data;
-}
+import { apiMutation, apiRequest, ApiError } from "./client";
+import type { IdentitySessionResponse, VerificationResponse } from "./contracts";
+type LegacyDelivery = { channel: "sms"; verificationCode: string; expiresAt: string };
 
 export const authApi = {
-  requestCode: async (email: string, document: string): Promise<SimulatedSmsDelivery | null> => {
-    if (env.authSimulation) return simulatedAuthRequest<SimulatedSmsDelivery>("/api/v1/auth/sms", { email, document });
-    await apiRequest<void>("/auth/onboarding", { method: "POST", body: { email, document } });
-    return null;
-  },
-
-  verifyCode: (email: string, document: string, verificationCode: string) =>
-    env.authSimulation
-      ? simulatedAuthRequest<VerificationResponse>("/api/v1/auth/verification-code", { email, document, verificationCode })
-      : apiRequest<VerificationResponse>("/auth/verification-code", { method: "POST", body: { email, verificationCode } }),
-
-  register: (data: { name: string; email: string; mobilePhone: string; group: string }) =>
-    simulatedAuthRequest<VerificationResponse>("/api/v1/auth/register", data),
+  loginWithGoogle: (idToken: string) => apiMutation<IdentitySessionResponse>("/auth/google", { method: "POST", body: { idToken } }),
+  getSession: () => apiRequest<IdentitySessionResponse>("/auth/session"),
+  refresh: () => apiRequest<IdentitySessionResponse>("/auth/refresh", { method: "POST" }),
+  completeOnboarding: (input: Record<string, unknown>) => apiMutation<IdentitySessionResponse>("/auth/onboarding", { method: "POST", body: input }),
+  logout: async () => { await apiMutation<void>("/auth/logout", { method: "POST" }); },
+  requestCode: async (_email: string, _document: string): Promise<LegacyDelivery | null> => { throw new ApiError("Login por código foi substituído pelo Google.", 410, undefined, "LEGACY_AUTH"); },
+  verifyCode: async (_email: string, _document: string, _code: string): Promise<VerificationResponse> => { throw new ApiError("Login por código foi substituído pelo Google.", 410, undefined, "LEGACY_AUTH"); },
+  register: async (_data: { name: string; email: string; mobilePhone: string; group: string }): Promise<VerificationResponse> => { throw new ApiError("Cadastro legado não está disponível na V2.", 410, undefined, "LEGACY_AUTH"); },
 };
