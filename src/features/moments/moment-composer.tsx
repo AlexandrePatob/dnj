@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, Check, RefreshCw, RotateCcw, X } from "lucide-react";
 import type { Participation } from "@/types/experience";
-import { storage } from "@/lib/storage";
+import { publishMoment, type PublishProgress } from "@/lib/api/media";
 
 type MomentStep = "capture" | "review";
 
@@ -47,19 +47,16 @@ export function MomentComposer({ participation, onClose, onCreated }: { particip
   function retakePhoto() { if (preview) URL.revokeObjectURL(preview); setFile(null); setPreview(null); setStep("capture"); void startCamera(); }
   async function submit() {
     if (!file) return;
-    setStatus("Enviando momento...");
-    const body = new FormData(); body.set("participationId", participation.id); body.set("image", file); body.set("publishConsent", "true"); body.set("idempotencyKey", crypto.randomUUID());
+    setStatus("hashing");
     try {
-      const token = storage.getSession()?.identityToken;
-      const response = await fetch("/api/v1/moments", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {}, body });
-      if (!response.ok) throw await response.json();
-      setStatus("Momento publicado e pontos computados.");
+      await publishMoment({ file, participationId: participation.id, publishConsent: true, onProgress: (value: PublishProgress) => setStatus(value) });
+      setStatus("success");
       window.setTimeout(onCreated, 700);
-    } catch (error) { setStatus((error as { message?: string }).message ?? "Não foi possível enviar agora."); }
+    } catch (error) { setStatus((error as { message?: string }).message ?? "Falha segura: tente publicar novamente."); }
   }
   return <section className="absolute inset-0 z-50 flex flex-col items-center overflow-y-auto px-5" style={{ background: "var(--background)", paddingTop: "calc(76px + var(--safe-area-top))" }} aria-label="Compartilhar momento">
     <button type="button" onClick={() => { stopCamera(); onClose(); }} className="absolute right-6 flex h-10 w-10 items-center justify-center rounded-xl" style={{ top: "calc(48px + var(--safe-area-top))", background: "var(--muted)" }} aria-label="Fechar"><X size={18} /></button>
-    <div className="text-center"><span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl" style={{ background: "var(--primary-alpha-15)" }}><Camera size={26} style={{ color: "var(--primary)" }} /></span><h2 className="text-xl font-bold">{step === "capture" ? "Compartilhar momento" : "Publicar momento"}</h2><p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>{step === "capture" ? `Registre seu momento em ${participation.place.name}.` : "Confira sua foto. Ela será publicada e os pontos entrarão agora."}</p></div>
+    <div className="text-center"><span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl" style={{ background: "var(--primary-alpha-15)" }}><Camera size={26} style={{ color: "var(--primary)" }} /></span><h2 className="text-xl font-bold">{step === "capture" ? "Compartilhar momento" : "Publicar momento"}</h2><p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>{step === "capture" ? `Registre seu momento em ${participation.place.name}.` : "Confira sua foto. A publicação passa por upload seguro."}</p></div>
     <div className="relative mt-7 aspect-square w-full max-w-[34rem] overflow-hidden rounded-3xl" style={{ background: "var(--muted)" }}>
       {preview ? <img src={preview} alt="Prévia do momento capturado" className="h-full w-full object-cover" /> : <><video ref={videoRef} muted playsInline className="h-full w-full object-cover" style={{ display: cameraOpen ? "block" : "none" }} />{!cameraOpen && <span className="flex h-full flex-col items-center justify-center px-6 text-center"><Camera className="mb-3" style={{ color: "var(--primary)" }} /><strong>{status === "Abrindo câmera..." ? "Abrindo câmera..." : "Câmera indisponível"}</strong></span>}</>}
       {!preview && <><span aria-hidden="true" className="absolute left-0 top-0 h-12 w-12 rounded-tl-3xl border-l-4 border-t-4" style={{ borderColor: "var(--primary)" }} /><span aria-hidden="true" className="absolute right-0 top-0 h-12 w-12 rounded-tr-3xl border-r-4 border-t-4" style={{ borderColor: "var(--primary)" }} /><span aria-hidden="true" className="absolute bottom-0 left-0 h-12 w-12 rounded-bl-3xl border-b-4 border-l-4" style={{ borderColor: "var(--primary)" }} /><span aria-hidden="true" className="absolute bottom-0 right-0 h-12 w-12 rounded-br-3xl border-b-4 border-r-4" style={{ borderColor: "var(--primary)" }} /></>}
