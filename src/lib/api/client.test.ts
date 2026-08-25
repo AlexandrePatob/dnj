@@ -88,7 +88,7 @@ describe("apiRequest offline behavior", () => {
       body: { group: "São José" },
       headers: { "X-Request-ID": "test-request" },
     });
-    expect(fetch).toHaveBeenCalledWith("http://localhost:8080/v1/groups", expect.objectContaining({
+    expect(fetch).toHaveBeenCalledWith("/api/v2/groups", expect.objectContaining({
       credentials: "include",
       headers: {
         Accept: "application/json",
