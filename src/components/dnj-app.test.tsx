@@ -44,6 +44,7 @@ describe("DnjApp session restoration", () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = input instanceof Request ? input.url : String(input);
       const headers = new Headers({ "content-type": "application/json" });
+      if (url.includes("/auth/session")) return { ok: true, headers, json: async () => ({ user: { id: "user-1", email: "ana@example.com", name: "Ana Souza", mobilePhone: "", documentMasked: "***", role: "DEFAULT", group: { id: "group-1", name: "Grupo Esperanca" }, onboardingComplete: true }, onboardingRequired: false }) } as Response;
       if (url.includes("/groups")) return { ok: true, headers, json: async () => [{ id: "group-1", groupName: "Grupo Chama Viva — Bairro Alto" }] } as Response;
       if (url.includes("/auth/register")) return { ok: true, headers, json: async () => ({ id: "user-maria", email: "maria@example.com", name: "Maria Lima", mobilePhone: "41999990000", document: "", role: "DEFAULT", group: { id: "group-1", groupName: "Grupo Chama Viva — Bairro Alto" }, points: 0, rankPosition: 0, createdAt: "2026-10-01T00:00:00.000Z", updatedAt: "2026-10-01T00:00:00.000Z", identityToken: "session-maria" }) } as Response;
       if (url.includes("/schedule")) return { ok: true, headers, json: async () => ({ items: [], generatedAt: "2026-10-01T00:00:00.000Z" }) } as Response;
@@ -83,33 +84,12 @@ describe("DnjApp session restoration", () => {
     expect(await screen.findByRole("heading", { name: "Mapa do evento" })).toBeInTheDocument();
   });
 
-  it("persists a newly created API account across an app remount", async () => {
-    const user = userEvent.setup();
-    const view = render(<DnjApp />);
-
-    await user.click(await screen.findByRole("button", { name: "Crie uma conta" }));
-    await screen.findByRole("heading", { name: "Criar conta" });
-    await user.type(screen.getByPlaceholderText("Seu nome"), "Maria Lima");
-    await user.type(screen.getByPlaceholderText("seu@email.com"), "maria@example.com");
-    await user.type(screen.getByPlaceholderText("(41) 99999-0000"), "41999990000");
-    await user.click(screen.getByRole("button", { name: "Continuar" }));
-    await user.click(await screen.findByRole("button", { name: /Grupo Chama Viva/ }));
-    await user.click(screen.getByRole("button", { name: "Criar conta" }));
-
-    await screen.findByRole("heading", { name: "Verifique seu e-mail" });
-    for (const [index, input] of screen.getAllByRole("textbox").entries()) {
-      await user.type(input, String(index + 1));
-    }
-    await user.click(screen.getByRole("button", { name: "Verificar código" }));
-
-    expect(await screen.findByText(/Maria!/)).toBeInTheDocument();
-    expect(storage.getSession()?.user.email).toBe("maria@example.com");
-
-    view.unmount();
+  it("bootstraps identity from the V2 session endpoint", async () => {
     render(<DnjApp />);
-    expect(await screen.findByText(/Maria!/)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Entrar" })).not.toBeInTheDocument();
-  }, 15_000);
+    expect(await screen.findByText(/Ana!/)).toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith("/api/v2/auth/session", expect.anything());
+    expect(localStorage.getItem("dnj.identity-token.v1")).toBeNull();
+  });
 });
 
 describe("BottomNav", () => {

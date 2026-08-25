@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { authApi } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 import { groupsApi } from "@/lib/api/groups";
-import { mapApiUser } from "@/lib/api/mappers";
+import { mapApiUser, mapIdentityUser } from "@/lib/api/mappers";
 import type { AuthSession } from "@/types/domain";
 import { storage } from "@/lib/storage";
 import { ConnectivityStatus } from "@/components/pwa/connectivity-status";
@@ -151,18 +151,16 @@ export function DnjApp() {
   useEffect(() => {
     if (restoredSession.current) return;
     restoredSession.current = true;
-    const session = storage.getSession();
     let disposed = false;
-
-    queueMicrotask(() => {
+    void authApi.getSession().then((identity) => {
       if (disposed) return;
-      if (session) {
-        setUser(sessionUserData(session));
-        setPrevScreen("login");
-        setScreen(session.user.group ? "home" : "group");
-      }
-      setSessionReady(true);
-    });
+      const apiUser = mapIdentityUser(identity.user);
+      const session = { user: apiUser, identityToken: "" };
+      storage.setSession(session);
+      setUser(sessionUserData(session));
+      setPrevScreen("login");
+      setScreen(identity.onboardingRequired || !identity.user.onboardingComplete ? "group" : "home");
+    }).catch(() => { if (!disposed) setScreen("login"); }).finally(() => { if (!disposed) setSessionReady(true); });
 
     return () => {
       disposed = true;
@@ -260,7 +258,7 @@ export function DnjApp() {
             {screen === "game"    && <GameScreen    user={user} theme={theme} animDir={animDir} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
             {screen === "queue"   && <QueueScreen                                  animDir={animDir} />}
             {screen === "gallery" && <GalleryScreen group={user.group}             animDir={animDir} />}
-            {screen === "account" && <AccountScreen user={user} onLogout={() => { storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
+            {screen === "account" && <AccountScreen user={user} onLogout={() => { void authApi.logout().catch(() => undefined); storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
           </motion.div>
         </AnimatePresence>
 
