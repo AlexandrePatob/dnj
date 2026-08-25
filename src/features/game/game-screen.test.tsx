@@ -3,6 +3,14 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GameScreen } from "./game-screen";
 
+vi.mock("@/lib/api/game", () => ({
+  gameApi: {
+    currentParticipation: async () => { const response = await fetch("/api/v2/participations/current"); return response.status === 204 ? null : response.json(); },
+    overview: async () => { const response = await fetch("/api/v2/game/overview"); return response.json(); },
+    currentRun: async () => { const response = await fetch("/api/v2/activity-runs/current"); return response.status === 204 ? null : response.json(); },
+  },
+}));
+
 vi.mock("@/features/scanner/qr-scanner-modal", () => ({
   QrScannerModal: () => (
     <section aria-label="Escanear QR Code">Scanner aberto</section>
@@ -120,7 +128,7 @@ describe("GameScreen scanner entry", () => {
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
-            run: { id: "run-1", status: "draft", gameName: "Corrida do saco" },
+            id: "run-1", status: "draft", gameName: "Corrida do saco",
           }),
         ),
       );
@@ -160,7 +168,7 @@ describe("GameScreen scanner entry", () => {
         ),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ run: { id: "run-1", status: "completed", gameName: "Corrida do saco" } })),
+        new Response(JSON.stringify({ id: "run-1", status: "completed", gameName: "Corrida do saco" })),
       )
       .mockResolvedValueOnce(
         new Response(

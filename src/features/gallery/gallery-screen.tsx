@@ -9,7 +9,6 @@ import { OperationFeedback } from "@/components/ui/operation-feedback";
 import { MomentComposer } from "@/features/moments/moment-composer";
 import type { AnimDir } from "@/features/app/types";
 import type { GalleryPage, Moment, Participation } from "@/types/experience";
-import { storage } from "@/lib/storage";
 import { momentsApi, type MomentScope } from "@/lib/api/moments";
 
 const motion = (dir: AnimDir) => ({ animation: dir === "left" ? "slideInLeft 280ms cubic-bezier(.22,1,.36,1) both" : "fadeUp 220ms cubic-bezier(.22,1,.36,1) both" });

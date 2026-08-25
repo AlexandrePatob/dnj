@@ -216,7 +216,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 **Gate**: quick
 
 ### T10: Migrate GameScreen to V2 adapters
-**Status**: ⚠️ Partial — `1c7a002`; typecheck passed, existing GameScreen unit gate failed 4 tests because fixtures still mock V1 fetches
+**Status**: ✅ Corrigido nesta rodada — GameScreen usa chamadas V2 paralelas sem setState síncrono no efeito; typecheck, lint focado e 6 testes GameScreen passam.
 
 **What**: Replace direct Game fetches with parallel adapter calls and V2 empty/error handling.
 **Where**: `src/features/game/game-screen.tsx`, `game-screen.test.tsx`.
@@ -234,7 +234,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 **Gate**: quick
 
 ### T11: Migrate QR scanner submission to V2
-**Status**: ✅ Partial — `cf94835`; typecheck passed; focused scanner gate not run
+**Status**: ✅ Corrigido nesta rodada — scanner cobre erro V2 `INVALID_QR` e recuperação; typecheck, lint focado e teste scanner passam.
 
 **What**: Connect QR scanner success/error UI to `validateGameQR` and V2 error codes.
 **Where**: `src/features/scanner/qr-scanner-modal.tsx`, `qr-scanner-modal.test.tsx`.
@@ -270,7 +270,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 **Gate**: quick
 
 ### T13: Migrate gallery and account Moment reads to V2
-**Status**: ✅ Partial — `5381fc7`; typecheck passed; gallery/account full gate not run; account remains outside changed files
+**Status**: ✅ Corrigido nesta rodada — gallery usa adapter V2 e account lê `momentsApi.list("mine")`; typecheck, lint focado e testes gallery/account passam.
 
 **What**: Replace direct gallery/mine/like V1 fetches with Moment adapters and signed-media refresh behavior.
 **Where**: `src/features/gallery/`, `src/features/account/account-screen.tsx` and tests.
@@ -307,7 +307,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 **Gate**: quick
 
 ### T15: Migrate MomentComposer to the upload orchestrator
-**Status**: ✅ Partial — `3227e63`; typecheck passed; composer focused gate not run
+**Status**: ⚠️ Partial — composer permanece integrado ao orquestrador V2, mas não há teste colocalizado executado nesta rodada para comprovar todos os ACs de progresso/retry.
 
 **What**: Replace multipart V1 upload with visible V2 upload progress and safe retry states.
 **Where**: `src/features/moments/moment-composer.tsx` and colocated test.

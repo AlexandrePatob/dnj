@@ -84,8 +84,8 @@ export function DnjApp() {
   const [offlineSnapshotCapturedAt, setOfflineSnapshotCapturedAt] = useState<string | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
-  const [specialEvent, setSpecialEvent] = useState<LiveSpecialEvent | null>(null);
-  const [momentChallenge, setMomentChallenge] = useState<LiveMomentChallenge | null>(null);
+  const [specialEvent] = useState<LiveSpecialEvent | null>(null);
+  const [momentChallenge] = useState<LiveMomentChallenge | null>(null);
   const restoredSession = useRef(false);
   const restoredSnapshot = useRef(false);
 
@@ -174,30 +174,6 @@ export function DnjApp() {
     }, 0);
     return () => window.clearTimeout(timer);
   }, [isMain, sessionReady]);
-
-  useEffect(() => {
-    let active = true;
-    async function readSpecialEvent() {
-      try {
-        const token = storage.getSession()?.identityToken;
-        const response = await fetch("/api/v1/special-events/active", { cache: "no-store", headers: token ? { authorization: `Bearer ${token}` } : {} });
-        if (!response.ok) throw new Error("special event unavailable");
-        const payload = await response.json() as { event: (LiveSpecialEvent & { id: string }) | null; momentChallenge: LiveMomentChallenge | null };
-        if (active) {
-          setSpecialEvent(payload.event);
-          setMomentChallenge(payload.momentChallenge);
-        }
-      } catch {
-        if (active) {
-          setSpecialEvent(null);
-          setMomentChallenge(null);
-        }
-      }
-    }
-    void readSpecialEvent();
-    const interval = window.setInterval(() => { void readSpecialEvent(); }, specialEvent?.status === "teaser" ? 1_000 : 10_000);
-    return () => { active = false; window.clearInterval(interval); };
-  }, [specialEvent?.status]);
 
   useEffect(() => {
     if (network.isOnline || restoredSnapshot.current || screen !== "login") return;

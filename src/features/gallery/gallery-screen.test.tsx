@@ -4,6 +4,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GalleryScreen } from "./gallery-screen";
 
+vi.mock("@/lib/api/moments", () => ({
+  momentsApi: {
+    list: async (scope: string) => {
+      const response = await fetch(`/api/v2/moments?scope=${scope}`);
+      if (!response.ok) throw new Error("network");
+      return response.json();
+    },
+    like: async () => ({ momentId: "moment", liked: true, likesCount: 1 }),
+  },
+}));
+
 vi.mock("@/features/moments/moment-composer", () => ({
   MomentComposer: () => <section aria-label="Compartilhar momento">Câmera aberta</section>,
 }));

@@ -17,7 +17,6 @@ import { MomentComposer } from "@/features/moments/moment-composer";
 import { QrScannerModal } from "@/features/scanner/qr-scanner-modal";
 import { QrSuccessCelebration } from "@/features/scanner/qr-success-celebration";
 import { useNetworkStatus } from "@/hooks/use-network-status";
-import { storage } from "@/lib/storage";
 import { gameApi } from "@/lib/api/game";
 import type { Participation } from "@/types/experience";
 
@@ -303,20 +302,27 @@ export function GameScreen({
     }
   });
   const level = getDnjLevel(user.points);
-  const loadLiveRun = useCallback(async (runId?: string) => {
+  const loadLiveRun = useCallback(async () => {
     return (await gameApi.currentRun()) as LiveRun | null;
   }, []);
-  const refreshOverview = useCallback(async () => {
+  const loadOverview = useCallback(async () => {
     const nextOverview = (await gameApi.overview()) as unknown as GameOverview;
+    return nextOverview;
+  }, []);
+  const refreshOverview = useCallback(async () => {
+    const nextOverview = await loadOverview();
     setOverview(nextOverview);
     const ownPoints = nextOverview.individual.find((entry) => entry.isUser)?.points;
     if (ownPoints !== undefined && ownPoints !== user.points) onPointsChange(ownPoints);
-  }, [onPointsChange, user.points]);
+  }, [loadOverview, onPointsChange, user.points]);
   useEffect(() => {
     let alive = true;
-    Promise.all([gameApi.currentParticipation(), refreshOverview(), loadLiveRun()])
-      .then(async ([current, , run]) => {
+    Promise.all([gameApi.currentParticipation(), loadOverview(), loadLiveRun()])
+      .then(([current, nextOverview, run]) => {
         if (alive) {
+          setOverview(nextOverview);
+          const ownPoints = nextOverview.individual.find((entry) => entry.isUser)?.points;
+          if (ownPoints !== undefined && ownPoints !== user.points) onPointsChange(ownPoints);
           setParticipation((current as unknown as { participation?: Participation } | null)?.participation ?? current as unknown as Participation | null);
           setLiveRun(run);
         }
@@ -325,7 +331,7 @@ export function GameScreen({
     return () => {
       alive = false;
     };
-  }, [loadLiveRun, refreshOverview]);
+  }, [loadLiveRun, loadOverview, onPointsChange, user.points]);
   useEffect(() => {
     if (!liveRun) return;
     if (["completed", "cancelled"].includes(liveRun.status)) {
@@ -337,7 +343,7 @@ export function GameScreen({
       return () => window.clearTimeout(timer);
     }
     const timer = window.setInterval(() => {
-      void loadLiveRun(liveRun.id).then((run) => run && setLiveRun(run));
+      void loadLiveRun().then((run) => run && setLiveRun(run));
     }, 2_000);
     return () => window.clearInterval(timer);
   }, [liveRun, loadLiveRun, refreshOverview]);

@@ -4,6 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AccountScreen } from "./account-screen";
 
+vi.mock("@/lib/api/moments", () => ({
+  momentsApi: { list: vi.fn().mockResolvedValue({ items: [{ id: "mine-1" }], nextCursor: null }) },
+}));
+
 const user = { name: "Ana", cpf: "", email: "ana@example.com", group: "Chama Viva", points: 10, rankPosition: 1 };
 
 describe("AccountScreen", () => {
