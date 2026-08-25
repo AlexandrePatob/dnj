@@ -19,6 +19,13 @@ export interface ApiUser {
   rankPosition: number;
 }
 
+export interface IdentityUser { id: string; email: string; name: string; mobilePhone: string; documentMasked: string; role: ApiUserRole; group: { id: string; name: string } | null; onboardingComplete: boolean }
+export interface IdentitySessionResponse { user: IdentityUser; onboardingRequired: boolean; csrfToken?: string }
+export interface PageEnvelope<T> { items: T[]; nextCursor?: string | null; hasMore?: boolean }
+export interface V2Participation { id: string; status: string; activityId?: string; createdAt: string }
+export interface V2GameOverview { points: number; rankPosition: number; activities: unknown[] }
+export interface UploadIntent { id: string; uploadUrl: string; method: "PUT"; headers: Record<string, string>; expiresAt: string }
+
 export interface VerificationResponse extends ApiUser {
   identityToken: string;
 }
