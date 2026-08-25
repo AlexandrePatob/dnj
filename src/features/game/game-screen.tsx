@@ -18,6 +18,7 @@ import { QrScannerModal } from "@/features/scanner/qr-scanner-modal";
 import { QrSuccessCelebration } from "@/features/scanner/qr-success-celebration";
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import { storage } from "@/lib/storage";
+import { gameApi } from "@/lib/api/game";
 import type { Participation } from "@/types/experience";
 
 type RankingEntry = {
@@ -303,44 +304,20 @@ export function GameScreen({
   });
   const level = getDnjLevel(user.points);
   const loadLiveRun = useCallback(async (runId?: string) => {
-    const token = storage.getSession()?.identityToken;
-    const response = await fetch(
-      `/api/v1/activity-runs/current${runId ? `?runId=${encodeURIComponent(runId)}` : ""}`,
-      { headers: token ? { authorization: `Bearer ${token}` } : {} },
-    );
-    return response.status === 204
-      ? null
-      : response.ok
-        ? ((await response.json()) as { run: LiveRun }).run
-        : null;
+    return (await gameApi.currentRun()) as LiveRun | null;
   }, []);
   const refreshOverview = useCallback(async () => {
-    const token = storage.getSession()?.identityToken;
-    const response = await fetch("/api/v1/game/overview", {
-      headers: token ? { authorization: `Bearer ${token}` } : {},
-    });
-    if (!response.ok) return;
-    const nextOverview = (await response.json()) as GameOverview;
+    const nextOverview = (await gameApi.overview()) as unknown as GameOverview;
     setOverview(nextOverview);
     const ownPoints = nextOverview.individual.find((entry) => entry.isUser)?.points;
     if (ownPoints !== undefined && ownPoints !== user.points) onPointsChange(ownPoints);
   }, [onPointsChange, user.points]);
   useEffect(() => {
     let alive = true;
-    const token = storage.getSession()?.identityToken;
-    const headers: HeadersInit = token
-      ? { authorization: `Bearer ${token}` }
-      : {};
-    Promise.all([
-      fetch("/api/v1/participations/current", { headers }),
-      refreshOverview(),
-      loadLiveRun(),
-    ])
+    Promise.all([gameApi.currentParticipation(), refreshOverview(), loadLiveRun()])
       .then(async ([current, , run]) => {
-        const currentBody =
-          current.status === 204 ? null : await current.json();
         if (alive) {
-          setParticipation(currentBody?.participation ?? null);
+          setParticipation((current as unknown as { participation?: Participation } | null)?.participation ?? current as unknown as Participation | null);
           setLiveRun(run);
         }
       })
