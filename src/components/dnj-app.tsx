@@ -102,6 +102,15 @@ export function DnjApp() {
     navigate("verify");
   }, [navigate]);
 
+  const handleGoogleLogin = useCallback(async (idToken: string) => {
+    const identity = await authApi.loginWithGoogle(idToken);
+    const apiUser = mapIdentityUser(identity.user);
+    const session = { user: apiUser, identityToken: "" };
+    storage.setSession(session);
+    setUser(sessionUserData(session));
+    navigate(identity.onboardingRequired || !identity.user.onboardingComplete ? "group" : "home");
+  }, [navigate]);
+
   const handleResendVerification = useCallback(async () => {
     const delivery = await authApi.requestCode(emailVal, user.cpf.replace(/\D/g, ""));
     setSimulatedSmsCode(delivery?.verificationCode ?? null);
@@ -223,7 +232,7 @@ export function DnjApp() {
             exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -10, scale: 0.99 }}
             transition={{ duration: reduceMotion ? 0.01 : 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            {screen === "login"           && <LoginScreen    onNext={handleLogin} onRegister={() => navigate("register")} animDir={animDir} />}
+            {screen === "login"           && <LoginScreen    onNext={handleLogin} onGoogleLogin={handleGoogleLogin} onRegister={() => navigate("register")} animDir={animDir} />}
             {screen === "register"        && <RegisterScreen onBack={() => navigate("login")} onDone={(data) => { setRegistration(data); navigate("register-verify"); }} animDir={animDir} />}
             {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} />}
             {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onResend={handleResendVerification} simulatedSmsCode={simulatedSmsCode} onBack={() => navigate("login")}  animDir={animDir} />}

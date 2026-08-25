@@ -13,6 +13,13 @@ import type { AnimDir, RegistrationData } from "@/features/app/types";
 import type { ApiGroup } from "@/lib/api/contracts";
 import { groupsApi } from "@/lib/api/groups";
 import { storage } from "@/lib/storage";
+import { env } from "@/lib/env";
+
+declare global {
+  interface Window {
+    google?: { accounts: { id: { initialize: (config: { client_id: string; callback: (response: { credential: string }) => void }) => void; renderButton: (parent: HTMLElement, options: Record<string, string>) => void } } };
+  }
+}
 function animStyle(dir: AnimDir): React.CSSProperties {
   const map: Record<AnimDir, string> = {
     right: "slideInRight 280ms cubic-bezier(0.22,1,0.36,1) both",
@@ -29,16 +36,36 @@ function requestErrorMessage(error: unknown) {
 export function LoginScreen({
   onNext,
   onRegister,
+  onGoogleLogin,
   animDir,
 }: {
   onNext: (email: string, cpf: string) => Promise<void>;
   onRegister: () => void;
+  onGoogleLogin?: (idToken: string) => Promise<void>;
   animDir: AnimDir;
 }) {
   const [cpf, setCpf] = useState("");
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const googleButton = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!onGoogleLogin || !env.googleClientId || !googleButton.current) return;
+    const render = () => {
+      if (!window.google || !googleButton.current) return;
+      window.google.accounts.id.initialize({ client_id: env.googleClientId, callback: ({ credential }) => void onGoogleLogin(credential) });
+      googleButton.current.replaceChildren();
+      window.google.accounts.id.renderButton(googleButton.current, { type: "standard", theme: "outline", size: "large", width: "360" });
+    };
+    if (window.google) { render(); return; }
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.onload = render;
+    document.head.appendChild(script);
+    return () => script.remove();
+  }, [onGoogleLogin]);
 
   function formatCPF(raw: string) {
     const d = raw.replace(/\D/g, "").slice(0, 11);
@@ -156,6 +183,7 @@ export function LoginScreen({
           >
             {submitting ? "Enviando código..." : "Entrar"}
           </PrimaryButton>
+          {onGoogleLogin ? <><div className="my-1 flex items-center gap-3 text-xs" style={{ color: "var(--muted-foreground)" }}><span className="h-px flex-1" style={{ background: "var(--border)" }} />ou<span className="h-px flex-1" style={{ background: "var(--border)" }} /></div><div ref={googleButton} className="flex justify-center" aria-label="Entrar com Google" /></> : null}
         </div>
 
         <p
