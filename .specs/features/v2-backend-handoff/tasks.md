@@ -361,6 +361,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 **Gate**: quick
 
 ### T18: Add the V2 favorites adapter
+**Status**: ✅ Complete
 
 **What**: Add typed list, idempotent PUT and idempotent DELETE favorite operations without creating a new screen.
 **Where**: new `src/lib/api/favorites.ts` and `favorites.test.ts`.
