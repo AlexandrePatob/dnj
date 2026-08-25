@@ -325,6 +325,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 **Gate**: quick
 
 ### T16: Add the V2 profile adapter
+**Status**: ✅ Complete
 
 **What**: Add typed current-profile read and update operations without creating a new screen.
 **Where**: new `src/lib/api/profile.ts` and `profile.test.ts`.
