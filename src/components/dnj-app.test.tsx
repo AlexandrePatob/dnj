@@ -62,7 +62,7 @@ describe("DnjApp session restoration", () => {
     expect(screen.queryByRole("button", { name: "Entrar" })).not.toBeInTheDocument();
   });
 
-  it("returns an incomplete persisted session to group selection", async () => {
+  it("uses the server onboarding state instead of persisted identity", async () => {
     storage.setSession({
       ...session,
       user: { ...session.user, group: null },
@@ -70,7 +70,7 @@ describe("DnjApp session restoration", () => {
 
     render(<DnjApp />);
 
-    expect(await screen.findByRole("heading", { name: "Seu grupo jovem" })).toBeInTheDocument();
+    expect(await screen.findByText(/Ana!/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Entrar" })).not.toBeInTheDocument();
   });
 
