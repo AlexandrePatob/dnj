@@ -38,7 +38,9 @@ export function classifyRequest(request: Request, appOrigin: string): CacheStrat
     url.origin !== appOrigin ||
     request.headers.has("Authorization") ||
     url.pathname === "/v1" ||
-    url.pathname.startsWith("/v1/")
+    url.pathname.startsWith("/v1/") ||
+    url.pathname === "/api/v2" ||
+    url.pathname.startsWith("/api/v2/")
   ) {
     return "network-only";
   }

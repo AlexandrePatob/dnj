@@ -52,7 +52,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 ## Task Breakdown
 
 ### T1: Configure the same-origin V2 rewrite
-**Status**: ✅ Complete
+**Status**: ⚠️ Partial — PWA unit gate passed (31 tests); full `npm run validate` blocked by 4 pre-existing lint errors, including the partial T10 GameScreen error. Changes are scoped to cache policy/tests.
 
 **What**: Add the server-only upstream setting and `/api/v2/:path*` rewrite, with a public client base path.
 **Where**: `next.config.ts`, `src/lib/env.ts`, `.env.example` and colocated config test if needed.
@@ -378,6 +378,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 **Gate**: quick
 
 ### T19: Protect `/api/v2` and signed uploads from PWA caching
+**Status**: ⚠️ Partial — PWA unit gate passed (31 tests); full `npm run validate` blocked by 4 pre-existing lint errors, including the partial T10 GameScreen error. Changes are scoped to cache policy/tests.
 
 **What**: Extend cache-policy tests and service-worker/browser coverage for V2 API and signed S3 URLs.
 **Where**: `src/pwa/cache-policy.ts`, `cache-policy.test.ts`, `sw.test.ts`, `tests/pwa/pwa.spec.ts`.

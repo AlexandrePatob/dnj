@@ -170,6 +170,18 @@ describe("versioned service worker runtime", () => {
     expect((await storage.open("dnj-pwa-assets-rev-a")).entries.size).toBe(0);
   });
 
+  it("does not cache V2 API requests or signed cross-origin URLs", async () => {
+    const v2Request = new Request(`${ORIGIN}/api/v2/users/me`);
+    const signedUpload = new Request("https://s3.example/upload?X-Amz-Signature=secret");
+
+    await runtime.fetch(v2Request);
+    await runtime.fetch(signedUpload);
+
+    expect(fetcher).toHaveBeenNthCalledWith(1, v2Request);
+    expect(fetcher).toHaveBeenNthCalledWith(2, signedUpload);
+    expect((await storage.open("dnj-pwa-assets-rev-a")).entries.size).toBe(0);
+  });
+
   it("does not cache an allowlisted request carrying Authorization", async () => {
     const protectedAsset = new Request(`${ORIGIN}/_next/static/chunks/private.js`, {
       headers: { Authorization: "Bearer secret" },

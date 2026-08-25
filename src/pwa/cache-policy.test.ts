@@ -62,6 +62,14 @@ describe("cache allowlist policy", () => {
     expect(classifyRequest(request("/v1/ranking", { destination: "document" }), APP_ORIGIN)).toBe("network-only");
   });
 
+  it("never caches V2 API paths", () => {
+    expect(classifyRequest(request("/api/v2/users/me", { destination: "document" }), APP_ORIGIN)).toBe("network-only");
+  });
+
+  it("never caches cross-origin signed upload or media URLs", () => {
+    expect(classifyRequest(new Request("https://s3.example/upload?X-Amz-Signature=secret"), APP_ORIGIN)).toBe("network-only");
+  });
+
   it("never caches requests carrying Authorization", () => {
     expect(classifyRequest(request("/icons/icon.png", { headers: { Authorization: "Bearer secret" } }), APP_ORIGIN)).toBe(
       "network-only",
