@@ -5,6 +5,7 @@ import {
   type Dispatch,
   type ReactNode,
   type SetStateAction,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -130,7 +131,7 @@ export function ManagerDashboard() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [error, setError] = useState("");
   const overviewPollInFlight = useRef(false);
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const [sessionData, overviewData] = await Promise.all([
         api("/api/manager/session"),
@@ -142,9 +143,10 @@ export function ManagerDashboard() {
     } catch {
       router.replace("/manager/login");
     }
-  };
+  }, [router]);
+  const loadRef = useRef(load);
   useEffect(() => {
-    void load();
+    void loadRef.current();
   }, []); // Session is intentionally checked before any operation UI is shown.
   const activeRunId = overview?.actions?.run?.id;
   const managerScope =

@@ -40,20 +40,19 @@ export function LiveStatusStack({
   momentChallenge?: LiveMomentChallenge | null;
   queueSummary?: string;
 }) {
-  const [, setNow] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
   const [showMomentNotice, setShowMomentNotice] = useState(false);
   const [dismissedSpecialKey, setDismissedSpecialKey] = useState<string | null>(null);
   const announcedChallenge = useRef<string | null>(null);
   const specialKey = special ? special.id ?? `${special.title}-${special.startsAt}` : null;
   const visibleSpecial = special && dismissedSpecialKey !== specialKey ? special : null;
-  const activeMomentChallenge = momentChallenge && new Date(momentChallenge.endsAt).getTime() > Date.now() ? momentChallenge : null;
+  const activeMomentChallenge = momentChallenge && new Date(momentChallenge.endsAt).getTime() > now ? momentChallenge : null;
 
-  useEffect(() => setDismissedSpecialKey(null), [specialKey]);
   useEffect(() => {
-    if (!visibleSpecial || visibleSpecial.status === "active") return;
+    if ((!visibleSpecial || visibleSpecial.status === "active") && !activeMomentChallenge) return;
     const interval = window.setInterval(() => setNow((value) => value + 1), 1_000);
     return () => window.clearInterval(interval);
-  }, [visibleSpecial?.status]);
+  }, [activeMomentChallenge, visibleSpecial?.status]);
   useEffect(() => {
     if (!activeMomentChallenge || announcedChallenge.current === activeMomentChallenge.id) return;
     announcedChallenge.current = activeMomentChallenge.id;
