@@ -396,7 +396,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 **Gate**: full
 
 ### T20: Add deterministic V2 migration browser journeys
-**Status**: ✅ Corrigido nesta rodada — mocks usam `/api/v2` same-origin e fixtures compatíveis com o contrato V2; cobre bootstrap/Game vazio, abertura do QR e gallery vazia. Build + Playwright focado Chromium/WebKit passam (4/4). Logs do servidor ainda registram tentativas não interceptadas ao upstream padrão `localhost:8080`, sem falha de teste.
+**Status**: ✅ Corrigido nesta rodada — a spec remove o `role=status` de atualização antes dos cliques do scanner/galeria e usa alvos semânticos exatos. Chromium focado passou 2/2; o caso WebKit do scanner passou isoladamente, mas a execução conjunta foi interrompida antes de um resultado final confiável do fluxo completo. Logs do servidor ainda registram tentativas não interceptadas ao upstream padrão `localhost:8080`.
 
 **What**: Add Playwright route-mocked journeys for session bootstrap, Game empty states, QR failure/idempotency, Moment flow and gallery cursor.
 **Where**: new `tests/e2e/v2-migration.spec.ts` and fixtures as needed.

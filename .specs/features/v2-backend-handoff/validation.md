@@ -7,7 +7,7 @@
 
 ## Verdict
 
-**PASS for the requested semantic/test gaps.** The missing local dependency was restored from the existing npm lockfile. Targeted Chromium and all unit/build gates pass; targeted WebKit is 3/4 because a pre-existing update toast intercepts the scanner click.
+**PARTIAL — WebKit overlay gap stabilized in the test, but final full-suite verification was interrupted.** The missing local dependency was restored from the existing npm lockfile. Chromium targeted passed 2/2; the isolated WebKit scanner journey passed 1/1. The combined Chromium/WebKit run reached Chromium 2/2, while WebKit did not produce a final completed result before the run was stopped.
 
 ## Gates
 
@@ -17,9 +17,9 @@
 | `npm run lint` | PASS | exit 0; 0 errors, 158 warnings |
 | `npm run test:unit` | PASS | 81 files; 275 tests passed |
 | `npm run build` | PASS | exit 0; Next 16.2.10; 63/63 pages |
-| Targeted V2 E2E | PARTIAL | Chromium 2/2 passed; WebKit 1/2 passed. The failing test timed out because the “Nova versão disponível” toast intercepted the scanner click. |
+| Targeted V2 E2E | PARTIAL | Chromium 2/2 passed; isolated WebKit scanner journey 1/1 passed. Combined WebKit run was stopped before completion after the overlay fix. |
 | Dependency | PASS | `npm ci`; `npm ls esbuild --depth=0` => `esbuild@0.27.2`; package/lock unchanged |
-| Full E2E | NOT RUN | The original missing-esbuild blocker is resolved; remaining WebKit overlay failure should be cleared before claiming full-suite readiness. |
+| Full E2E | NOT RUN | The original missing-esbuild blocker is resolved, but the requested full suite was not run to completion in this turn. |
 
 Targeted V2 emitted proxy `ECONNREFUSED` logs for `http://localhost:8080/v2/...`, but all four assertions passed.
 
@@ -72,12 +72,12 @@ Ran in disposable `scratch-v2-verify-20260825`, removed afterward.
 
 ## Prioritized residual gaps
 
-1. **Remaining** — Clear the WebKit update-toast overlay before claiming full browser-suite readiness; no dependency or lockfile change is required.
+1. **Remaining** — Complete a fresh full `npm run test:e2e` run and record its exit status; no dependency or lockfile change is required.
 
 ## Summary
 
-**Overall**: ✅ Semantic gaps closed; full browser readiness pending the recorded WebKit overlay failure.  
-**Gate**: typecheck/lint/unit/build PASS; targeted V2 E2E Chromium 2/2 and WebKit 1/2 pass; full E2E not run after dependency restoration.  
+**Overall**: ⚠️ Test stabilization committed; full browser readiness pending a completed suite run.  
+**Gate**: prior typecheck/lint/unit/build PASS; targeted V2 E2E Chromium 2/2 and isolated WebKit scanner 1/1 pass; combined WebKit/full E2E not completed after this test-only change.  
 **Sensor**: 2/2 mutations killed.  
 **Diff**: `277c9d8..HEAD`.  
 **Changes**: media/client/gallery/QR tests and media idempotency fix; dependency installation restored `node_modules` only.

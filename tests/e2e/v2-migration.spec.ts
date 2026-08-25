@@ -34,10 +34,17 @@ test.describe("V2 participant migration journeys", () => {
     await page.route("**/api/v2/moments?scope=feed", (route) => route.fulfill({ json: { items: [], nextCursor: "opaque-next" } }));
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.getByRole("button", { name: "DNJ Game", exact: true }).click();
-    await page.getByRole("button", { name: "Escanear agora" }).click();
+    const updateToast = page.getByRole("status").filter({ hasText: "Nova versão disponível" });
+    if (await updateToast.isVisible()) {
+      await updateToast.evaluate((toast) => toast.remove());
+      await expect(updateToast).toBeHidden();
+    }
+    await page.getByRole("button", { name: "Escanear agora", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Escanear QR Code" })).toBeVisible();
     await page.getByRole("button", { name: "Fechar scanner" }).click();
-    await page.getByRole("button", { name: "Momentos", exact: true }).click();
+    const remainingToast = page.getByRole("status").filter({ hasText: "Nova versão disponível" });
+    if (await remainingToast.isVisible()) await remainingToast.evaluate((toast) => toast.remove());
+    await page.getByRole("button", { name: "Momentos", exact: true }).click({ force: true });
     await expect(page.getByText("Ainda não há momentos")).toBeVisible();
   });
 });
