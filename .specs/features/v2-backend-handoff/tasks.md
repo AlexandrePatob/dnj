@@ -396,6 +396,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 **Gate**: full
 
 ### T20: Add deterministic V2 migration browser journeys
+**Status**: ⚠️ Partial — build passed; deterministic journey failed because runtime uses `/v2`/upstream `localhost:8080` while the mock targets `/api/v2`; QR, Moment and gallery journeys remain blocked by partial T10/T11/T13/T15.
 
 **What**: Add Playwright route-mocked journeys for session bootstrap, Game empty states, QR failure/idempotency, Moment flow and gallery cursor.
 **Where**: new `tests/e2e/v2-migration.spec.ts` and fixtures as needed.
