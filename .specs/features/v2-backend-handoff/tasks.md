@@ -414,6 +414,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 **Gate**: full
 
 ### T21: Document legacy ownership, rollback and removal gates
+**Status**: ✅ Complete
 
 **What**: Create the migration inventory that assigns every current V1/Supabase handler to V2, retained legacy, or pending-backend decision.
 **Where**: `docs/api/dnj-v2-migration-inventory.md` and relevant API README links.
