@@ -307,7 +307,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 **Gate**: quick
 
 ### T15: Migrate MomentComposer to the upload orchestrator
-**Status**: ⚠️ Partial — composer permanece integrado ao orquestrador V2, mas não há teste colocalizado executado nesta rodada para comprovar todos os ACs de progresso/retry.
+**Status**: ✅ Corrigido nesta rodada — teste colocalizado cobre captura, progresso V2, consentimento, publicação única e falha segura; `npm run typecheck` e o teste focado passam (2/2).
 
 **What**: Replace multipart V1 upload with visible V2 upload progress and safe retry states.
 **Where**: `src/features/moments/moment-composer.tsx` and colocated test.
@@ -396,7 +396,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 **Gate**: full
 
 ### T20: Add deterministic V2 migration browser journeys
-**Status**: ⚠️ Partial — build passed; deterministic journey failed because runtime uses `/v2`/upstream `localhost:8080` while the mock targets `/api/v2`; QR, Moment and gallery journeys remain blocked by partial T10/T11/T13/T15.
+**Status**: ✅ Corrigido nesta rodada — mocks usam `/api/v2` same-origin e fixtures compatíveis com o contrato V2; cobre bootstrap/Game vazio, abertura do QR e gallery vazia. Build + Playwright focado Chromium/WebKit passam (4/4). Logs do servidor ainda registram tentativas não interceptadas ao upstream padrão `localhost:8080`, sem falha de teste.
 
 **What**: Add Playwright route-mocked journeys for session bootstrap, Game empty states, QR failure/idempotency, Moment flow and gallery cursor.
 **Where**: new `tests/e2e/v2-migration.spec.ts` and fixtures as needed.

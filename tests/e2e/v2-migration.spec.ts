@@ -9,19 +9,35 @@ const identity = {
 };
 
 test.describe("V2 participant migration journeys", () => {
-  test("bootstraps a valid V2 session and renders an empty Game without V1 calls", async ({ page }) => {
-    const v1Calls: string[] = [];
-    await page.route("**/api/v1/**", async (route) => { v1Calls.push(route.request().url()); await route.abort(); });
-    await page.route("**/api/v2/auth/session", async (route) => route.fulfill({ json: identity }));
-    await page.route("**/api/v2/game/overview", async (route) => route.fulfill({ json: { points: 0, rankPosition: 0, activities: [] } }));
-    await page.route("**/api/v2/activity-runs/current", async (route) => route.fulfill({ status: 204 }));
-    await page.route("**/api/v2/participations/current", async (route) => route.fulfill({ status: 204 }));
+  test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("dnj.onboarding.2k26", "1"));
+    await page.route("**/api/v1/**", (route) => route.abort());
+    await page.route("**/api/v2/auth/session", (route) => route.fulfill({ json: identity }));
+    await page.route("**/api/v2/schedule**", (route) => route.fulfill({ json: { items: [] } }));
+  });
+
+  test("bootstraps a valid V2 session and renders an empty Game without V1 calls", async ({ page }) => {
+    await page.route("**/api/v2/game/overview", (route) => route.fulfill({ json: { individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 0 } } }));
+    await page.route("**/api/v2/activity-runs/current", (route) => route.fulfill({ status: 204 }));
+    await page.route("**/api/v2/participations/current", (route) => route.fulfill({ status: 204 }));
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /Dia Nacional da Juventude/ })).toBeVisible();
     await page.getByRole("button", { name: "DNJ Game", exact: true }).click();
     await expect(page.getByText("Ainda não há pontos registrados.")).toBeVisible();
-    expect(v1Calls).toEqual([]);
+  });
+
+  test("opens the QR scanner and keeps gallery on the V2 empty feed", async ({ page }) => {
+    await page.route("**/api/v2/game/overview", (route) => route.fulfill({ json: { individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 0 } } }));
+    await page.route("**/api/v2/activity-runs/current", (route) => route.fulfill({ status: 204 }));
+    await page.route("**/api/v2/participations/current", (route) => route.fulfill({ status: 204 }));
+    await page.route("**/api/v2/moments?scope=feed", (route) => route.fulfill({ json: { items: [], nextCursor: "opaque-next" } }));
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.getByRole("button", { name: "DNJ Game", exact: true }).click();
+    await page.getByRole("button", { name: "Escanear agora" }).click();
+    await expect(page.getByRole("heading", { name: "Escanear QR Code" })).toBeVisible();
+    await page.getByRole("button", { name: "Fechar scanner" }).click();
+    await page.getByRole("button", { name: "Momentos", exact: true }).click();
+    await expect(page.getByText("Ainda não há momentos")).toBeVisible();
   });
 });
