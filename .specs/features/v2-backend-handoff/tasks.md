@@ -5,7 +5,7 @@
 Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, atomic-commit and independent-verifier rules.
 
 **Design**: `.specs/features/v2-backend-handoff/design.md`  
-**Status**: Draft — awaiting approval
+**Status**: Complete for this validation-gap fix cycle; WebKit targeted E2E has one UI-overlay failure recorded in `validation.md`.
 
 ## Test Coverage Matrix
 
@@ -288,7 +288,7 @@ Implement these tasks with the `tlc-spec-driven` skill and its per-task gate, at
 **Gate**: quick
 
 ### T14: Implement the V2 media upload orchestrator
-**Status**: ✅ Complete — `4f8c707`; typecheck + 1 focused unit test passed
+**Status**: ✅ Complete — same-key `UPLOAD_INCOMPLETE` retry, exact ordering/payload test, and full unit gate verified in this cycle.
 
 **What**: Implement checksum, upload intent, signed PUT, complete retry and Moment publish orchestration.
 **Where**: new `src/lib/api/media.ts` and `media.test.ts`.

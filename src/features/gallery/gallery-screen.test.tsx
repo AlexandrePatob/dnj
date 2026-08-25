@@ -35,6 +35,7 @@ describe("GalleryScreen", () => {
     render(<GalleryScreen animDir="up" />);
 
     expect(await screen.findByRole("heading", { name: "Não foi possível carregar Momentos" })).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/v2/moments?scope=feed");
     await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
     expect(await screen.findByRole("heading", { name: "Ainda não há momentos" })).toBeInTheDocument();
   });
