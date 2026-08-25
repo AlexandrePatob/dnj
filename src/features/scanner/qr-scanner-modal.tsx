@@ -5,7 +5,6 @@ import { Camera, QrCode, RefreshCw, X, ZoomIn, ZoomOut } from "lucide-react";
 import { motion } from "motion/react";
 import type { IScannerControls } from "@zxing/browser";
 import type { ExperienceError, Participation } from "@/types/experience";
-import { storage } from "@/lib/storage";
 import { gameApi } from "@/lib/api/game";
 
 type ScannerStatus = "starting" | "reading" | "error" | "success";
