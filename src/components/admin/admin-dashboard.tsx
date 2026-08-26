@@ -3,6 +3,7 @@
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { Bell, CalendarClock, CircleAlert, Clock3, LayoutDashboard, LogOut, ShieldCheck, UserRoundCog, UsersRound } from "lucide-react";
 import { apiMutation, apiRequest } from "@/lib/api/client";
+import { PastoralQueueOverview } from "./pastoral-queue-overview";
 import { deviceDateTimeToUtc, nowInDeviceDateTimeInput } from "@/lib/date-time";
 import type { AdminPanel, AdminSession } from "@/types/admin";
 import styles from "./admin-dashboard.module.css";
@@ -12,12 +13,14 @@ type Activity = { id: string; name: string; slug: string; kind: string; status: 
 type Staff = { id: string; name: string; role: "EVENT_MANAGER"; onboardingComplete: boolean };
 type Moderation = { momentId: string; imageUrl: string; capturedAt: string; participantName: string; activity: { id: string; name: string } | null; pointsAwarded: number; photoStatus: string; availableActions: Array<"deny_points" | "delete_photo"> };
 
-const navigation: Array<{ label: AdminPanel; icon: typeof LayoutDashboard }> = [
+type DashboardPanel = AdminPanel | "Filas pastorais";
+const navigation: Array<{ label: DashboardPanel; icon: typeof LayoutDashboard }> = [
   { label: "Gestores", icon: UserRoundCog },
   { label: "Atividades", icon: CalendarClock },
   { label: "Espaços", icon: UsersRound },
   { label: "Moderação", icon: ShieldCheck },
   { label: "Notificações", icon: Bell },
+  { label: "Filas pastorais", icon: Clock3 },
 ];
 
 type DashboardRequest = Omit<RequestInit, "body"> & { body?: unknown };
@@ -29,7 +32,7 @@ async function api<T>(path: string, init: DashboardRequest = {}): Promise<T> {
 }
 
 export function AdminDashboard({ session, onExit }: { session: AdminSession; onExit: () => void }) {
-  const [panel, setPanel] = useState<AdminPanel>("Gestores");
+  const [panel, setPanel] = useState<DashboardPanel>("Gestores");
   async function signOut() {
     await fetch("/api/admin/session", { method: "DELETE", credentials: "include" });
     onExit();
@@ -49,6 +52,7 @@ export function AdminDashboard({ session, onExit }: { session: AdminSession; onE
       {panel === "Espaços" && <SpaceList />}
       {panel === "Moderação" && <ModerationList />}
       {panel === "Notificações" && <Notifications />}
+      {panel === "Filas pastorais" && <PastoralQueueOverview />}
     </section>
   </main>;
 }

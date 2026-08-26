@@ -2,6 +2,21 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AdminDashboard } from "./admin-dashboard";
 
+vi.mock("@/lib/pastoral-queue/firebase", () => ({ pastoralFirestore: {} }));
+vi.mock("firebase/firestore", () => ({
+  collection: vi.fn(),
+  onSnapshot: vi.fn((_query, onChange) => {
+    onChange({
+      docs: [
+        { data: () => ({ type: "confession", status: "queued", participantName: "Ana", createdAt: "2026-10-18T10:00:00Z" }) },
+        { data: () => ({ type: "confession", status: "called", participantName: "Bia", createdAt: "2026-10-18T09:00:00Z" }) },
+        { data: () => ({ type: "spiritual", status: "queued", participantName: "Caio", createdAt: "2026-10-18T11:00:00Z" }) },
+      ],
+    });
+    return () => undefined;
+  }),
+}));
+
 const fetchMock = vi.fn();
 const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
@@ -39,6 +54,18 @@ describe("AdminDashboard V2", () => {
     expect(await screen.findByText("Capela")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.anything());
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/spaces", expect.anything());
+  });
+
+  it("shows both pastoral queues as a read-only live overview", async () => {
+    render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Filas pastorais" }));
+    expect(await screen.findByRole("heading", { name: "Confissão" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Direção espiritual" })).toBeInTheDocument();
+    expect(screen.getAllByText("1 aguardando")).toHaveLength(2);
+    expect(screen.getByText("Atualmente chamado: Bia")).toBeInTheDocument();
+    expect(screen.getByText(/Ana/)).toBeInTheDocument();
+    expect(screen.getByText(/Caio/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /chamar|concluir|ausência/i })).not.toBeInTheDocument();
   });
 
   it("keeps session logout outside the V2 proxy and hides unsupported panels", async () => {
