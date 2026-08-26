@@ -4,7 +4,7 @@ import { DEFAULT_QUEUE_CONFIG, isQueueConfig, QUEUE_CONFIG_PATH, type QueueConfi
 
 function configRef() {
   if (!pastoralFirestore) throw new Error("Firestore pastoral indisponível.");
-  return doc(pastoralFirestore, ...QUEUE_CONFIG_PATH.split("/"));
+  return doc(pastoralFirestore, QUEUE_CONFIG_PATH);
 }
 
 export async function getQueueConfig(): Promise<QueueConfig> {
