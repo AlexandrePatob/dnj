@@ -224,6 +224,26 @@
 .game-shell {
   isolation: isolate;
   box-shadow: 0 0 80px rgba(10, 35, 35, 0.14);
+  height: 100dvh;
+}
+
+.qr-modal {
+  padding-top: max(1.5rem, var(--safe-area-top));
+  padding-bottom: max(1.5rem, var(--safe-area-bottom));
+  overscroll-behavior: contain;
+}
+
+@media (max-height: 680px) {
+  .qr-modal > .text-center { margin-bottom: 1rem; }
+  .qr-modal .qr-frame { margin-bottom: 1rem; }
+}
+
+@media (min-width: 768px) {
+  .game-shell {
+    height: min(100dvh, 960px);
+    margin-block: 1rem;
+    border-radius: 1.5rem;
+  }
 }
 
 .game-atmosphere {
