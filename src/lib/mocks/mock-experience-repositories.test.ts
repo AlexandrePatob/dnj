@@ -10,7 +10,7 @@ describe("mock experience repositories", () => {
   });
 
   it("exposes only public approved moments in gallery", async () => {
-    const page = await createMockExperienceRepositories({ latencyMs: 0 }).gallery.list({ eventId: "event_dnj_curitiba_2026" });
+    const page = await createMockExperienceRepositories({ latencyMs: 0 }).gallery.list({ scope: "feed", eventId: "event_dnj_curitiba_2026" });
     expect(page.items).toHaveLength(1);
     expect(page.items[0]).toMatchObject({ moderationStatus: "approved", publicationStatus: "public" });
   });
@@ -22,14 +22,14 @@ describe("mock experience repositories", () => {
 
   it("shares likes and comments through the same in-memory gallery", async () => {
     const gallery = createMockExperienceRepositories({ latencyMs: 0 }).gallery;
-    const before = await gallery.list({ eventId: "event_dnj_curitiba_2026" });
+    const before = await gallery.list({ scope: "feed", eventId: "event_dnj_curitiba_2026" });
     const moment = before.items[0];
     const initialLikes = moment.likesCount;
 
     await gallery.toggleLike(moment.id);
     await gallery.addComment(moment.id, "Estamos juntos!");
 
-    const after = await gallery.list({ eventId: "event_dnj_curitiba_2026" });
+    const after = await gallery.list({ scope: "feed", eventId: "event_dnj_curitiba_2026" });
     expect(after.items[0]).toMatchObject({ id: moment.id, likesCount: initialLikes + 1, likedByCurrentUser: true });
     expect(after.items[0].comments).toEqual(expect.arrayContaining([expect.objectContaining({ authorName: "Você", body: "Estamos juntos!" })]));
   });

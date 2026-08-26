@@ -9,7 +9,7 @@ export async function openDnj(page: Page, theme: DnjTheme) {
     name: "João Paulo",
     mobilePhone: "41999999999",
     document: "12345678901",
-    role: "participant",
+    role: "DEFAULT",
     group: { id: "26", groupName: "Grupo Chama Viva – Bairro Alto" },
     createdAt: "2026-07-22T15:00:00-03:00",
     updatedAt: "2026-07-22T15:00:00-03:00",
@@ -35,6 +35,7 @@ export async function openDnj(page: Page, theme: DnjTheme) {
   await page.addInitScript((initialTheme) => {
     localStorage.setItem("dnj_theme", initialTheme);
     localStorage.setItem("dnj_qr_seen", "1");
+    localStorage.setItem("dnj.onboarding.2k26", "1");
   }, theme);
   await page.clock.setFixedTime(new Date("2026-07-22T15:00:00-03:00"));
   await page.goto("/", { waitUntil: "domcontentloaded" });

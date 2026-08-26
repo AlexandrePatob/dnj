@@ -7,7 +7,7 @@ export type CacheStrategy =
 const IMAGE_EXTENSIONS = new Set([".avif", ".ico", ".jpeg", ".jpg", ".png", ".svg", ".webp"]);
 const FONT_EXTENSIONS = new Set([".woff", ".woff2"]);
 const MANIFEST_EXTENSIONS = new Set([".webmanifest"]);
-const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"]);
+const LOCAL_HOSTNAMES = new Set(["localhost", "::1"]);
 
 export function isLocalDevelopmentOrigin(origin: string): boolean {
   return LOCAL_HOSTNAMES.has(new URL(origin).hostname);
@@ -38,7 +38,9 @@ export function classifyRequest(request: Request, appOrigin: string): CacheStrat
     url.origin !== appOrigin ||
     request.headers.has("Authorization") ||
     url.pathname === "/v1" ||
-    url.pathname.startsWith("/v1/")
+    url.pathname.startsWith("/v1/") ||
+    url.pathname === "/api/v2" ||
+    url.pathname.startsWith("/api/v2/")
   ) {
     return "network-only";
   }

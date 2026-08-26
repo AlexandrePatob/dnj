@@ -1,0 +1,675 @@
+openapi: 3.1.0
+info:
+  title: DNJ 2K26 Operations API
+  version: 1.0.0-draft
+  description: |
+    Contract for the Next homologation operations API. It is the handoff
+    contract for the future Go/PostgreSQL service; endpoints use a signed
+    HTTP-only manager or admin cookie, never participant bearer tokens.
+    Participant QR, Moment and special-event banner contracts are maintained
+    alongside this document in dnj-experience.openapi.yaml.
+servers:
+  - url: /api
+tags:
+  - { name: Manager session }
+  - { name: Space timekeeper }
+  - { name: Radicalidade }
+  - { name: Special events }
+  - { name: Live display }
+  - { name: Admin }
+paths:
+  /display:
+    get:
+      tags: [Live display]
+      summary: Public live rankings for a TV or projector. A targeted special-event teaser or active event temporarily replaces the rankings; an active event returns a renderable QR image only to its selected display target.
+      parameters:
+        [
+          {
+            name: target,
+            in: query,
+            required: false,
+            schema: { type: string, enum: [tv, screen], default: tv },
+          },
+        ]
+      responses:
+        {
+          "200":
+            {
+              description: Individual and group rankings plus optional targeted special event,
+            },
+          "400": { description: Invalid target },
+        }
+  /manager/session:
+    get:
+      {
+        tags: [Manager session],
+        summary: Current manager and one assigned scope,
+        responses:
+          {
+            "200": { description: Session },
+            "401": { description: Unauthenticated },
+          },
+      }
+    post:
+      tags: [Manager session]
+      summary: Login and route to the account's assigned operation
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/ManagerLogin" } },
+            },
+        }
+      responses:
+        {
+          "200": { description: Cookie session },
+          "401": { description: Invalid credentials },
+        }
+    delete:
+      {
+        tags: [Manager session],
+        summary: Logout,
+        responses: { "200": { description: Session cleared } },
+      }
+  /manager/overview:
+    get:
+      tags: [Manager session]
+      summary: Scope-specific persisted read model
+      responses:
+        {
+          "200":
+            { description: Space, Radicalidade, or special-event read model },
+          "401": { description: Unauthenticated },
+        }
+  /manager/space/start:
+    post:
+      tags: [Space timekeeper]
+      summary: Register actual start time for a scoped scheduled experience
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/ItemId" } },
+            },
+        }
+      responses:
+        {
+          "200": { description: Actual start persisted },
+          "403": { description: Outside manager scope },
+        }
+  /manager/space/flex:
+    post:
+      tags: [Space timekeeper]
+      summary: Apply the 15-minute tolerance/flex time to a scoped experience
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/ItemId" } },
+            },
+        }
+      responses:
+        {
+          "200": { description: Flex persisted },
+          "403": { description: Outside manager scope },
+        }
+  /manager/space/advance:
+    post:
+      tags: [Space timekeeper]
+      summary: Complete the current scoped schedule item
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/ItemId" } },
+            },
+        }
+      responses:
+        {
+          "200": { description: Schedule advanced },
+          "403": { description: Outside manager scope },
+        }
+  /manager/actions/games:
+    post:
+      tags: [Radicalidade]
+      summary: Create a reusable Radicalidade game
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    {
+                      type: object,
+                      required: [name],
+                      properties: { name: { type: string, maxLength: 80 } },
+                    },
+                },
+            },
+        }
+      responses:
+        {
+          "201": { description: Game created },
+          "403": { description: Radicalidade scope required },
+        }
+    patch:
+      tags: [Radicalidade]
+      summary: Rename a reusable Radicalidade game
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    {
+                      type: object,
+                      required: [gameId, name],
+                      properties:
+                        {
+                          gameId: { type: string, format: uuid },
+                          name: { type: string, maxLength: 80 },
+                        },
+                    },
+                },
+            },
+        }
+      responses:
+        {
+          "200": { description: Game renamed },
+          "404": { description: Game not found },
+        }
+  /manager/actions/runs:
+    post:
+      tags: [Radicalidade]
+      summary: Create a game run and its first dynamic QR
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    {
+                      type: object,
+                      required: [gameId],
+                      properties: { gameId: { type: string, format: uuid } },
+                    },
+                },
+            },
+        }
+      responses:
+        {
+          "201":
+            {
+              description: Run and one-time QR,
+              content:
+                {
+                  application/json:
+                    { schema: { $ref: "#/components/schemas/QrEnvelope" } },
+                },
+            },
+        }
+  /manager/actions/runs/{runId}/qr:
+    post:
+      tags: [Radicalidade]
+      summary: Reissue a new dynamic QR, invalidating the prior run QR
+      parameters: [{ $ref: "#/components/parameters/RunId" }]
+      responses:
+        {
+          "200":
+            {
+              description: New one-time QR,
+              content:
+                {
+                  application/json:
+                    { schema: { $ref: "#/components/schemas/QrEnvelope" } },
+                },
+            },
+        }
+  /v1/activity-runs/current:
+    get:
+      tags: [Radicalidade]
+      summary: Returns the current scanned Radicalidade run for the authenticated participant, including terminal state when `runId` is supplied
+      parameters:
+        [
+          {
+            name: runId,
+            in: query,
+            required: false,
+            schema: { type: string, format: uuid },
+          },
+        ]
+      responses:
+        {
+          "200": { description: Run state },
+          "204": { description: No open run for this participant },
+        }
+  /manager/actions/start:
+    post:
+      {
+        tags: [Radicalidade],
+        summary: Start or resume a run,
+        requestBody:
+          {
+            required: true,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/RunIdRequest" } },
+              },
+          },
+        responses: { "200": { description: Run active } },
+      }
+  /manager/actions/pause:
+    post:
+      {
+        tags: [Radicalidade],
+        summary: Pause a running game,
+        requestBody:
+          {
+            required: true,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/RunIdRequest" } },
+              },
+          },
+        responses: { "200": { description: Run paused } },
+      }
+  /manager/actions/finish:
+    post:
+      {
+        tags: [Radicalidade],
+        summary: Move a game to result selection,
+        requestBody:
+          {
+            required: true,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/RunIdRequest" } },
+              },
+          },
+        responses: { "200": { description: Awaiting results } },
+      }
+  /manager/actions/results:
+    post:
+      tags: [Radicalidade]
+      summary: Finalize 1st/2nd/3rd/participation scoring idempotently
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [runId, results]
+              properties:
+                runId: { type: string, format: uuid }
+                results:
+                  type: array
+                  items:
+                    type: object
+                    required: [participantId, result]
+                    properties:
+                      participantId: { type: string, format: uuid }
+                      result:
+                        {
+                          type: string,
+                          enum: [first, second, third, participation],
+                        }
+      responses:
+        {
+          "200": { description: Points finalized },
+          "409": { description: Run cannot be finalized },
+        }
+  /manager/actions/close:
+    post:
+      {
+        tags: [Radicalidade],
+        summary: Cancel or close a run,
+        requestBody:
+          {
+            required: true,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/RunIdRequest" } },
+              },
+          },
+        responses: { "200": { description: Run closed } },
+      }
+  /manager/special-events:
+    post:
+      tags: [Special events]
+      summary: Create a special event. It never permits Moments and each QR release is new.
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    {
+                      type: object,
+                      required: [title],
+                      properties:
+                        {
+                          title: { type: string },
+                          description: { type: string },
+                          points: { type: integer, minimum: 0 },
+                          durationMinutes: { type: integer },
+                          targets:
+                            {
+                              type: array,
+                              items: { type: string, enum: [app, tv, screen] },
+                            },
+                        },
+                    },
+                },
+            },
+        }
+      responses: { "201": { description: Draft special event } }
+  /manager/special-events/teaser:
+    post:
+      {
+        tags: [Special events],
+        summary: Start the 15-second teaser,
+        requestBody:
+          {
+            required: true,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/EventIdRequest" } },
+              },
+          },
+        responses: { "200": { description: Teaser started } },
+      }
+  /manager/special-events/qr:
+    post:
+      {
+        tags: [Special events],
+        summary: Release or reissue a fresh QR after teaser,
+        requestBody:
+          {
+            required: true,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/EventIdRequest" } },
+              },
+          },
+        responses:
+          {
+            "200":
+              {
+                description: One-time QR,
+                content:
+                  {
+                    application/json:
+                      { schema: { $ref: "#/components/schemas/QrEnvelope" } },
+                  },
+              },
+            "409": { description: Teaser still running },
+          },
+      }
+  /manager/special-events/close:
+    post:
+      {
+        tags: [Special events],
+        summary: End special event and disable its QR,
+        requestBody:
+          {
+            required: true,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/EventIdRequest" } },
+              },
+          },
+        responses: { "200": { description: Special event closed } },
+      }
+  /admin/managers:
+    get:
+      {
+        tags: [Admin],
+        summary: List credentialed manager accounts and scopes,
+        responses:
+          {
+            "200": { description: Managers },
+            "401": { description: Admin required },
+          },
+      }
+    post:
+      {
+        tags: [Admin],
+        summary: Create or update credentialed manager/scope,
+        responses:
+          {
+            "201": { description: Manager persisted },
+            "400": { description: Invalid manager data },
+          },
+      }
+    patch:
+      {
+        tags: [Admin],
+        summary: Activate or deactivate a manager account,
+        responses: { "200": { description: Manager updated } },
+      }
+  /admin/moderation:
+    get:
+      {
+        tags: [Admin],
+        summary: List general and special-moment photo moderation queues,
+        responses: { "200": { description: Moderation queues } },
+      }
+    patch:
+      {
+        tags: [Admin],
+        summary: Approve,
+        deny only points,
+        or delete inappropriate photo; sends the corresponding participant message,
+        responses: { "200": { description: Decision persisted } },
+      }
+  /admin/experiences:
+    get:
+      {
+        tags: [Admin],
+        summary: List/manage no-schedule experiences,
+        responses: { "200": { description: Experiences } },
+      }
+    post:
+      {
+        tags: [Admin],
+        summary: Create an unscheduled experience or a timed Moment challenge,
+        requestBody:
+          {
+            required: true,
+            content:
+              {
+                application/json:
+                  {
+                    schema:
+                      {
+                        type: object,
+                        required: [name, kind, points],
+                        properties:
+                          {
+                            name: { type: string },
+                            kind: { type: string, enum: [stand, activity, moment_challenge] },
+                            points: { type: integer, minimum: 0 },
+                            momentPoints: { type: integer, minimum: 0 },
+                            durationMinutes: { type: integer, minimum: 1, maximum: 180, description: Required for moment_challenge },
+                          },
+                      },
+                  },
+              },
+          },
+        responses: { "201": { description: Experience persisted } },
+      }
+    patch:
+      {
+        tags: [Admin],
+        summary: Start or pause a Moment challenge,
+        requestBody:
+          {
+            required: true,
+            content:
+              {
+                application/json:
+                  {
+                    schema:
+                      {
+                        type: object,
+                        required: [id, status],
+                        properties:
+                          {
+                            id: { type: string, format: uuid },
+                            status:
+                              {
+                                type: string,
+                                enum: [active, paused, completed],
+                              },
+                          },
+                      },
+                  },
+              },
+          },
+        responses: { "200": { description: Challenge state persisted } },
+      }
+  /admin/special-events:
+    get:
+      {
+        tags: [Admin],
+        summary: Admin special-event configuration,
+        responses: { "200": { description: Special events } },
+      }
+    post:
+      {
+        tags: [Admin],
+        summary: Stage a special event from now for the supplied duration,
+        requestBody:
+          {
+            required: true,
+            content:
+              {
+                application/json:
+                  {
+                    schema:
+                      {
+                        type: object,
+                        required: [title, durationMinutes],
+                        properties:
+                          {
+                            title: { type: string },
+                            durationMinutes:
+                              { type: integer, minimum: 1, maximum: 180 },
+                            points: { type: integer, minimum: 0 },
+                            teaserSeconds: { type: integer, minimum: 0 },
+                            targets:
+                              {
+                                type: array,
+                                items:
+                                  { type: string, enum: [app, tv, screen] },
+                              },
+                          },
+                      },
+                  },
+              },
+          },
+        responses: { "201": { description: Event staged } },
+      }
+    patch:
+      {
+        tags: [Admin],
+        summary: Update event state/configuration,
+        responses: { "200": { description: Event updated } },
+      }
+  /admin/users:
+    get:
+      {
+        tags: [Admin],
+        summary: Participant and audit listing,
+        responses: { "200": { description: Users and activity } },
+      }
+  /admin/notifications:
+    post:
+      {
+        tags: [Admin],
+        summary: Send operational push/in-app notification,
+        responses: { "201": { description: Notification queued } },
+      }
+components:
+  parameters:
+    RunId:
+      {
+        name: runId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+  schemas:
+    ManagerLogin:
+      {
+        type: object,
+        required: [email, password],
+        properties:
+          {
+            email: { type: string, format: email },
+            password: { type: string, format: password },
+          },
+      }
+    ItemId:
+      {
+        type: object,
+        required: [itemId],
+        properties: { itemId: { type: string, format: uuid } },
+      }
+    RunIdRequest:
+      {
+        type: object,
+        required: [runId],
+        properties: { runId: { type: string, format: uuid } },
+      }
+    EventIdRequest:
+      {
+        type: object,
+        required: [eventId],
+        properties: { eventId: { type: string, format: uuid } },
+      }
+    QrEnvelope:
+      {
+        type: object,
+        required: [qrId, qrPayload, qrImageUrl, expiresAt],
+        properties:
+          {
+            qrId: { type: string, format: uuid },
+            qrPayload:
+              {
+                type: string,
+                description: Returned only to the operator at generation time,
+              },
+            qrImageUrl:
+              {
+                type: string,
+                format: uri,
+                description: Renderable QR image,
+                possibly a data URI,
+              },
+            expiresAt: { type: string, format: date-time },
+          },
+      }

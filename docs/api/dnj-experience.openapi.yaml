@@ -1,111 +1,659 @@
 openapi: 3.1.0
 info:
-  title: DNJ Experience API
-  version: 1.0.0-draft
-  description: Contrato de participação, momentos e galeria do DNJ Game.
+  title: DNJ API - Homologation Contract
+  version: 1.1.0-draft
+  description: |
+    Contract used to homologate the current Next Route Handlers. The current
+    implementation is available under /api/v1. The production API must
+    expose the same participant resources under /v1 before the frontend adapter
+    is switched. This file documents contracts only; it does not create tables
+    or change Supabase.
 servers:
+  - url: /api/v1
+    description: Current Next + Supabase homologation API
   - url: /v1
-  - url: /api/mock/v1
+    description: Target production API, same participant contract
+tags:
+  - name: Participant experience
+  - name: Legacy gallery
+  - name: Admin operation
+  - name: Push
+  - name: Homologation support
 paths:
+  /auth/sms:
+    post:
+      tags: [Homologation support]
+      summary: Returns the local-only SMS verification code without delivering an SMS
+      responses:
+        '200': { description: Homologation code, content: { application/json: { schema: { type: object, required: [channel, verificationCode, expiresAt], properties: { channel: { type: string, const: sms }, verificationCode: { type: string }, expiresAt: { type: string, format: date-time } } } } } }
+  /auth/verification-code:
+    post:
+      tags: [Homologation support]
+      summary: Verifies a local-only code and creates or updates a persisted participant session
+      responses:
+        '200': { description: Participant session, content: { application/json: { schema: { $ref: '#/components/schemas/VerificationResponse' } } } }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+  /auth/register:
+    post:
+      tags: [Homologation support]
+      summary: Creates or updates a persisted participant from the registration flow
+      responses:
+        '200': { description: Participant session, content: { application/json: { schema: { $ref: '#/components/schemas/VerificationResponse' } } } }
+  /groups:
+    get:
+      tags: [Participant experience]
+      summary: Searches persisted youth groups
+      responses:
+        '200': { description: Groups, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ApiGroup' } } } } }
+  /users/me/group:
+    post:
+      tags: [Participant experience]
+      summary: Persists the authenticated participant's group selection
+      security: [{ participantBearer: [] }]
+      responses:
+        '200': { description: Updated participant, content: { application/json: { schema: { $ref: '#/components/schemas/ApiUser' } } } }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+  /schedule:
+    get:
+      tags: [Participant experience]
+      summary: Lists persisted schedule experiences with server-derived temporal state
+      parameters:
+        - { name: view, in: query, schema: { type: string, enum: [home] } }
+        - { name: sector, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Schedule, content: { application/json: { schema: { $ref: '#/components/schemas/ScheduleResponse' } } } }
+  /game/overview:
+    get:
+      tags: [Participant experience]
+      summary: Returns persisted individual and group rankings plus the authenticated participant's point history
+      security: [{ participantBearer: [] }]
+      responses:
+        '200': { description: Game overview, content: { application/json: { schema: { $ref: '#/components/schemas/GameOverview' } } } }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+  /spaces:
+    get:
+      tags: [Participant experience]
+      summary: Lists persisted map spaces for the DNJ 2K26 event
+      responses:
+        '200': { description: Event spaces, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/EventSpace' } } } } }
+  /special-events/active:
+    get:
+      tags: [Participant experience]
+      summary: Returns the current persisted special-event announcement for the global participant banner; QR payload is never exposed here
+      responses:
+        '200':
+          description: Active event, teaser countdown, or null
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [event, momentChallenge]
+                properties:
+                  event:
+                    oneOf:
+                      - type: 'null'
+                      - type: object
+                        required: [id, title, status, startsAt, endsAt, teaserSeconds, points]
+                        properties:
+                          id: { type: string, format: uuid }
+                          title: { type: string }
+                          status: { type: string, enum: [teaser, active] }
+                          startsAt: { type: string, format: date-time }
+                          endsAt: { type: string, format: date-time }
+                          teaserSeconds: { type: integer }
+                          points: { type: integer }
+                          qrAvailableAt: { type: [string, 'null'], format: date-time }
+                          qrExpiresAt: { type: string, format: date-time }
+                  momentChallenge:
+                    oneOf:
+                      - type: 'null'
+                      - type: object
+                        required: [id, title, endsAt, points]
+                        properties:
+                          id: { type: string, format: uuid }
+                          title: { type: string }
+                          description: { type: [string, 'null'] }
+                          endsAt: { type: string, format: date-time }
+                          points: { type: integer }
+  /moment-challenges/{challengeId}/participations:
+    post:
+      tags: [Participant experience]
+      summary: Creates or recovers the participant's single photo entry for an active Moment challenge
+      security: [{ participantBearer: [] }]
+      parameters:
+        - name: challengeId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Eligible participation or already-submitted indicator
+          content: { application/json: { schema: { type: object } } }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '409': { $ref: '#/components/responses/MomentUnavailable' }
   /qr/validate:
     post:
-      security: [{ bearerAuth: [] }]
+      tags: [Participant experience]
+      summary: Validates a QR code and creates or recovers a participation
+      security: [{ participantBearer: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/QrValidationRequest' }
+      responses:
+        '201':
+          description: Participation created
+          content: { application/json: { schema: { $ref: '#/components/schemas/ParticipationEnvelope' } } }
+        '200':
+          description: Existing participation recovered idempotently
+          content: { application/json: { schema: { $ref: '#/components/schemas/ParticipationEnvelope' } } }
+        '400': { $ref: '#/components/responses/QrInvalid' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/QrForbidden' }
+        '409': { $ref: '#/components/responses/QrUnavailable' }
+        '410': { $ref: '#/components/responses/QrExpired' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+  /participations/current:
+    get:
+      tags: [Participant experience]
+      summary: Returns the authenticated participant's current participation
+      security: [{ participantBearer: [] }]
+      responses:
+        '200':
+          description: Active participation
+          content: { application/json: { schema: { $ref: '#/components/schemas/ParticipationEnvelope' } } }
+        '204': { description: No active participation }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+  /moments:
+    get:
+      tags: [Participant experience]
+      summary: Lists the feed, the authenticated participant's moments, or their group moments
+      security: []
+      parameters:
+        - name: scope
+          in: query
+          required: true
+          schema: { type: string, enum: [feed, mine, group] }
+        - { $ref: '#/components/parameters/Cursor' }
+        - { $ref: '#/components/parameters/Limit' }
+      responses:
+        '200':
+          description: Cursor page. scope is repeated in the response.
+          content: { application/json: { schema: { $ref: '#/components/schemas/MomentScopePage' } } }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+    post:
+      tags: [Participant experience]
+      summary: Uploads and immediately publishes a Moment, awarding its configured points; later moderation may reverse points or remove an inappropriate photo
+      security: [{ participantBearer: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { $ref: '#/components/schemas/CreateMomentRequest' }
+      responses:
+        '201':
+          description: Moment created idempotently
+          content: { application/json: { schema: { $ref: '#/components/schemas/MomentEnvelope' } } }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/ParticipationRequired' }
+        '409': { $ref: '#/components/responses/MomentUnavailable' }
+        '413': { $ref: '#/components/responses/ImageTooLarge' }
+  /gallery:
+    get:
+      tags: [Legacy gallery]
+      deprecated: true
+      summary: Legacy public feed. Use GET /moments?scope=feed for new clients.
+      security: []
+      parameters:
+        - name: eventId
+          in: query
+          required: true
+          schema: { type: string }
+        - name: placeId
+          in: query
+          schema: { type: string }
+        - { $ref: '#/components/parameters/Cursor' }
+        - { $ref: '#/components/parameters/Limit' }
+      responses:
+        '200': { description: Public approved moments, content: { application/json: { schema: { $ref: '#/components/schemas/GalleryPage' } } } }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+  /gallery/mine:
+    get:
+      tags: [Legacy gallery]
+      deprecated: true
+      summary: Legacy personal gallery. Use GET /moments?scope=mine.
+      security: [{ participantBearer: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/Cursor' }
+        - { $ref: '#/components/parameters/Limit' }
+      responses:
+        '200': { description: Participant moments, content: { application/json: { schema: { $ref: '#/components/schemas/GalleryPage' } } } }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+  /gallery/{momentId}/likes:
+    post:
+      tags: [Legacy gallery]
+      deprecated: true
+      summary: Toggles the authenticated user's like for a moment
+      security: [{ participantBearer: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/MomentId' }
+      responses:
+        '200': { description: Like state toggled, content: { application/json: { schema: { type: object, required: [likedByCurrentUser], properties: { likedByCurrentUser: { type: boolean } } } } } }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/MomentNotFound' }
+  /media/{storageKey}:
+    get:
+      tags: [Participant experience]
+      summary: Streams a Moment media object through the homologation API
+      parameters:
+        - name: storageKey
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Image bytes }
+        '404': { description: Image not found }
+  /gallery/{momentId}/comments:
+    post:
+      tags: [Legacy gallery]
+      deprecated: true
+      summary: Legacy comment endpoint; the participant UI no longer exposes comments.
+      security: [{ participantBearer: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/MomentId' }
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [qrToken, idempotencyKey]
-              properties:
-                qrToken: { type: string }
-                idempotencyKey: { type: string, format: uuid }
+              additionalProperties: false
+              required: [body]
+              properties: { body: { type: string, minLength: 1 } }
       responses:
-        '201': { description: Participação criada ou recuperada, content: { application/json: { schema: { type: object, properties: { participation: { $ref: '#/components/schemas/Participation' } } } } } }
-        '400': { $ref: '#/components/responses/QrInvalid' }
+        '201': { description: Comment created, content: { application/json: { schema: { $ref: '#/components/schemas/GalleryComment' } } } }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
-        '409': { $ref: '#/components/responses/QrUnavailable' }
-        '410': { $ref: '#/components/responses/QrExpired' }
-  /participations/current:
+        '404': { $ref: '#/components/responses/MomentNotFound' }
+  /api/admin/session:
     get:
-      security: [{ bearerAuth: [] }]
+      tags: [Admin operation]
+      summary: Reads the current Next admin-cookie session
+      security: [{ adminCookie: [] }]
       responses:
-        '200': { description: Participação ativa, content: { application/json: { schema: { type: object, required: [participation], properties: { participation: { $ref: '#/components/schemas/Participation' } } } } } }
-        '204': { description: Sem participação ativa }
-        '401': { $ref: '#/components/responses/Unauthenticated' }
-  /moments:
+        '200': { description: Session, content: { application/json: { schema: { $ref: '#/components/schemas/AdminSessionEnvelope' } } } }
+        '401': { $ref: '#/components/responses/AdminUnauthorized' }
     post:
-      security: [{ bearerAuth: [] }]
+      tags: [Admin operation]
+      summary: Creates an admin-cookie session in the Next homologation environment
+      security: []
       requestBody:
         required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required: [participationId, image, publishConsent, idempotencyKey]
-              properties:
-                participationId: { type: string }
-                image: { type: string, format: binary }
-                publishConsent: { type: boolean }
-                idempotencyKey: { type: string, format: uuid }
+        content: { application/json: { schema: { $ref: '#/components/schemas/AdminLoginRequest' } } }
       responses:
-        '201': { description: Momento criado, content: { application/json: { schema: { type: object, properties: { moment: { $ref: '#/components/schemas/Moment' } } } } } }
-        '401': { $ref: '#/components/responses/Unauthenticated' }
-        '422': { $ref: '#/components/responses/ConsentRequired' }
-  /gallery:
+        '200': { description: Cookie session created, content: { application/json: { schema: { $ref: '#/components/schemas/AdminSessionEnvelope' } } } }
+        '401': { $ref: '#/components/responses/AdminUnauthorized' }
+    delete:
+      tags: [Admin operation]
+      summary: Clears the admin-cookie session
+      security: [{ adminCookie: [] }]
+      responses:
+        '200': { description: Session cleared, content: { application/json: { schema: { $ref: '#/components/schemas/Ok' } } } }
+  /api/admin/overview:
     get:
-      parameters:
-        - { name: eventId, in: query, required: true, schema: { type: string } }
-        - { name: cursor, in: query, schema: { type: string } }
-        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50 } }
+      tags: [Admin operation]
+      security: [{ adminCookie: [] }]
+      summary: Gets the operational dashboard read model
       responses:
-        '200': { description: Momentos públicos aprovados, content: { application/json: { schema: { $ref: '#/components/schemas/GalleryPage' } } } }
-  /gallery/mine:
+        '200': { description: Overview, content: { application/json: { schema: { $ref: '#/components/schemas/AdminOverview' } } } }
+        '401': { $ref: '#/components/responses/AdminUnauthorized' }
+        '503': { $ref: '#/components/responses/OperationalUnavailable' }
+  /api/admin/moderation:
     get:
-      security: [{ bearerAuth: [] }]
+      tags: [Admin operation]
+      security: [{ adminCookie: [] }]
+      summary: Lists up to 50 pending Moments; moderation is exclusive to this domain.
       responses:
-        '200': { description: Registros do participante, content: { application/json: { schema: { $ref: '#/components/schemas/GalleryPage' } } } }
-        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '200': { description: Pending Moments, content: { application/json: { schema: { $ref: '#/components/schemas/ModerationList' } } } }
+        '401': { $ref: '#/components/responses/AdminUnauthorized' }
+        '503': { $ref: '#/components/responses/OperationalUnavailable' }
+    patch:
+      tags: [Admin operation]
+      security: [{ adminCookie: [] }]
+      summary: Corrects an already approved Moment by removing its points or deleting an inappropriate photo.
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ModerationDecisionRequest' } } }
+      responses:
+        '200': { description: Decision persisted, content: { application/json: { schema: { $ref: '#/components/schemas/Ok' } } } }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/AdminUnauthorized' }
+        '503': { $ref: '#/components/responses/OperationalUnavailable' }
+  /api/admin/users:
+    get:
+      tags: [Admin operation]
+      security: [{ adminCookie: [] }]
+      summary: Lists at most 100 users ordered by points then last activity
+      responses:
+        '200': { description: Users, content: { application/json: { schema: { $ref: '#/components/schemas/AdminUsers' } } } }
+        '401': { $ref: '#/components/responses/AdminUnauthorized' }
+        '503': { $ref: '#/components/responses/OperationalUnavailable' }
+  /api/admin/activity:
+    get:
+      tags: [Admin operation]
+      security: [{ adminCookie: [] }]
+      summary: Lists at most 100 operational events in descending time order
+      responses:
+        '200': { description: Activity, content: { application/json: { schema: { $ref: '#/components/schemas/AdminActivity' } } } }
+        '401': { $ref: '#/components/responses/AdminUnauthorized' }
+        '503': { $ref: '#/components/responses/OperationalUnavailable' }
+  /api/admin/notifications:
+    post:
+      tags: [Admin operation]
+      security: [{ adminCookie: [] }]
+      summary: Sends a push campaign to all registered subscriptions
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/NotificationRequest' } } }
+      responses:
+        '200': { description: Delivery result, content: { application/json: { schema: { $ref: '#/components/schemas/NotificationResult' } } } }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/AdminUnauthorized' }
+        '503': { $ref: '#/components/responses/OperationalUnavailable' }
+  /api/push/public-key:
+    get:
+      tags: [Push]
+      summary: Returns the VAPID public key required by the browser subscription API
+      security: []
+      responses:
+        '200': { description: Key, content: { application/json: { schema: { type: object, required: [key], properties: { key: { type: string } } } } } }
+        '503': { $ref: '#/components/responses/OperationalUnavailable' }
+  /api/push/subscribe:
+    post:
+      tags: [Push]
+      summary: Stores or updates one browser push subscription
+      security: []
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/PushSubscribeRequest' } } }
+      responses:
+        '200': { description: Subscription saved, content: { application/json: { schema: { $ref: '#/components/schemas/Ok' } } } }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '404': { description: Participant not found, content: { application/json: { schema: { $ref: '#/components/schemas/AdminError' } } } }
+        '503': { $ref: '#/components/responses/OperationalUnavailable' }
+  /api/test-users/presence:
+    post:
+      tags: [Homologation support]
+      summary: Upserts a test participant and records a login event
+      description: This endpoint exists only for local/homologation operations; it is not part of the future public API.
+      security: []
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/PresenceRequest' } } }
+      responses:
+        '200': { description: Presence recorded, content: { application/json: { schema: { $ref: '#/components/schemas/Ok' } } } }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '503': { $ref: '#/components/responses/OperationalUnavailable' }
 components:
   securitySchemes:
-    bearerAuth: { type: http, scheme: bearer }
+    participantBearer:
+      type: http
+      scheme: bearer
+      description: Participant identity token. The current mock only checks header presence; production validates it server-side.
+    adminCookie:
+      type: apiKey
+      in: cookie
+      name: dnj_admin_session
+      description: Current Next-only admin session. Replace with a server-validated ADMIN identity in production.
+  parameters:
+    Cursor: { name: cursor, in: query, schema: { type: string }, description: Opaque cursor from a previous page. }
+    Limit: { name: limit, in: query, schema: { type: integer, default: 20, minimum: 1, maximum: 50 } }
+    MomentId: { name: momentId, in: path, required: true, schema: { type: string } }
   schemas:
-    Participation:
+    ApiGroup:
       type: object
-      required: [id, checkedInAt, cooldownEndsAt, status, canShareMoment, checkInPoints]
+      required: [id, groupName]
+      properties: { id: { type: string }, groupName: { type: string } }
+    ApiUser:
+      type: object
+      required: [id, email, name, document, group, points, rankPosition]
       properties:
         id: { type: string }
+        email: { type: string, format: email }
+        name: { type: string }
+        document: { type: string }
+        group: { oneOf: [{ $ref: '#/components/schemas/ApiGroup' }, { type: 'null' }] }
+        points: { type: integer, minimum: 0 }
+        rankPosition: { type: integer, minimum: 0 }
+    VerificationResponse:
+      allOf:
+        - { $ref: '#/components/schemas/ApiUser' }
+        - type: object
+          required: [identityToken]
+          properties: { identityToken: { type: string } }
+    ScheduleItem:
+      type: object
+      required: [id, title, startsAt, endsAt, state]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: [string, 'null'] }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        state: { type: string, enum: [live, upcoming, scheduled, ended] }
+    ScheduleResponse:
+      type: object
+      required: [items, generatedAt]
+      properties: { items: { type: array, items: { $ref: '#/components/schemas/ScheduleItem' } }, generatedAt: { type: string, format: date-time } }
+    GameOverview:
+      type: object
+      required: [individual, groups, pointEntries, current]
+      properties:
+        individual: { type: array, items: { $ref: '#/components/schemas/IndividualRanking' } }
+        groups: { type: array, items: { $ref: '#/components/schemas/GroupRanking' } }
+        pointEntries: { type: array, items: { $ref: '#/components/schemas/PointEntry' } }
+        current: { $ref: '#/components/schemas/GameCurrent' }
+    IndividualRanking:
+      type: object
+      required: [id, name, points, group, isUser]
+      properties: { id: { type: string }, name: { type: string }, points: { type: integer }, group: { type: string }, isUser: { type: boolean } }
+    GroupRanking:
+      type: object
+      required: [id, name, members, points]
+      properties: { id: { type: string }, name: { type: string }, members: { type: integer, minimum: 0 }, points: { type: integer } }
+    PointEntry:
+      type: object
+      required: [id, label, points, icon, createdAt]
+      properties: { id: { type: string }, label: { type: string }, points: { type: integer }, icon: { type: string }, createdAt: { type: string, format: date-time } }
+    GameCurrent:
+      type: object
+      required: [groupId, rankPosition]
+      properties: { groupId: { type: [string, 'null'] }, rankPosition: { type: integer, minimum: 0 } }
+    EventSpace:
+      type: object
+      required: [id, name, slug, mapReference]
+      properties: { id: { type: string }, name: { type: string }, slug: { type: string }, mapReference: { type: [string, 'null'] } }
+    QrValidationRequest:
+      type: object
+      additionalProperties: false
+      required: [qrToken, idempotencyKey]
+      properties:
+        qrToken: { type: string, minLength: 1 }
+        idempotencyKey: { type: string, format: uuid, description: Stable key reused on retry of this action. }
+    CreateMomentRequest:
+      type: object
+      required: [participationId, image, publishConsent, idempotencyKey]
+      properties:
+        participationId: { type: string }
+        image: { type: string, format: binary }
+        publishConsent: { type: boolean, description: Must be true to request publication. }
+        idempotencyKey: { type: string, format: uuid }
+    Participation:
+      type: object
+      required: [id, event, activity, place, checkedInAt, cooldownEndsAt, status, canShareMoment, checkInPoints]
+      properties:
+        id: { type: string }
+        event: { $ref: '#/components/schemas/NamedReference' }
+        activity: { $ref: '#/components/schemas/NamedReference' }
+        place: { $ref: '#/components/schemas/NamedReference' }
         checkedInAt: { type: string, format: date-time }
         cooldownEndsAt: { type: string, format: date-time }
         status: { type: string, enum: [active, completed, expired] }
         canShareMoment: { type: boolean }
         checkInPoints: { type: integer }
+        newTotalPoints: { type: integer }
+    NamedReference:
+      type: object
+      required: [id, name]
+      properties: { id: { type: string }, name: { type: string } }
     Moment:
       type: object
-      required: [id, participationId, imageUrl, thumbnailUrl, shareImageUrl, capturedAt, moderationStatus, publicationStatus, pointsAwarded]
+      required: [id, participationId, imageUrl, thumbnailUrl, shareImageUrl, placeName, capturedAt, moderationStatus, publicationStatus, pointsAwarded, likesCount, likedByCurrentUser, comments]
       properties:
         id: { type: string }
         participationId: { type: string }
         imageUrl: { type: string, format: uri-reference }
         thumbnailUrl: { type: string, format: uri-reference }
         shareImageUrl: { type: string, format: uri-reference }
+        placeName: { type: string }
         capturedAt: { type: string, format: date-time }
         moderationStatus: { type: string, enum: [pending, approved, rejected] }
         publicationStatus: { type: string, enum: [private, public] }
         pointsAwarded: { type: integer }
+        likesCount: { type: integer, minimum: 0 }
+        likedByCurrentUser: { type: boolean }
+        comments: { type: array, items: { $ref: '#/components/schemas/GalleryComment' } }
+        groupId: { type: string }
+    GalleryComment:
+      type: object
+      required: [id, authorName, body, createdAt]
+      properties:
+        id: { type: string }
+        authorName: { type: string }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
     GalleryPage:
       type: object
       required: [items, nextCursor]
       properties:
         items: { type: array, items: { $ref: '#/components/schemas/Moment' } }
         nextCursor: { type: [string, 'null'] }
+    MomentScopePage:
+      allOf:
+        - { $ref: '#/components/schemas/GalleryPage' }
+        - type: object
+          required: [scope]
+          properties: { scope: { type: string, enum: [feed, mine, group] } }
+    ParticipationEnvelope: { type: object, required: [participation], properties: { participation: { $ref: '#/components/schemas/Participation' } } }
+    MomentEnvelope: { type: object, required: [moment], properties: { moment: { $ref: '#/components/schemas/Moment' } } }
+    AdminLoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties: { email: { type: string, format: email }, password: { type: string, format: password } }
+    AdminSessionEnvelope:
+      type: object
+      required: [session]
+      properties:
+        session:
+          type: object
+          required: [email, name]
+          properties: { email: { type: string, format: email }, name: { type: string } }
+    AdminOverview:
+      type: object
+      required: [activeUsers, ranking, pendingModeration, interactionsToday, activity]
+      properties:
+        activeUsers: { type: integer, minimum: 0 }
+        ranking: { type: array, items: { type: object, required: [points, last_seen_at], properties: { points: { type: integer }, last_seen_at: { type: string, format: date-time } } } }
+        pendingModeration: { type: integer, minimum: 0 }
+        interactionsToday: { type: integer, minimum: 0 }
+        activity: { type: array, items: { type: object, required: [event_type, created_at], properties: { event_type: { type: string }, created_at: { type: string, format: date-time } } } }
+    ModerationList:
+      type: object
+      required: [moments]
+      properties: { moments: { type: array, items: { $ref: '#/components/schemas/ModerationMoment' } } }
+    ModerationMoment:
+      type: object
+      required: [id, captured_at, points_awarded, moderation_status, reward_status, photo_status]
+      properties:
+        id: { type: string }
+        captured_at: { type: string, format: date-time }
+        points_awarded: { type: integer, minimum: 0 }
+        moderation_status: { type: string, enum: [pending, approved, rejected] }
+        reward_status: { type: string, enum: [pending, awarded, denied] }
+        photo_status: { type: string, enum: [available, deleted] }
+        imageUrl: { type: string, format: uri-reference, description: Private URL for the Admin review image. }
+        participations: { type: [object, 'null'], properties: { test_users: { type: [object, 'null'], properties: { display_name: { type: string } } } } }
+    ModerationDecisionRequest:
+      type: object
+      additionalProperties: false
+      required: [id, action]
+      properties:
+        id: { type: string }
+        action: { type: string, enum: [deny_points, delete_photo] }
+    AdminUsers:
+      type: object
+      required: [users]
+      properties: { users: { type: array, items: { type: object, required: [id, display_name, points, last_seen_at], properties: { id: { type: string }, display_name: { type: string }, email: { type: [string, 'null'] }, points: { type: integer }, last_seen_at: { type: string, format: date-time } } } } }
+    AdminActivity:
+      type: object
+      required: [activity]
+      properties: { activity: { type: array, items: { type: object, required: [id, event_type, created_at], properties: { id: { type: integer }, event_type: { type: string }, created_at: { type: string, format: date-time }, test_users: { type: [object, 'null'], properties: { display_name: { type: string } } } } } } }
+    NotificationRequest:
+      type: object
+      additionalProperties: false
+      required: [title, body]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 80 }
+        body: { type: string, minLength: 1, maxLength: 280 }
+        target: { type: string, enum: [all, active], default: all, description: Stored campaign target; current delivery sends to every subscription. }
+    NotificationResult:
+      type: object
+      required: [delivered, total]
+      properties: { delivered: { type: integer, minimum: 0 }, total: { type: integer, minimum: 0 } }
+    PushSubscribeRequest:
+      type: object
+      required: [externalKey, subscription]
+      properties:
+        externalKey: { type: string }
+        subscription:
+          type: object
+          required: [endpoint, keys]
+          properties:
+            endpoint: { type: string, format: uri }
+            keys: { type: object, required: [p256dh, auth], properties: { p256dh: { type: string }, auth: { type: string } } }
+    PresenceRequest:
+      type: object
+      required: [externalKey, name]
+      properties:
+        externalKey: { type: string, maxLength: 180 }
+        name: { type: string, maxLength: 120 }
+        email: { type: string, format: email }
+        points: { type: integer, minimum: 0 }
+    Ok: { type: object, required: [ok], properties: { ok: { type: boolean, const: true } } }
     Error:
       type: object
       required: [code, message]
-      properties: { code: { type: string }, message: { type: string }, details: { type: object } }
+      properties: { code: { type: string }, message: { type: string }, details: { type: object, additionalProperties: true } }
+    AdminError:
+      type: object
+      required: [error]
+      properties: { error: { type: string } }
   responses:
-    Unauthenticated: { description: Autenticação necessária, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
-    ConsentRequired: { description: Consentimento necessário, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
-    QrInvalid: { description: QR inválido, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
-    QrUnavailable: { description: QR duplicado ou cooldown ativo, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
-    QrExpired: { description: QR expirado, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    InvalidRequest: { description: Invalid request, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    Unauthenticated: { description: Participant authentication required, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    AdminUnauthorized: { description: Admin session required, content: { application/json: { schema: { $ref: '#/components/schemas/AdminError' } } } }
+    QrInvalid: { description: Invalid QR code, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    QrForbidden: { description: QR belongs to a different event, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    QrUnavailable: { description: QR already used or cooldown active, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    QrExpired: { description: QR expired, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    ParticipationRequired: { description: Valid participation required, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    MomentUnavailable: { description: Moment already created or idempotency conflict, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    MomentNotFound: { description: Moment not found, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    ImageTooLarge: { description: Image too large, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    ConsentRequired: { description: Publication consent required, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    RateLimited: { description: Request rate limited, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    OperationalUnavailable: { description: Operational data unavailable, content: { application/json: { schema: { $ref: '#/components/schemas/AdminError' } } } }

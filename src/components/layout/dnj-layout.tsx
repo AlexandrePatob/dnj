@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { motion } from "motion/react";
 import { Home, Images, Trophy, User, Users } from "lucide-react";
-import heroLogo from "@/assets/brand/DNJ_geral.png";
+import { BrandSticker } from "@/components/brand/brand-sticker";
 import type { Screen, Theme } from "@/features/app/types";
 export function TopBar() {
   return (
@@ -28,11 +28,7 @@ export function TopBar() {
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 260, damping: 25 }}
     >
-      <img
-        src={heroLogo.src}
-        alt="DNJ 2026"
-        style={{ height: "28px", width: "auto", objectFit: "contain", flexShrink: 0 }}
-      />
+      <BrandSticker className="h-8 w-auto shrink-0" />
       <p
         style={{
           fontSize:   "0.7rem",
@@ -60,7 +56,7 @@ export function BottomNav({
 }) {
   const items: { screen: Screen; icon: React.ReactNode; label: string }[] = [
     { screen: "home",    icon: <Home    size={22} />, label: "Home"    },
-    { screen: "gallery", icon: <Images  size={22} />, label: "Galeria DNJ" },
+    { screen: "gallery", icon: <Images  size={22} />, label: "Momentos" },
     { screen: "game",    icon: <Trophy  size={22} />, label: "DNJ Game" },
     { screen: "queue",   icon: <Users   size={22} />, label: "Fila"    },
     { screen: "account", icon: <User    size={22} />, label: "Conta"   },

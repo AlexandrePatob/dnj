@@ -178,13 +178,13 @@ describe("PwaRegistrar", () => {
   it("offers manual installation on iOS and distinguishes Safari from other browsers", async () => {
     setNavigator({ platform: "iPhone", userAgent: "Mozilla/5.0 (iPhone) Version/18.0 Mobile/15E148 Safari/604.1" });
     const safariView = render(<PwaRegistrar><Probe /></PwaRegistrar>);
-    expect(await screen.findByTestId("install-status")).toHaveTextContent("manual");
+    await waitFor(() => expect(screen.getByTestId("install-status")).toHaveTextContent("manual"));
     expect(screen.getByTestId("ios-safari")).toHaveTextContent("true");
 
     safariView.unmount();
     setNavigator({ platform: "iPhone", userAgent: "Mozilla/5.0 (iPhone) CriOS/126.0 Mobile/15E148 Safari/604.1" });
     render(<PwaRegistrar><Probe /></PwaRegistrar>);
-    expect(await screen.findByTestId("install-status")).toHaveTextContent("manual");
+    await waitFor(() => expect(screen.getByTestId("install-status")).toHaveTextContent("manual"));
     expect(screen.getByTestId("ios-safari")).toHaveTextContent("false");
   });
 

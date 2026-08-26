@@ -1,21 +1,22 @@
-import { apiRequest } from "@/lib/api/client";
+import { apiMutation, apiRequest } from "@/lib/api/client";
 import type { ApiGroup, ApiUser } from "@/lib/api/contracts";
 
 export const groupsApi = {
-  search: (search: string, token: string) =>
-    apiRequest<ApiGroup[]>(`/groups?search=${encodeURIComponent(search)}`, { token }),
+  search: (search = "", token?: string) => {
+    const query = search ? `?search=${encodeURIComponent(search)}` : "";
+    return apiRequest<ApiGroup[]>(`/groups${query}`, { token });
+  },
+  current: (token?: string) => apiRequest<ApiGroup | null>("/users/me/group", { token }),
+  members: (token?: string) => apiRequest<ApiUser[]>("/users/me/group/members", { token }),
 
   updateUserGroup: (
-    userId: string,
-    group: { groupId?: string; groupName?: string },
-    token: string,
+    group: { groupId?: string },
+    token?: string,
   ) =>
-    apiRequest<ApiUser>(`/users/${userId}/update-group`, {
-      method: "POST",
+    apiMutation<ApiUser>("/users/me/group", {
+      method: "PATCH",
       token,
-      body: {
-        groupId: group.groupId ? Number(group.groupId) : 0,
-        groupName: group.groupName ?? "",
-      },
+      body: { groupId: group.groupId },
+      idempotencyKey: undefined,
     }),
 };

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, apiRequest } from "./client";
+import { ApiError, apiMutation, apiRequest } from "./client";
 
 function response(body: unknown, init: { status?: number; contentType?: string } = {}) {
   const contentType = init.contentType ?? "application/json";
@@ -88,7 +88,7 @@ describe("apiRequest offline behavior", () => {
       body: { group: "São José" },
       headers: { "X-Request-ID": "test-request" },
     });
-    expect(fetch).toHaveBeenCalledWith("http://localhost:8080/v1/groups", expect.objectContaining({
+    expect(fetch).toHaveBeenCalledWith("/api/v2/groups", expect.objectContaining({
       credentials: "include",
       headers: {
         Accept: "application/json",
@@ -98,5 +98,28 @@ describe("apiRequest offline behavior", () => {
       },
       body: JSON.stringify({ group: "São José" }),
     }));
+  });
+
+  it("does exactly one concurrent refresh and replays each original request once", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(response({ code: "AUTH_EXPIRED", message: "expired" }, { status: 401 }))
+      .mockResolvedValueOnce(response({ code: "AUTH_EXPIRED", message: "expired" }, { status: 401 }))
+      .mockResolvedValueOnce(response({ ok: true }))
+      .mockResolvedValueOnce(response({ value: 1 }))
+      .mockResolvedValueOnce(response({ value: 2 }));
+    await expect(Promise.all([apiRequest("/one"), apiRequest("/two")])).resolves.toEqual([{ value: 1 }, { value: 2 }]);
+    expect(fetch).toHaveBeenCalledTimes(5);
+    expect(vi.mocked(fetch).mock.calls.filter(([url]) => url === "/api/v2/auth/refresh")).toHaveLength(1);
+  });
+
+  it("preserves the complete V2 error envelope", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(response({ code: "BAD_INPUT", message: "Campo inválido", details: { field: "name" }, requestId: "req-1" }, { status: 422 }));
+    await expect(apiRequest("/profile")).rejects.toMatchObject({ code: "BAD_INPUT", message: "Campo inválido", details: { field: "name" }, requestId: "req-1", status: 422 });
+  });
+
+  it("does not retry a mutation conflict", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(response({ code: "IDEMPOTENCY_KEY_REUSED", message: "Conflito", requestId: "req-2" }, { status: 409 }));
+    await expect(apiMutation("/moments", { method: "POST", body: {}, idempotencyKey: "same-key" })).rejects.toMatchObject({ status: 409, code: "IDEMPOTENCY_KEY_REUSED", requestId: "req-2" });
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 });

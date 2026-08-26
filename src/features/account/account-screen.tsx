@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Award, Bell, Flame, LogOut, Moon, Shield, Star, Sun, Trophy } from "lucide-react";
+import { Award, Bell, Flame, Moon, Shield, Star, Sun, Trophy } from "lucide-react";
 import { GameIcon } from "@/components/ui/dnj-controls";
 import type { AnimDir, UserData } from "@/features/app/types";
+import { momentsApi } from "@/lib/api/moments";
 
 function animStyle(dir: AnimDir): React.CSSProperties {
   const map: Record<AnimDir, string> = { right: "slideInRight 280ms cubic-bezier(0.22,1,0.36,1) both", left: "slideInLeft 280ms cubic-bezier(0.22,1,0.36,1) both", up: "fadeUp 220ms cubic-bezier(0.22,1,0.36,1) both" };
@@ -15,9 +16,8 @@ export function AccountScreen({ user, onLogout, theme, onToggleTheme, animDir }:
   const [recordCount, setRecordCount] = useState<number | null>(null);
   const [pushStatus, setPushStatus] = useState("idle");
   useEffect(() => {
-    void fetch("/api/mock/v1/gallery/mine", { headers: { authorization: "Bearer mock" } })
-      .then((response) => response.ok ? response.json() : null)
-      .then((value: { items?: unknown[] } | null) => setRecordCount(value?.items?.length ?? 0))
+    void momentsApi.list("mine")
+      .then((value) => setRecordCount(value.items.length))
       .catch(() => setRecordCount(null));
   }, []);
   const nextLevel = Math.max(0, 200 - user.points);

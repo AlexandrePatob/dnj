@@ -42,6 +42,38 @@
 - **Date**: 2026-07-24
 - **Status**: active
 
+### AD-006
+- **Decision**: O logo-sticker DNJ 2K26 será a marca visual principal das superfícies participantes; o arquivo sem sombra é a referência para marca-d'água e composições sobre foto. Ícones instaláveis PWA continuam usando suas composições técnicas próprias.
+- **Reason**: A marca-sticker é a direção visual aprovada e cria uma assinatura reconhecível em entrada, cabeçalho e compartilhamento sem comprometer as áreas seguras de ícones.
+- **Trade-off**: Lockups anteriores deixam de ser a escolha-padrão em UI e precisam ser mantidos apenas onde forem tecnicamente ou historicamente necessários.
+- **Scope**: Assets de marca, layouts participantes, Momentos, onboarding e compartilhamento.
+- **Date**: 2026-08-05
+- **Status**: active
+
+### AD-007
+- **Decision**: Participante, Gestor e Admin terão superfícies e fronteiras de autorização separadas; mocks Next implementarão contratos de domínio portáveis para o futuro backend Go + PostgreSQL.
+- **Reason**: A operação do evento exige menor carga cognitiva e permissões verificáveis, enquanto a migração de backend não deve alterar a semântica do produto.
+- **Trade-off**: Serão necessários modelos, rotas e testes de papel/estado adicionais antes de unificar dados reais.
+- **Scope**: Navegação, rotas, mocks, contratos HTTP e modelagem futura de dados.
+- **Date**: 2026-08-05
+- **Status**: active
+
+### AD-008
+- **Decision**: QR Codes terão `expiration_time` para leitura e `expiration_momento_time` para o envio de Momento; toda atividade do DNJ permanece centralizada em `experiences.kind`; moderacao existe somente em Momentos.
+- **Reason**: Check-in e foto possuem janelas e consequencias independentes. Uma base de experiencia comum evita esquemas duplicados, enquanto a moderacao de conteudo nao deve contaminar filas, cronogramas ou eventos especiais.
+- **Trade-off**: A decisao de excluir foto exige coordenacao entre a transacao de banco e a exclusao do objeto privado no Storage.
+- **Scope**: QR, participacoes, Momentos, Admin e schema Supabase de homologacao.
+- **Date**: 2026-08-05
+- **Status**: superseded by AD-009
+
+### AD-009
+- **Decision**: O backend real do DNJ usarÃ¡ o modelo V2 de ediÃ§Ã£o Ãºnica: `activities` substitui `experiences`, nÃ£o existirÃ¡ tabela `events` nem `event_id`, filas ficam fora do produto, e `moments` pode ser livre ou vinculado a uma participation de desafio. MÃ­dia ficarÃ¡ no S3 com metadados no PostgreSQL.
+- **Reason**: A ediÃ§Ã£o atual nÃ£o requer reuso multi-evento; a semÃ¢ntica separa local, aÃ§Ã£o, participaÃ§Ã£o e memÃ³ria, reduzindo tabelas, FKs redundantes e complexidade operacional.
+- **Trade-off**: Reuso entre futuras ediÃ§Ãµes exigirÃ¡ novo deployment, evoluÃ§Ã£o do schema ou uma decisÃ£o futura de reintroduzir tenancy; OpenAPI 1.1.0 precisarÃ¡ de versÃ£o maior para Moments livres e remoÃ§Ã£o de `event`.
+- **Scope**: Backend PostgreSQL/S3 futuro, contratos pÃºblicos V2 e migraÃ§Ã£o do front.
+- **Date**: 2026-08-06
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: Modularização DNJ / `.specs/features/dnj-modularization/`

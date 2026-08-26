@@ -1,0 +1,3 @@
+import { NextResponse } from "next/server";
+import { manager, supabaseRest } from "@/lib/manager-api";
+export async function POST(request: Request) { const auth = manager(request, "special_events"); if ("error" in auth) return auth.error; const { eventId } = await request.json() as { eventId?: string }; if (!eventId) return Response.json({ error: "Evento inválido." }, { status: 400 }); const now = new Date().toISOString(); await supabaseRest(`special_events?id=eq.${eventId}&status=eq.draft&or=(created_by.is.null,created_by.eq.${auth.session.sub})`, { method: "PATCH", body: JSON.stringify({ status: "teaser", teaser_started_at: now, created_by: auth.session.sub }) }); return NextResponse.json({ ok: true, teaserSeconds: 15, startsAt: now }); }

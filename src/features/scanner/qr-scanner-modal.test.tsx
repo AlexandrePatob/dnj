@@ -3,7 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import { QrScannerModal } from "./qr-scanner-modal";
 
-const decodeFromConstraints = vi.fn();
+const { validateQr } = vi.hoisted(() => ({ validateQr: vi.fn() }));
+vi.mock("@/lib/api/game", () => ({ gameApi: { validateQr } }));
+
+const { decodeFromConstraints } = vi.hoisted(() => ({ decodeFromConstraints: vi.fn() }));
 
 vi.mock("@zxing/browser", () => ({
   BrowserQRCodeReader: class { decodeFromConstraints = decodeFromConstraints; },
@@ -12,10 +15,10 @@ vi.mock("@zxing/browser", () => ({
 describe("QrScannerModal", () => {
   it("keeps the scanner open with a recovery action after QR validation fails", async () => {
     decodeFromConstraints.mockImplementationOnce(async (_constraints: unknown, _video: unknown, onResult: (result: { getText: () => string }) => void) => {
-      onResult({ getText: () => "invalid-token" });
+      window.setTimeout(() => onResult({ getText: () => "invalid-token" }), 0);
       return { stop: vi.fn() };
     });
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, json: async () => ({ code: "INVALID_QR", message: "Este QR Code não é válido." }) }));
+    validateQr.mockRejectedValueOnce({ code: "INVALID_QR", message: "Este QR Code não é válido." });
     Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: vi.fn() } });
     vi.stubGlobal("MediaStream", class {});
 
@@ -23,6 +26,6 @@ describe("QrScannerModal", () => {
 
     expect(await screen.findByText("Este QR Code não é válido.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tentar câmera" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Escanear QR Code" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Trocar câmera" })).toBeInTheDocument();
   });
 });

@@ -57,6 +57,7 @@ export function createServiceWorkerRuntime(environment: WorkerEnvironment, revis
       return;
     }
     const cache = await environment.caches.open(names.shell);
+    await environment.caches.open(names.static);
 
     await Promise.all(
       SHELL_URLS.map(async (path) => {

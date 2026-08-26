@@ -76,7 +76,7 @@ export function InstallPromotion({
           aria-live="polite"
           className="mt-3 flex gap-2 border-t pt-3 text-xs font-medium leading-relaxed motion-reduce:transition-none"
           id={instructionsId}
-          initial={reduceMotion ? false : { opacity: 0, y: -6 }}
+          initial={false}
           style={{ borderColor: "var(--border)", color: "var(--card-foreground)" }}
           transition={{ duration: reduceMotion ? 0.01 : 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
