@@ -11,7 +11,7 @@ describe("ManagerDashboard", () => {
     replace.mockReset();
     vi.stubGlobal("fetch", vi.fn());
   });
-  it("shows only the timing controls for a space manager", async () => {
+  it("does not expose unsupported manager scopes", async () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock
       .mockResolvedValueOnce(
@@ -31,11 +31,8 @@ describe("ManagerDashboard", () => {
         ),
       );
     render(<ManagerDashboard />);
-    expect(await screen.findByText("Seu cronograma")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Marcar início real" }),
-    ).toBeInTheDocument();
-    expect(screen.queryByText("Novo jogo")).not.toBeInTheDocument();
+    expect(await screen.findByText("Conta sem escopo")).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalledWith("/api/manager/space/start", expect.anything());
   });
   it("starts a Radicalidade run through the API", async () => {
     const user = userEvent.setup();
@@ -47,7 +44,7 @@ describe("ManagerDashboard", () => {
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
-            actions: { games: [{ id: "g1", name: "Corrida do saco" }] },
+            scope: "actions", actions: { games: [{ id: "g1", name: "Corrida do saco" }] },
           }),
         ),
       );
@@ -59,12 +56,12 @@ describe("ManagerDashboard", () => {
         new Response(JSON.stringify({ name: "Bia", scope: "actions" })),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ actions: { games: [] } })),
+        new Response(JSON.stringify({ scope: "actions", actions: { games: [] } })),
       );
     await user.click(screen.getByRole("button", { name: "Abrir partida" }));
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
-        "/api/manager/actions/runs",
+        "/api/v2/manager/runs",
         expect.objectContaining({ method: "POST" }),
       ),
     );
@@ -80,7 +77,7 @@ describe("ManagerDashboard", () => {
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
-            actions: { games: [{ id: "g1", name: "Corrida do saco" }] },
+            scope: "actions", actions: { games: [{ id: "g1", name: "Corrida do saco" }] },
           }),
         ),
       );
@@ -106,7 +103,7 @@ describe("ManagerDashboard", () => {
         .mockResolvedValueOnce(
           new Response(
             JSON.stringify({
-              actions: {
+              scope: "actions", actions: {
                 games: [],
                 run: {
                   id: "run-1",
@@ -127,7 +124,7 @@ describe("ManagerDashboard", () => {
       fetchMock.mockResolvedValueOnce(
         new Response(
           JSON.stringify({
-            actions: {
+            scope: "actions", actions: {
               games: [],
               run: {
                 id: "run-1",
@@ -165,7 +162,7 @@ describe("ManagerDashboard", () => {
         .mockResolvedValueOnce(
           new Response(
             JSON.stringify({
-              actions: {
+              scope: "actions", actions: {
                 games: [],
                 run: {
                   id: "run-1",
@@ -192,7 +189,7 @@ describe("ManagerDashboard", () => {
       });
 
       const overviewCalls = fetchMock.mock.calls.filter(
-        ([path]) => path === "/api/manager/overview",
+        ([path]) => path === "/api/v2/manager/game-overview",
       );
       expect(overviewCalls).toHaveLength(2);
     } finally {

@@ -143,7 +143,7 @@ export function DnjApp() {
     let confirmedGroup = group;
     const session = storage.getSession();
     if (!session) throw new ApiError("Sessão não encontrada. Entre novamente.", 401);
-    const updatedUser = await groupsApi.updateUserGroup(group === "Sem grupo de jovens" ? {} : { groupId }, session.identityToken);
+    const updatedUser = await groupsApi.updateUserGroup({ groupId: group === "Sem grupo de jovens" ? null : groupId ?? null }, session.identityToken);
     confirmedGroup = updatedUser.group?.groupName ?? "";
     storage.setSession({ identityToken: session.identityToken, user: { ...session.user, group: updatedUser.group, points: updatedUser.points, rankPosition: updatedUser.rankPosition } });
     setUser((current) => ({ ...current, group: confirmedGroup }));

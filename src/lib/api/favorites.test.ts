@@ -8,19 +8,19 @@ describe("favoritesApi", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns the server favorite state", () => {
-    const state = [{ activityId: "a1", favorited: true }];
+    const state = { data: [{ id: "a1", name: "Atividade" }], pagination: { currentPage: 1, hasNextPage: false, limit: 10 } };
     vi.mocked(apiRequest).mockReturnValue(state as never);
     expect(favoritesApi.list()).toEqual(state);
-    expect(apiRequest).toHaveBeenCalledWith("/favorites", { token: undefined });
+    expect(apiRequest).toHaveBeenCalledWith("/users/me/favorites", { token: undefined });
   });
 
   it("adds a favorite with an idempotent PUT", () => {
     favoritesApi.add("activity/1", "session", "key-1");
-    expect(apiMutation).toHaveBeenCalledWith("/activities/activity%2F1/favorite", { method: "PUT", token: "session", idempotencyKey: "key-1" });
+    expect(apiMutation).toHaveBeenCalledWith("/users/me/favorites/activity%2F1", { method: "PUT", token: "session", idempotencyKey: "key-1" });
   });
 
   it("removes a favorite with an idempotent DELETE", () => {
     favoritesApi.remove("a1", "session", "key-2");
-    expect(apiMutation).toHaveBeenCalledWith("/activities/a1/favorite", { method: "DELETE", token: "session", idempotencyKey: "key-2" });
+    expect(apiMutation).toHaveBeenCalledWith("/users/me/favorites/a1", { method: "DELETE", token: "session", idempotencyKey: "key-2" });
   });
 });

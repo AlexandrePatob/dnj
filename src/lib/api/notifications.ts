@@ -1,13 +1,12 @@
 import { apiMutation, apiRequest, newIdempotencyKey } from "@/lib/api/client";
-import type { PageEnvelope } from "@/lib/api/contracts";
 
-export interface V2Notification { id: string; title: string; message: string; read: boolean; createdAt: string }
-export interface NotificationPreferences { email: boolean; push: boolean }
+export interface V2Notification { id: string; title: string; body: string; state: string; createdAt: string }
+export interface NotificationPreferences { announcementEnabled: boolean; pointsEnabled: boolean; momentModerationEnabled?: boolean; updatedAt?: string }
 
 export const notificationsApi = {
-  list: (cursor?: string, token?: string) => apiRequest<PageEnvelope<V2Notification>>(`/notifications${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`, { token }),
+  list: (page?: number, token?: string) => apiRequest<{ data: V2Notification[]; pagination: { currentPage: number; hasNextPage: boolean; limit: number }; unreadCount: number }>(`/notifications${page ? `?page=${page}` : ""}`, { token }),
   markRead: (notificationId: string, token?: string, idempotencyKey = newIdempotencyKey()) =>
-    apiMutation<V2Notification>(`/notifications/${encodeURIComponent(notificationId)}/read`, { method: "PATCH", token, idempotencyKey }),
+    apiMutation<V2Notification>(`/notifications/${encodeURIComponent(notificationId)}/read`, { method: "POST", token, idempotencyKey }),
   updatePreferences: (preferences: NotificationPreferences, token?: string, idempotencyKey = newIdempotencyKey()) =>
-    apiMutation<NotificationPreferences>("/notifications/preferences", { method: "PATCH", body: preferences, token, idempotencyKey }),
+    apiMutation<NotificationPreferences>("/notifications/preferences", { method: "PUT", body: preferences, token, idempotencyKey }),
 };

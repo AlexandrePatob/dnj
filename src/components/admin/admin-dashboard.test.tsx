@@ -27,7 +27,7 @@ describe("AdminDashboard V2", () => {
   it("loads the documented staff endpoint by default", async () => {
     render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
     expect(await screen.findByText("Ana Gestora")).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/staff", expect.anything());
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/staff?role=EVENT_MANAGER", expect.anything());
   });
 
   it("loads documented activities and spaces from the navigation", async () => {

@@ -55,7 +55,7 @@ export function AdminDashboard({ session, onExit }: { session: AdminSession; onE
 
 function StaffList() {
   const [staff, setStaff] = useState<Staff[] | null>(null); const [error, setError] = useState("");
-  useEffect(() => { void api<{ data: Staff[] }>("/admin/staff").then((data) => setStaff(data.data)).catch(() => setError("Não foi possível carregar os gestores.")); }, []);
+  useEffect(() => { void api<{ data: Staff[] }>("/admin/staff?role=EVENT_MANAGER").then((data) => setStaff(data.data)).catch(() => setError("Não foi possível carregar os gestores.")); }, []);
   if (error) return <Failure message={error} />;
   if (!staff) return <Loading />;
   return <section className={styles.activity}><SectionTitle kicker="Contas operacionais" title={`${staff.length} gestor(es)`} />{staff.length ? <ol>{staff.map((manager) => <li key={manager.id}><span className={styles.activityDot} /><div><strong>{manager.name}</strong><p>{manager.role} · {manager.onboardingComplete ? "cadastro concluído" : "cadastro pendente"}</p></div></li>)}</ol> : <Empty text="Nenhum gestor cadastrado." />}</section>;

@@ -1,6 +1,6 @@
 import { apiMutation, newIdempotencyKey } from "@/lib/api/client";
 import type { Moment } from "@/types/experience";
-type Intent = { mediaAssetId: string; uploadUrl: string; method: "PUT"; headers: Record<string, string>; expiresAt: string };
+type Intent = { id: string; uploadUrl: string; method: "PUT"; headers: Record<string, string>; expiresAt: string };
 export type PublishProgress = "hashing" | "requesting_intent" | "uploading" | "completing" | "publishing" | "success" | "error";
 async function checksum(file: File) { const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer()); return btoa(String.fromCharCode(...new Uint8Array(digest))); }
 export async function publishMoment(input: { file: File; participationId?: string; publishConsent: boolean; onProgress?: (state: PublishProgress) => void }): Promise<Moment> {
@@ -8,6 +8,6 @@ export async function publishMoment(input: { file: File; participationId?: strin
   input.onProgress?.("hashing"); const sha256 = await checksum(input.file); input.onProgress?.("requesting_intent");
   const intent = await apiMutation<Intent>("/media/upload-intents", { method: "POST", body: { contentType: input.file.type, bytes: input.file.size, checksumSha256: sha256 }, idempotencyKey: newIdempotencyKey() });
   input.onProgress?.("uploading"); const uploaded = await fetch(intent.uploadUrl, { method: intent.method, headers: intent.headers, body: input.file }); if (!uploaded.ok) throw new Error("Não foi possível enviar a imagem.");
-  input.onProgress?.("completing"); const completeKey = newIdempotencyKey(); let complete: { assetId: string }; try { complete = await apiMutation<{ assetId: string }>(`/media/${intent.mediaAssetId}/complete`, { method: "POST", body: {}, idempotencyKey: completeKey }); } catch (error) { if ((error as { code?: string }).code !== "UPLOAD_INCOMPLETE") throw error; complete = await apiMutation<{ assetId: string }>(`/media/${intent.mediaAssetId}/complete`, { method: "POST", body: {}, idempotencyKey: completeKey }); }
-  input.onProgress?.("publishing"); return apiMutation<Moment>("/moments", { method: "POST", body: { mediaAssetId: complete.assetId, participationId: input.participationId, publishConsent: input.publishConsent } });
+  input.onProgress?.("completing"); const completeKey = newIdempotencyKey(); let complete: { id: string }; try { complete = await apiMutation<{ id: string }>(`/media/${intent.id}/complete`, { method: "POST", body: {}, idempotencyKey: completeKey }); } catch (error) { if ((error as { code?: string }).code !== "UPLOAD_INCOMPLETE") throw error; complete = await apiMutation<{ id: string }>(`/media/${intent.id}/complete`, { method: "POST", body: {}, idempotencyKey: completeKey }); }
+  input.onProgress?.("publishing"); return apiMutation<Moment>("/moments", { method: "POST", body: { mediaAssetId: complete.id, participationId: input.participationId, publishConsent: input.publishConsent } });
 }
