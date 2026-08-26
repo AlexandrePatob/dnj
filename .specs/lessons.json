@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 3,
+  "next_id": 5,
   "lessons": [
     {
       "id": "L-001",
@@ -40,6 +40,42 @@
       ],
       "created": "2026-07-22T22:04:02Z",
       "last_seen": "2026-07-22T22:04:02Z"
+    },
+    {
+      "id": "L-003",
+      "key": "gate_fail::run the complete feature gate before claiming a queue feature is ready",
+      "text": "Run the complete feature gate before claiming a queue feature is ready.",
+      "signal": "gate_fail",
+      "scope": "pastoral-queue",
+      "status": "candidate",
+      "features": [
+        "pastoral-queues"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md:181 (pastoral-queue)"
+      ],
+      "created": "2026-08-26T17:20:01Z",
+      "last_seen": "2026-08-26T17:20:01Z"
+    },
+    {
+      "id": "L-004",
+      "key": "ac_gap::cover every realtime state transition with a behavior level assertion before integrating the ui",
+      "text": "Cover every realtime state transition with a behavior-level assertion before integrating the UI.",
+      "signal": "ac_gap",
+      "scope": "pastoral-queue",
+      "status": "candidate",
+      "features": [
+        "pastoral-queues"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md:134 (pastoral-queue)"
+      ],
+      "created": "2026-08-26T17:20:01Z",
+      "last_seen": "2026-08-26T17:20:01Z"
     }
   ]
 }
