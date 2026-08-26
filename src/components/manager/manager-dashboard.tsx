@@ -30,7 +30,7 @@ import { toDataURL } from "qrcode";
 import { apiMutation, apiRequest } from "@/lib/api/client";
 import styles from "./manager-dashboard.module.css";
 
-type Scope = "space" | "actions" | "special_events";
+type Scope = "space" | "actions" | "special_events" | "pastoral_queue";
 type Session = {
   name?: string;
   email?: string;
@@ -110,7 +110,8 @@ async function api(path: string, init?: RequestInit) {
   return response.status === 204 ? null : response.json();
 }
 function getScope(session: Session, overview: Overview): Scope | undefined {
-  return overview.scope === "actions" ? "actions" : undefined;
+  const sessionScope = session.manager?.scope ?? session.scope;
+  return sessionScope ?? overview.scope;
 }
 function time(value?: string) {
   return value
@@ -195,9 +196,11 @@ export function ManagerDashboard() {
       ? "Cronometrista"
       : scope === "actions"
         ? "Gestor de Radicalidade"
-        : scope === "special_events"
-          ? "Gestor de eventos especiais"
-          : "Gestor DNJ";
+      : scope === "special_events"
+        ? "Gestor de eventos especiais"
+        : scope === "pastoral_queue"
+          ? "Gestor das filas pastorais"
+        : "Gestor DNJ";
   return (
     <main className={styles.shell}>
       <header className={styles.top}>
@@ -222,6 +225,8 @@ export function ManagerDashboard() {
                 ? "Seu cronograma"
                 : scope === "actions"
                   ? "Radicalidade"
+                : scope === "pastoral_queue"
+                  ? "Filas pastorais"
                   : "Eventos especiais"}
             </h1>
             <p>
@@ -229,6 +234,8 @@ export function ManagerDashboard() {
                 ? "Registre o horário real e mantenha a programação do seu espaço atualizada."
                 : scope === "actions"
                   ? "Abra partidas, acompanhe os scans e confirme a pontuação de cada participante."
+                : scope === "pastoral_queue"
+                  ? "Acompanhe e opere as filas de Confissão e Direção Espiritual."
                   : "Prepare o anúncio, libere o QR no momento certo e acompanhe a experiência."}
             </p>
           </div>
@@ -257,6 +264,12 @@ export function ManagerDashboard() {
             data={overview.specialEvents}
             refresh={load}
             setError={setError}
+          />
+        ) : scope === "pastoral_queue" ? (
+          <Empty
+            icon={<Clock3 size={28} />}
+            title="Fila pastoral"
+            text="A console das filas pastorais será exibida aqui."
           />
         ) : (
           <Empty

@@ -34,6 +34,20 @@ describe("ManagerDashboard", () => {
     expect(await screen.findByText("Conta sem escopo")).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalledWith("/api/manager/space/start", expect.anything());
   });
+  it("recognizes the pastoral queue scope from the manager session", async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ name: "Geovane", scope: "pastoral_queue" })),
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify({})));
+
+    render(<ManagerDashboard />);
+
+    expect(await screen.findByText("Gestor das filas pastorais")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Filas pastorais" })).toBeInTheDocument();
+    expect(screen.queryByText("Conta sem escopo")).not.toBeInTheDocument();
+  });
   it("starts a Radicalidade run through the API", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);

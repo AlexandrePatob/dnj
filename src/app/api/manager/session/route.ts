@@ -3,6 +3,15 @@ import { hasOperationalRole, readOperationalToken, validateAccessToken } from "@
 
 const cookieName = "dnj_manager_access";
 const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/", maxAge: 60 * 60 * 8 };
+const managerScopes = ["space", "actions", "special_events", "pastoral_queue"] as const;
+type ManagerScope = (typeof managerScopes)[number];
+
+function readManagerScope(identity: Awaited<ReturnType<typeof validateAccessToken>>["identity"]): ManagerScope | undefined {
+  const value = (identity?.user as { scope?: unknown } | undefined)?.scope;
+  return typeof value === "string" && managerScopes.includes(value as ManagerScope)
+    ? (value as ManagerScope)
+    : undefined;
+}
 
 async function session(accessToken: string) {
   const { response, identity } = await validateAccessToken(accessToken);
@@ -10,7 +19,7 @@ async function session(accessToken: string) {
     console.warn("Manager session validation failed", { upstreamStatus: response.status, role: identity?.user?.role, hasEmail: Boolean(identity?.user?.email) });
     return null;
   }
-  return { email: identity.user.email, name: identity.user.name ?? identity.user.email, scope: undefined };
+  return { email: identity.user.email, name: identity.user.name ?? identity.user.email, scope: readManagerScope(identity) };
 }
 
 export async function GET() {
