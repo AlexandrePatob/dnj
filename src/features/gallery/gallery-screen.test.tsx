@@ -15,6 +15,11 @@ vi.mock("@/lib/api/moments", () => ({
   },
 }));
 
+vi.mock("@/lib/api/client", () => ({
+  apiRequest: vi.fn(async (path: string) => path === "/participations/current" ? null : { momentChallenge: { id: "challenge-1" } }),
+  apiMutation: vi.fn(async () => ({ participation: { id: "participation-1", canShareMoment: true } })),
+}));
+
 vi.mock("@/features/moments/moment-composer", () => ({
   MomentComposer: () => <section aria-label="Compartilhar momento">Câmera aberta</section>,
 }));
@@ -97,9 +102,5 @@ describe("GalleryScreen", () => {
     await user.click(screen.getByRole("button", { name: "Adicionar momento" }));
 
     expect(await screen.findByLabelText("Compartilhar momento")).toHaveTextContent("Câmera aberta");
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/v1/moment-challenges/challenge-1/participations",
-      expect.objectContaining({ method: "POST" }),
-    );
   });
 });

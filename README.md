@@ -25,14 +25,17 @@ Os scripts `predev` e `prebuild` geram `public/sw.js` automaticamente. Para test
 
 Por padrão, `NEXT_PUBLIC_USE_MOCKS=true` permite percorrer o fluxo inteiro sem a API. Qualquer código de seis dígitos é aceito nesse modo.
 
-## Integração com a API
+## Integração com a API externa
 
 Configure `.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8080/v1
+NEXT_PUBLIC_API_URL=/api/v2
 NEXT_PUBLIC_USE_MOCKS=false
+DNJ_V2_UPSTREAM_URL=https://ttwkfudhvvhuhp5yvsoydxggum0ictpg.lambda-url.sa-east-1.on.aws/v2
 ```
+
+O frontend usa exclusivamente a API HTTP externa configurada em `DNJ_V2_UPSTREAM_URL`, exposta pelo prefixo `NEXT_PUBLIC_API_URL`. O Next atua somente como proxy de rewrite e camada de apresentação. Não há integração com Supabase, acesso direto a banco, migrations ou credenciais `SUPABASE_*` necessárias para executar a aplicação.
 
 O frontend implementa os contratos já existentes:
 
@@ -43,9 +46,9 @@ O frontend implementa os contratos já existentes:
 | Buscar grupo | `GET /groups?search=` |
 | Vincular ou criar grupo | `POST /users/{id}/update-group` |
 
-Todas as chamadas usam `credentials: include`, aceitando o cookie `identity_token` HttpOnly gerado pela API. O Bearer token retornado pela verificação também é persistido em uma chave separada para as rotas protegidas, conforme o fluxo funcional atual. Quando a API disponibilizar um endpoint como `GET /users/me`, é recomendável reconstruir a sessão pelo cookie HttpOnly e deixar de persistir o token acessível ao JavaScript.
+Todas as chamadas usam `credentials: include` e seguem o contrato da API externa. O frontend não deve criar endpoints paralelos que repliquem o backend nem importar adaptadores de banco.
 
-No backend, configure `CORS_ALLOWED_ORIGINS=http://localhost:3000` e mantenha `API_PREFIX=/v1` para corresponder à URL acima.
+No backend externo, configure a origem do frontend e mantenha o prefixo `/v2` para corresponder à URL acima.
 
 ## Estrutura
 

@@ -35,7 +35,7 @@ export interface Participation {
 
 export interface Moment {
   id: string;
-  participationId: string;
+  participationId: string | null;
   imageUrl: string;
   thumbnailUrl: string;
   shareImageUrl: string;

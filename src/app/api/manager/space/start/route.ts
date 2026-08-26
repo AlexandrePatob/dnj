@@ -1,3 +1,0 @@
-import { NextResponse } from "next/server";
-import { manager, ownScheduleItem, supabaseRest } from "@/lib/manager-api";
-export async function POST(request: Request) { const auth = manager(request, "space_timer"); if ("error" in auth) return auth.error; const { itemId } = await request.json() as { itemId?: string }; const item = itemId && await ownScheduleItem(auth.session.sub, itemId); if (!item) return Response.json({ error: "Atividade não encontrada no seu espaço." }, { status: 404 }); await supabaseRest(`experiences?id=eq.${item.id}`, { method: "PATCH", body: JSON.stringify({ actual_started_at: new Date().toISOString(), status: "active" }) }); return NextResponse.json({ ok: true }); }
