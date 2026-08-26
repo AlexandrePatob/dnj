@@ -68,10 +68,15 @@ describe("AdminDashboard V2", () => {
     expect(screen.getByLabelText("Slug")).toHaveValue("desafio-da-cobra");
     fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Corrida" } });
     fireEvent.change(screen.getByLabelText("Slug"), { target: { value: "corrida" } });
+    fireEvent.change(screen.getByLabelText("Descrição"), { target: { value: "Registre um momento no local." } });
+    fireEvent.change(screen.getByLabelText("Espaço"), { target: { value: "space-1" } });
+    fireEvent.change(screen.getByLabelText("Pontos no check-in"), { target: { value: "10" } });
+    fireEvent.change(screen.getByLabelText("Pontos por momento"), { target: { value: "20" } });
+    fireEvent.change(screen.getByLabelText("Intervalo entre check-ins (segundos)"), { target: { value: "60" } });
     fireEvent.change(screen.getByLabelText("Início"), { target: { value: "2026-08-24T18:00" } });
     fireEvent.change(screen.getByLabelText("Duração"), { target: { value: "5" } });
     fireEvent.click(screen.getByRole("button", { name: "Criar atividade" }));
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.objectContaining({ method: "POST", headers: expect.objectContaining({ "Idempotency-Key": expect.stringMatching(/^[0-9a-f-]{36}$/i) }), body: JSON.stringify({ name: "Corrida", slug: "corrida", kind: "challenge", checkInPoints: 0, momentPoints: 0, cooldownSeconds: 0, allowsMoment: true, startsAt: new Date("2026-08-24T18:00").toISOString(), endsAt: new Date(new Date("2026-08-24T18:00").getTime() + 5 * 60_000).toISOString() }) }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.objectContaining({ method: "POST", headers: expect.objectContaining({ "Idempotency-Key": expect.stringMatching(/^[0-9a-f-]{36}$/i) }), body: JSON.stringify({ name: "Corrida", slug: "corrida", description: "Registre um momento no local.", kind: "challenge", spaceId: "space-1", checkInPoints: 10, momentPoints: 20, cooldownSeconds: 60, allowsMoment: true, startsAt: new Date("2026-08-24T18:00").toISOString(), endsAt: new Date(new Date("2026-08-24T18:00").getTime() + 5 * 60_000).toISOString() }) }));
   });
 
   it("uses the documented moderation action endpoint", async () => {
