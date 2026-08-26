@@ -29,6 +29,7 @@ import { useRouter } from "next/navigation";
 import { toDataURL } from "qrcode";
 import { apiMutation, apiRequest } from "@/lib/api/client";
 import styles from "./manager-dashboard.module.css";
+import { PastoralQueueConsole } from "./pastoral-queue-console";
 
 type Scope = "space" | "actions" | "special_events" | "pastoral_queue";
 type Session = {
@@ -266,11 +267,7 @@ export function ManagerDashboard() {
             setError={setError}
           />
         ) : scope === "pastoral_queue" ? (
-          <Empty
-            icon={<Clock3 size={28} />}
-            title="Fila pastoral"
-            text="A console das filas pastorais será exibida aqui."
-          />
+          <PastoralQueueConsole />
         ) : (
           <Empty
             icon={<AlertCircle size={28} />}

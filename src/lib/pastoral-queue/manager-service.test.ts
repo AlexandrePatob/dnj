@@ -10,7 +10,7 @@ const manager = { id: "m1", name: "Geonvne" };
 function dbWith(snapshot: unknown, participant?: unknown) {
   const writes: unknown[] = [];
   fb.runTransaction.mockImplementation(async (_db: unknown, callback: (tx: unknown) => Promise<unknown>) => callback({ get: vi.fn(async (ref: unknown) => String(ref).includes("participants") ? participant ?? { exists: () => false } : snapshot), update: (_r: unknown, value: unknown) => writes.push(value), set: (_r: unknown, value: unknown) => writes.push(value) }));
-  return { writes } as never;
+  return { writes } as any;
 }
 describe("manager queue transitions", () => {
   it("calls the earliest queued entry and removes it from queued state", async () => {

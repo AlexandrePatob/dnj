@@ -20,7 +20,7 @@ function fakeDb(reads: Record<string, { exists: () => boolean; data: () => unkno
     set: (path: string, value: unknown) => writes.push({ op: "set", path, value }),
     update: (path: string, value: unknown) => writes.push({ op: "update", path, value }),
   };
-  return db as { writes: { op: string; path: string; value?: unknown }[] };
+  return db as any;
 }
 
 describe("participant queue transactions", () => {
