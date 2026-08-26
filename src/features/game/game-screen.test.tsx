@@ -67,7 +67,7 @@ describe("GameScreen scanner entry", () => {
     expect(screen.getByRole("button", { name: "Abrir câmera e compartilhar" })).toBeInTheDocument();
   });
 
-  it("removes the Moment CTA immediately after the photo is published", async () => {
+  it("keeps the Moment CTA available after the photo is published", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
     fetchMock
@@ -79,7 +79,7 @@ describe("GameScreen scanner entry", () => {
 
     await user.click(await screen.findByRole("button", { name: "Abrir câmera e compartilhar" }));
     await user.click(screen.getByRole("button", { name: "Concluir Momento" }));
-    expect(screen.queryByText("Desafio Momento DNJ")).not.toBeInTheDocument();
+    expect(screen.getByText("Desafio Momento DNJ")).toBeInTheDocument();
   });
 
   it("blocks scanning offline before opening the camera flow", async () => {
