@@ -458,8 +458,7 @@ export function GameScreen({
                 />
               </div>
             </section>
-            {participation?.canShareMoment && (
-              <section
+            <section
                 className="relative overflow-hidden rounded-2xl p-4"
                 style={{
                   background: "linear-gradient(135deg, var(--game) 0%, #d9ef8c 100%)",
@@ -472,7 +471,7 @@ export function GameScreen({
                   className="mt-1 text-sm"
                   style={{ color: "rgba(0,0,0,.65)" }}
                 >
-                  {participation.activity.name} · {participation.place.name}
+                  {participation ? `${participation.activity.name} · ${participation.place.name}` : "Registre uma foto especial do encontro."}
                 </p>
                 <button
                   onClick={() => setMomentOpen(true)}
@@ -481,8 +480,7 @@ export function GameScreen({
                 >
                   Abrir câmera e compartilhar
                 </button>
-              </section>
-            )}
+            </section>
             <section>
               <h2 className="mb-2 text-sm font-bold">Histórico de pontos</h2>
               <div
@@ -659,7 +657,7 @@ export function GameScreen({
         )}
         {liveRun && <LiveRunOverlay run={liveRun} />}
       </AnimatePresence>
-      {momentOpen && participation && (
+      {momentOpen && (
         <MomentComposer
           participation={participation}
           onClose={() => setMomentOpen(false)}
