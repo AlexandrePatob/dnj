@@ -238,7 +238,7 @@ export function DnjApp() {
             {screen === "schedule" && <EventScheduleScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "map" && <EventMapScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "game"    && <GameScreen    user={user} theme={theme} animDir={animDir} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
-            {screen === "queue"   && <QueueScreen                                  animDir={animDir} />}
+            {screen === "queue"   && <QueueScreen user={{ id: user.email, name: user.name }} animDir={animDir} />}
             {screen === "gallery" && <GalleryScreen group={user.group}             animDir={animDir} />}
             {screen === "account" && <AccountScreen user={user} onLogout={() => { void authApi.logout().catch(() => undefined); storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
           </motion.div>
