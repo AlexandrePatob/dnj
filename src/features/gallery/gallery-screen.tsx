@@ -10,6 +10,7 @@ import { MomentComposer } from "@/features/moments/moment-composer";
 import type { AnimDir } from "@/features/app/types";
 import type { GalleryPage, Moment, Participation } from "@/types/experience";
 import { momentsApi, type MomentScope } from "@/lib/api/moments";
+import { apiMutation, apiRequest } from "@/lib/api/client";
 
 const motion = (dir: AnimDir) => ({ animation: dir === "left" ? "slideInLeft 280ms cubic-bezier(.22,1,.36,1) both" : "fadeUp 220ms cubic-bezier(.22,1,.36,1) both" });
 
@@ -103,7 +104,7 @@ export function GalleryScreen({ animDir, group = "" }: { animDir: AnimDir; group
   const [attempt, setAttempt] = useState(0);
   const [selected, setSelected] = useState<Moment | null>(null);
   const [composerParticipation, setComposerParticipation] =
-    useState<Participation | null>(null);
+    useState<Participation | null | undefined>(undefined);
   const [composerMessage, setComposerMessage] = useState("");
   const [openingComposer, setOpeningComposer] = useState(false);
   const hasGroup = Boolean(group.trim());
@@ -119,25 +120,18 @@ export function GalleryScreen({ animDir, group = "" }: { animDir: AnimDir; group
     setComposerMessage("");
     const headers: HeadersInit = {};
     try {
-      const current = await fetch("/api/v1/participations/current", { headers });
-      if (current.status !== 204 && current.ok) {
-        const value = (await current.json()) as { participation?: Participation };
+      const current = await apiRequest<{ participation?: Participation } | null>("/participations/current", { headers });
+      if (current?.participation) {
+        const value = current;
         if (value.participation?.canShareMoment) {
           setComposerParticipation(value.participation);
           return;
         }
       }
-      const live = await fetch("/api/v1/special-events/active", { headers });
-      const challenge = live.ok
-        ? ((await live.json()) as { momentChallenge?: { id: string } | null }).momentChallenge
-        : null;
-      if (!challenge) {
-        setComposerMessage("Participe de uma atividade ou desafio ativo para registrar um Momento.");
-        return;
-      }
-      const joined = await fetch(`/api/v1/moment-challenges/${challenge.id}/participations`, { method: "POST", headers });
-      const value = (await joined.json().catch(() => ({}))) as { participation?: Participation; alreadySubmitted?: boolean; message?: string };
-      if (!joined.ok) throw new Error(value.message ?? "Não foi possível abrir a câmera.");
+      const live = await apiRequest<{ momentChallenge?: { id: string } | null }>("/special-events/active", { headers });
+      const challenge = live?.momentChallenge ?? null;
+      if (!challenge) return setComposerParticipation(null);
+      const value = await apiMutation<{ participation?: Participation; alreadySubmitted?: boolean; message?: string }>(`/moment-challenges/${challenge.id}/participations`, { method: "POST", headers });
     if (value.alreadySubmitted) return;
       if (value.participation) setComposerParticipation(value.participation);
     } catch (error) {
@@ -154,6 +148,6 @@ export function GalleryScreen({ animDir, group = "" }: { animDir: AnimDir; group
     <button type="button" aria-label="Adicionar momento" disabled={openingComposer} onClick={() => void openComposer()} className="fixed bottom-24 right-5 grid h-14 w-14 place-items-center rounded-full text-white disabled:opacity-60" style={{ background: "var(--primary)", boxShadow: "var(--shadow-card)" }}><Plus /></button>
     {composerMessage && <p role="alert" className="fixed bottom-40 left-5 right-5 z-40 rounded-xl px-4 py-3 text-center text-sm" style={{ background: "var(--card)", boxShadow: "var(--shadow-card)", color: "var(--destructive)" }}>{composerMessage}</p>}
     {selected && <section role="dialog" aria-label="Detalhe do momento" className="absolute inset-0 z-50 flex items-center bg-black/60 p-5"><div className="relative w-full rounded-3xl p-3" style={{ background: "var(--card)" }}><button type="button" className="absolute right-4 top-4 z-10 rounded-full bg-black/40 p-2 text-white" aria-label="Fechar detalhe" onClick={() => setSelected(null)}><X size={18} /></button><MomentImage moment={selected} /><div className="flex items-center justify-between px-2 pt-3"><strong>{selected.placeName}</strong><ShareButton moment={selected} /></div></div></section>}
-    {composerParticipation && <MomentComposer participation={composerParticipation} onClose={() => setComposerParticipation(null)} onCreated={() => { setComposerParticipation(null); setAttempt((value) => value + 1); }} />}
+    {composerParticipation !== undefined && <MomentComposer participation={composerParticipation} onClose={() => setComposerParticipation(undefined)} onCreated={() => { setComposerParticipation(undefined); setAttempt((value) => value + 1); }} />}
   </div>;
 }

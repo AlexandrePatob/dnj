@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Award, Bell, Flame, Moon, Shield, Star, Sun, Trophy } from "lucide-react";
+import { Award, Flame, Moon, Shield, Star, Sun, Trophy } from "lucide-react";
 import { GameIcon } from "@/components/ui/dnj-controls";
 import type { AnimDir, UserData } from "@/features/app/types";
 import { momentsApi } from "@/lib/api/moments";
@@ -14,19 +14,12 @@ function animStyle(dir: AnimDir): React.CSSProperties {
 export function AccountScreen({ user, onLogout, theme, onToggleTheme, animDir }: { user: UserData; onLogout: () => void; theme: "light" | "dark"; onToggleTheme: () => void; animDir: AnimDir }) {
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const [recordCount, setRecordCount] = useState<number | null>(null);
-  const [pushStatus, setPushStatus] = useState("idle");
   useEffect(() => {
     void momentsApi.list("mine")
       .then((value) => setRecordCount(value.items.length))
       .catch(() => setRecordCount(null));
   }, []);
   const nextLevel = Math.max(0, 200 - user.points);
-  async function enablePush() {
-    if (!("serviceWorker" in navigator) || !("PushManager" in window) || Notification.permission === "denied") { setPushStatus("blocked"); return; }
-    if (await Notification.requestPermission() !== "granted") { setPushStatus("blocked"); return; }
-    try { const key = await (await fetch("/api/push/public-key")).json() as { key: string }; const registration = await navigator.serviceWorker.ready; const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(key.key) }); const response = await fetch("/api/push/subscribe", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ externalKey:user.email || user.cpf, subscription:subscription.toJSON() }) }); setPushStatus(response.ok ? "enabled" : "error"); } catch { setPushStatus("error"); }
-  }
-
   return <div key="account" className="absolute inset-0 overflow-y-auto" style={{ background: "var(--background)", paddingBottom: "var(--main-content-bottom-padding)", ...animStyle(animDir) }}>
     <header className="px-5 pb-5" style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", paddingTop: "calc(64px + var(--safe-area-top))" }}>
       <div className="flex items-center gap-4">
@@ -46,10 +39,8 @@ export function AccountScreen({ user, onLogout, theme, onToggleTheme, animDir }:
       <section className="rounded-2xl p-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: "var(--accent-alpha-15)", color: "var(--accent)" }}><Flame size={20} /></span><div><p className="font-bold">Sua jornada continua</p><p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>Escaneie uma atividade para ganhar pontos e um novo carimbo.</p></div></div></section>
       <section className="overflow-hidden rounded-2xl" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><div className="px-4 py-3"><p className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Seu perfil</p></div><div className="px-4 pb-4"><p className="text-sm font-bold">{user.email || "E-mail não informado"}</p><p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>Sua identificação e CPF ficam protegidos na privacidade.</p></div></section>
       <section className="overflow-hidden rounded-2xl" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><div className="px-4 py-3"><p className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>Preferências</p></div><div className="flex gap-3 border-t px-4 py-4" style={{ borderColor: "var(--border)" }}><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: "var(--accent-alpha-15)", color: "var(--accent)" }}><Shield size={18} /></span><p className="text-sm"><strong className="block">Privacidade protegida</strong><span className="mt-1 block text-xs" style={{ color: "var(--muted-foreground)" }}>CPF e dados pessoais não aparecem no perfil público.</span></p></div><button type="button" onClick={onToggleTheme} aria-pressed={theme === "dark"} aria-label={`Tema atual: modo ${theme === "dark" ? "escuro" : "claro"}. ${theme === "dark" ? "Usar modo claro" : "Usar modo escuro"}.`} className="flex w-full items-center gap-3 border-t px-4 py-4 text-left" style={{ borderColor: "var(--border)" }}><span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "var(--primary-alpha-10)", color: "var(--primary)" }}><GameIcon active>{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</GameIcon></span><span className="flex-1 text-sm"><strong className="block">{theme === "dark" ? "Usar modo claro" : "Usar modo escuro"}</strong><span className="mt-1 block text-xs" style={{ color: "var(--muted-foreground)" }}>Tema atual: modo {theme === "dark" ? "escuro" : "claro"}</span></span><span className="h-6 w-11 rounded-full p-0.5" aria-hidden="true" style={{ background: theme === "dark" ? "var(--primary)" : "var(--switch-background)" }}><span className="block h-5 w-5 rounded-full bg-white transition-transform" style={{ transform: theme === "dark" ? "translateX(20px)" : "translateX(0)" }} /></span></button></section>
-      <button type="button" onClick={enablePush} className="flex items-center gap-3 rounded-2xl border px-4 py-4 text-left" style={{ background:"var(--card)", borderColor:"var(--border)" }}><Bell size={18} style={{ color:"var(--primary)" }}/><span className="text-sm"><strong className="block">{pushStatus === "enabled" ? "Notificações ativadas" : "Ativar notificações"}</strong><span className="text-xs" style={{ color:"var(--muted-foreground)" }}>{pushStatus === "blocked" ? "Permissão bloqueada pelo navegador." : pushStatus === "error" ? "Tente novamente." : "Receba avisos mesmo com o app fechado."}</span></span></button>
       <button type="button" onClick={() => confirmingLogout ? onLogout() : setConfirmingLogout(true)} className="py-3 text-sm font-bold" style={{ color: "var(--secondary)" }}>{confirmingLogout ? "Confirmar saída" : "Sair da conta"}</button>{confirmingLogout && <button type="button" onClick={() => setConfirmingLogout(false)} className="-mt-4 pb-2 text-sm" style={{ color: "var(--muted-foreground)" }}>Cancelar</button>}
     </main>
   </div>;
 }
 
-function urlBase64ToUint8Array(value: string) { const raw = atob(`${value}${"=".repeat((4 - value.length % 4) % 4)}`.replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(raw, (char) => char.charCodeAt(0)); }

@@ -1,7 +1,7 @@
 # DNJ V2 — Especificação de PostgreSQL, S3 e API
 
 **Status:** proposta para aprovação antes da implementação no repositório da API.  
-**Objetivo:** substituir o schema Supabase de homologação por um PostgreSQL limpo, de edição única do DNJ, com arquivos no Amazon S3 e contrato HTTP V2 claro.
+**Objetivo:** definir a API HTTP V2 do DNJ sobre PostgreSQL e Amazon S3, com contrato claro e independente do frontend.
 
 ## Decisões de domínio
 
@@ -156,7 +156,7 @@ Postgres e S3 não compartilham transação: objetos sem confirmação expiram p
 
 ## Plano de migrations no novo repositório
 
-Não copiar migrations Supabase: elas são cumulativas, incluem legado e pressupõem `events`. Criar baseline novo e migrations imutáveis.
+O frontend não contém migrations nem acesso ao banco. O backend da API é responsável pelo schema e pelas migrations imutáveis.
 
 | Ordem | Migration | Conteúdo | Por quê |
 | --- | --- | --- | --- |

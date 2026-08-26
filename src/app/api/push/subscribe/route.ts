@@ -1,13 +1,30 @@
 import { NextResponse } from "next/server";
-import { query, supabaseRest } from "@/lib/supabase-server";
+
+const defaultUpstream = "https://ttwkfudhvvhuhp5yvsoydxggum0ictpg.lambda-url.sa-east-1.on.aws/v2";
 
 export async function POST(request: Request) {
-  const { externalKey, subscription } = await request.json() as { externalKey?: string; subscription?: PushSubscriptionJSON };
-  if (!externalKey || !subscription?.endpoint || !subscription.keys?.p256dh || !subscription.keys.auth) return NextResponse.json({ error: "Inscrição inválida." }, { status: 400 });
+  const body = await request.json() as {
+    externalKey?: string;
+    subscription?: PushSubscriptionJSON;
+  };
+  if (!body.externalKey || !body.subscription?.endpoint || !body.subscription.keys?.p256dh || !body.subscription.keys.auth) {
+    return NextResponse.json({ error: "Inscrição inválida." }, { status: 400 });
+  }
+
   try {
-    const users = await supabaseRest<Array<{ id: string }>>(`test_users?${query({ select: "id", external_key: `eq.${externalKey}`, limit: 1 })}`);
-    if (!users[0]) return NextResponse.json({ error: "Participante não encontrado." }, { status: 404 });
-    await supabaseRest(`push_subscriptions?${query({ on_conflict: "endpoint" })}`, { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify({ user_id: users[0].id, endpoint: subscription.endpoint, p256dh: subscription.keys.p256dh, auth: subscription.keys.auth, updated_at: new Date().toISOString() }) });
-    return NextResponse.json({ ok: true });
-  } catch { return NextResponse.json({ error: "Não foi possível ativar notificações." }, { status: 503 }); }
+    const upstream = (process.env.DNJ_V2_UPSTREAM_URL ?? defaultUpstream).replace(/\/$/, "");
+    const response = await fetch(`${upstream}/push/subscribe`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+    const result = await response.text();
+    return new NextResponse(result || JSON.stringify({ ok: response.ok }), {
+      status: response.status,
+      headers: { "Content-Type": response.headers.get("content-type") ?? "application/json" },
+    });
+  } catch {
+    return NextResponse.json({ error: "Não foi possível ativar notificações." }, { status: 503 });
+  }
 }
