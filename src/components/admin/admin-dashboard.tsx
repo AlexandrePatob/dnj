@@ -90,7 +90,7 @@ export function AdminDashboard({
 }) {
   const [panel, setPanel] = useState<AdminPanel>("Visão geral");
   async function signOut() {
-    await fetch("/api/admin/session", { method: "DELETE", credentials: "include" });
+    await fetch("/api/v2/admin/session", { method: "DELETE", credentials: "include" });
     onExit();
   }
   return (
@@ -164,7 +164,7 @@ function Overview({ onNavigate }: { onNavigate: (panel: AdminPanel) => void }) {
   const [data, setData] = useState<OverviewData | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
-    void getJson<OverviewData>("/admin/overview")
+    void getJson<OverviewData>("/api/v2/admin/overview")
       .then(setData)
       .catch(() => setError("A visão operacional está indisponível."));
   }, []);
@@ -277,7 +277,7 @@ function Managers() {
       void getJson<{
         managers: ApiManager[];
         spaces: Array<{ id: string; name: string }>;
-      }>("/admin/managers")
+      }>("/api/v2/admin/managers")
         .then((data) => {
           setManagers(data.managers);
           setSpaces(data.spaces);
@@ -287,7 +287,7 @@ function Managers() {
   );
   useEffect(load, [load]);
   async function toggle(manager: ApiManager) {
-    const response = await fetch("/admin/managers", {
+    const response = await fetch("/api/v2/admin/managers", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: manager.id, active: !manager.is_active }),
@@ -364,7 +364,7 @@ function CreateManager({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
-    const response = await fetch("/admin/managers", {
+    const response = await fetch("/api/v2/admin/managers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password, scope, spaceId }),
@@ -467,7 +467,7 @@ function ExperienceList({
   const load = useCallback(
     () =>
       void getJson<{ experiences: ApiExperience[] }>(
-        `/admin/experiences${kind === "all" ? "" : "?kind=moment_challenge"}`,
+        `/api/v2/admin/experiences${kind === "all" ? "" : "?kind=moment_challenge"}`,
       )
         .then((data) =>
           setItems(
@@ -481,7 +481,7 @@ function ExperienceList({
   );
   useEffect(load, [load]);
   async function startChallenge(item: ApiExperience) {
-    const response = await fetch("/admin/experiences", {
+    const response = await fetch("/api/v2/admin/experiences", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: item.id, status: "active" }),
@@ -534,7 +534,7 @@ function ExperienceList({
                     <button
                       className={styles.ghostButton}
                       onClick={() =>
-                        void fetch("/admin/experiences", {
+                        void fetch("/api/v2/admin/experiences", {
                           method: "PATCH",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({ id: item.id, status: "completed" }),
@@ -572,7 +572,7 @@ function CreateExperience({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
-    const response = await fetch("/admin/experiences", {
+    const response = await fetch("/api/v2/admin/experiences", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -714,7 +714,7 @@ function SpecialEvents() {
   } | null>(null);
   const load = useCallback(
     () =>
-      void getJson<{ events: ApiSpecial[] }>("/admin/special-events")
+      void getJson<{ events: ApiSpecial[] }>("/api/v2/admin/special-events")
         .then((data) => setEvents(data.events))
         .catch(() =>
           setError("Não foi possível carregar os eventos especiais."),
@@ -723,7 +723,7 @@ function SpecialEvents() {
   );
   useEffect(load, [load]);
   async function transition(id: string, status: ApiSpecial["status"]) {
-    const response = await fetch("/admin/special-events", {
+    const response = await fetch("/api/v2/admin/special-events", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, status }),
@@ -832,7 +832,7 @@ function CreateSpecialEvent({ onCreated }: { onCreated: () => void }) {
     setMessage("");
     const durationMinutes =
       duration === "custom" ? Number(customDuration) : Number(duration);
-    const response = await fetch("/admin/special-events", {
+    const response = await fetch("/api/v2/admin/special-events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -953,7 +953,7 @@ function Moderation({
   const load = useCallback(
     () =>
       void getJson<{ moments: AdminMoment[] }>(
-        `/admin/moderation?queue=${queue}`,
+        `/api/v2/admin/moderation?queue=${queue}`,
       )
         .then((data) => setMoments(data.moments))
         .catch(() => setError("Não foi possível carregar a fila.")),
@@ -964,7 +964,7 @@ function Moderation({
     moment: AdminMoment,
     action: "deny_points" | "delete_photo",
   ) {
-    const response = await fetch("/admin/moderation", {
+    const response = await fetch("/api/v2/admin/moderation", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: moment.id, action }),
@@ -1056,7 +1056,7 @@ function Participants() {
   }> | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
-    void getJson<{ users: NonNullable<typeof users> }>("/admin/users")
+    void getJson<{ users: NonNullable<typeof users> }>("/api/v2/admin/users")
       .then((data) => setUsers(data.users))
       .catch(() => setError("Não foi possível carregar participantes."));
   }, []);
@@ -1095,7 +1095,7 @@ function Audit() {
   }> | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
-    void getJson<{ activity: NonNullable<typeof items> }>("/admin/activity")
+    void getJson<{ activity: NonNullable<typeof items> }>("/api/v2/admin/activity")
       .then((data) => setItems(data.activity))
       .catch(() => setError("Não foi possível carregar a auditoria."));
   }, []);
@@ -1135,7 +1135,7 @@ function Notifications() {
   async function send(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSending(true);
-    const response = await fetch("/admin/notifications", {
+    const response = await fetch("/api/v2/admin/notifications", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, body, target: "all" }),
