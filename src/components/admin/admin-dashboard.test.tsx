@@ -7,7 +7,7 @@ const fetchMock = vi.fn();
 beforeEach(() => {
   fetchMock.mockReset();
   fetchMock.mockImplementation((input: string) => {
-    if (input === "/api/v2/admin/moderation?queue=challenge") return Promise.resolve(new Response(JSON.stringify({ moments: [{ id: "moment-1", captured_at: "2026-10-18T17:35:00.000Z", points_awarded: 30, moderation_status: "approved", reward_status: "awarded", photo_status: "available", imageUrl: "/api/v2/media/private/moment-1.jpg", participation: { participantName: "Alex", experienceName: "Foto com a galera", isChallenge: true } }] })));
+    if (input === "/admin/moderation?queue=challenge") return Promise.resolve(new Response(JSON.stringify({ moments: [{ id: "moment-1", captured_at: "2026-10-18T17:35:00.000Z", points_awarded: 30, moderation_status: "approved", reward_status: "awarded", photo_status: "available", imageUrl: "/api/v2/media/private/moment-1.jpg", participation: { participantName: "Alex", experienceName: "Foto com a galera", isChallenge: true } }] })));
     return Promise.resolve(new Response(JSON.stringify({ activeUsers: 1, pendingModeration: 1, pendingChallengeModeration: 0, activeManagers: 1, liveSpecialEvents: 0, openExperiences: 1, interactionsToday: 1, activity: [] })));
   });
   vi.stubGlobal("fetch", fetchMock);
