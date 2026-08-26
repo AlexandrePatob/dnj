@@ -1,5 +1,5 @@
-import { ManagerLogin } from "@/components/manager/manager-login";
+import { OperationalLogin } from "@/components/auth/operational-login";
 
 export default function ManagerLoginPage() {
-  return <ManagerLogin />;
+  return <OperationalLogin area="Operação DNJ" role="EVENT_MANAGER" sessionPath="/api/manager/session" destination="/manager" />;
 }
