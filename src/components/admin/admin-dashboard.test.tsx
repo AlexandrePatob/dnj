@@ -3,21 +3,22 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AdminDashboard } from "./admin-dashboard";
 
 const fetchMock = vi.fn();
+const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
 beforeEach(() => {
   fetchMock.mockReset();
   fetchMock.mockImplementation((input: string, init?: RequestInit) => {
     if (input === "/api/v2/admin/moments/moderation?queue=challenge&page=1" || input === "/api/v2/admin/moments/moderation?queue=general&page=1")
-      return Promise.resolve(new Response(JSON.stringify({ data: [{ momentId: "moment-1", imageUrl: "https://image.test/moment-1.jpg", capturedAt: "2026-10-18T17:35:00.000Z", participantName: "Alex", activity: { id: "activity-1", name: "Gincana" }, pointsAwarded: 30, photoStatus: "available", availableActions: ["deny_points"] }] })));
+      return Promise.resolve(jsonResponse({ data: [{ momentId: "moment-1", imageUrl: "https://image.test/moment-1.jpg", capturedAt: "2026-10-18T17:35:00.000Z", participantName: "Alex", activity: { id: "activity-1", name: "Gincana" }, pointsAwarded: 30, photoStatus: "available", availableActions: ["deny_points"] }] }));
     if (input === "/api/v2/admin/moments/moment-1/moderation")
-      return Promise.resolve(new Response(JSON.stringify({ ok: true })));
+      return Promise.resolve(jsonResponse({ ok: true }));
     if (input === "/api/v2/admin/notifications" && init?.method === "POST")
-      return Promise.resolve(new Response(JSON.stringify({ recipientCount: "3" }), { status: 201 }));
+      return Promise.resolve(jsonResponse({ recipientCount: "3" }, 201));
     if (input === "/api/v2/admin/activities")
-      return Promise.resolve(new Response(JSON.stringify({ data: [{ id: "activity-1", name: "Gincana", slug: "gincana", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 10, momentPoints: 20, cooldownSeconds: 60, allowsMoment: true }] })));
+      return Promise.resolve(jsonResponse({ data: [{ id: "activity-1", name: "Gincana", slug: "gincana", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 10, momentPoints: 20, cooldownSeconds: 60, allowsMoment: true }] }));
     if (input === "/api/v2/admin/spaces")
-      return Promise.resolve(new Response(JSON.stringify({ data: [{ id: "space-1", name: "Capela", slug: "capela", mapReference: null }] })));
-    return Promise.resolve(new Response(JSON.stringify({ data: [{ id: "staff-1", name: "Ana Gestora", role: "EVENT_MANAGER", onboardingComplete: true }] })));
+      return Promise.resolve(jsonResponse({ data: [{ id: "space-1", name: "Capela", slug: "capela", mapReference: null }] }));
+    return Promise.resolve(jsonResponse({ data: [{ id: "staff-1", name: "Ana Gestora", role: "EVENT_MANAGER", onboardingComplete: true }] }));
   });
   vi.stubGlobal("fetch", fetchMock);
 });
@@ -63,6 +64,8 @@ describe("AdminDashboard V2", () => {
 
     fireEvent.click(navigation.getByRole("button", { name: "Atividades" }));
     await screen.findByText("Gincana");
+    fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Desafio da Cobra" } });
+    expect(screen.getByLabelText("Slug")).toHaveValue("desafio-da-cobra");
     fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Corrida" } });
     fireEvent.change(screen.getByLabelText("Slug"), { target: { value: "corrida" } });
     fireEvent.change(screen.getByLabelText("Início"), { target: { value: "2026-08-24T18:00" } });
