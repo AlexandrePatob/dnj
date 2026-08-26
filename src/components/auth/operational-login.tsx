@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/api/auth";
 import { env } from "@/lib/env";
 import type { ApiUserRole } from "@/lib/api/roles";
+import styles from "./operational-login.module.css";
 
 declare global {
   interface Window {
@@ -59,15 +60,17 @@ export function OperationalLogin({ area, role, sessionPath, destination }: Props
     finally { setPending(false); }
   }
 
-  return <main style={{ minHeight: "100dvh", display: "grid", placeItems: "center", padding: 20, background: "#f4f8f2", color: "#13342b" }}>
-    <form onSubmit={submit} style={{ width: "min(100%, 400px)", display: "grid", gap: 14, borderRadius: 20, padding: 28, background: "#fff", boxShadow: "0 22px 56px rgba(7,31,23,.18)" }}>
-      <strong style={{ fontSize: 24 }}>{area}</strong>
-      <p style={{ margin: 0, color: "#5f7d70" }}>Entre com e-mail ou Google. O acesso é liberado pelas permissões da sua conta.</p>
-      <label style={{ display: "grid", gap: 6 }}>E-mail<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="email" required disabled={codeSent} /></label>
-      {codeSent && <label style={{ display: "grid", gap: 6 }}>Código de 6 dígitos<input value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" required /></label>}
-      {error && <p role="alert" style={{ color: "#b33d24", margin: 0 }}>{error}</p>}
-      <button disabled={pending || !email || (codeSent && code.length !== 6)} type="submit">{pending ? "Entrando…" : codeSent ? "Confirmar código" : "Enviar código"}</button>
-      <div ref={googleButton} style={{ justifySelf: "center" }} aria-label="Entrar com Google" />
+  return <main className={styles.page}>
+    <form className={styles.card} onSubmit={submit}>
+      <div className={styles.brand}><span className={styles.mark}>DNJ</span><p className={styles.eyebrow}>{area}</p></div>
+      <h1 className={styles.title}>Acesso à operação</h1>
+      <p className={styles.description}>Entre com e-mail ou Google. O acesso é liberado pelas permissões da sua conta.</p>
+      <label className={styles.field}>E-mail<input className={styles.input} value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="email" required disabled={codeSent} /></label>
+      {codeSent && <label className={styles.field}>Código de 6 dígitos<input className={styles.input} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" required /></label>}
+      {error && <p role="alert" className={styles.error}>{error}</p>}
+      <button className={styles.button} disabled={pending || !email || (codeSent && code.length !== 6)} type="submit">{pending ? "Entrando…" : codeSent ? "Confirmar código" : "Enviar código"}</button>
+      <div ref={googleButton} className={styles.google} aria-label="Entrar com Google" />
+      <p className={styles.hint}>Acesso restrito à equipe autorizada do DNJ.</p>
     </form>
   </main>;
 }
