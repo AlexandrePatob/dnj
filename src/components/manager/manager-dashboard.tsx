@@ -111,8 +111,9 @@ async function api(path: string, init?: RequestInit) {
   return response.status === 204 ? null : response.json();
 }
 function getScope(session: Session, overview: Overview): Scope | undefined {
-  const sessionScope = session.manager?.scope ?? session.scope;
-  return sessionScope ?? overview.scope;
+  if (session.manager?.scope) return session.manager.scope;
+  if (overview.scope) return overview.scope;
+  return session.scope === "pastoral_queue" ? session.scope : undefined;
 }
 function time(value?: string) {
   return value
