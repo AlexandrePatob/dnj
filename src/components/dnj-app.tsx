@@ -75,7 +75,6 @@ export function DnjApp() {
   const [screen, setScreen]         = useState<Screen>("login");
   const [prevScreen, setPrevScreen] = useState<Screen>("login");
   const [emailVal, setEmailVal]     = useState("");
-  const [simulatedSmsCode, setSimulatedSmsCode] = useState<string | null>(null);
   const [registration, setRegistration] = useState<RegistrationData | null>(null);
   const [user, setUser] = useState<UserData>({
     name: "João Paulo", cpf: "", email: "", group: "",
@@ -94,32 +93,30 @@ export function DnjApp() {
     setScreen(next);
   }, [screen]);
 
-  const handleLogin = useCallback(async (email: string, cpf: string) => {
+  const handleLogin = useCallback(async (email: string) => {
     setEmailVal(email);
-    setUser((u) => ({ ...u, email, cpf }));
-    const delivery = await authApi.requestCode(email, cpf.replace(/\D/g, ""));
-    setSimulatedSmsCode(delivery?.verificationCode ?? null);
+    setUser((u) => ({ ...u, email }));
+    await authApi.requestCode(email);
     navigate("verify");
   }, [navigate]);
 
   const handleGoogleLogin = useCallback(async (idToken: string) => {
     const identity = await authApi.loginWithGoogle(idToken);
     const apiUser = mapIdentityUser(identity.user);
-    const session = { user: apiUser, identityToken: "" };
+    const session = { user: apiUser, identityToken: identity.accessToken };
     storage.setSession(session);
     setUser(sessionUserData(session));
     navigate(identity.onboardingRequired || !identity.user.onboardingComplete ? "group" : "home");
   }, [navigate]);
 
   const handleResendVerification = useCallback(async () => {
-    const delivery = await authApi.requestCode(emailVal, user.cpf.replace(/\D/g, ""));
-    setSimulatedSmsCode(delivery?.verificationCode ?? null);
-  }, [emailVal, user.cpf]);
+    await authApi.requestCode(emailVal);
+  }, [emailVal]);
 
   const handleVerification = useCallback(async (code: string) => {
-    const response = await authApi.verifyCode(emailVal, user.cpf.replace(/\D/g, ""), code);
-    const apiUser = mapApiUser(response);
-    const session = { user: apiUser, identityToken: response.identityToken };
+    const response = await authApi.verifyCode(emailVal, code);
+    const apiUser = mapIdentityUser(response.user);
+    const session = { user: apiUser, identityToken: response.accessToken };
     storage.setSession(session);
     setUser({
       name: apiUser.name,
@@ -129,8 +126,8 @@ export function DnjApp() {
       points: apiUser.points,
       rankPosition: apiUser.rankPosition,
     });
-    navigate("group");
-  }, [emailVal, navigate, user]);
+    navigate(response.onboardingRequired || !response.user.onboardingComplete ? "group" : "home");
+  }, [emailVal, navigate]);
 
   const handleRegistrationVerification = useCallback(async () => {
     if (!registration) throw new ApiError("Dados do cadastro não encontrados. Tente novamente.", 400);
@@ -235,7 +232,7 @@ export function DnjApp() {
             {screen === "login"           && <LoginScreen    onNext={handleLogin} onGoogleLogin={handleGoogleLogin} onRegister={() => navigate("register")} animDir={animDir} />}
             {screen === "register"        && <RegisterScreen onBack={() => navigate("login")} onDone={(data) => { setRegistration(data); navigate("register-verify"); }} animDir={animDir} />}
             {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} />}
-            {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onResend={handleResendVerification} simulatedSmsCode={simulatedSmsCode} onBack={() => navigate("login")}  animDir={animDir} />}
+            {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onResend={handleResendVerification} onBack={() => navigate("login")}  animDir={animDir} />}
             {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("verify")} animDir={animDir} initialGroup={user.group} />}
             {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} onOpenSchedule={() => navigate("schedule")} onOpenMap={() => navigate("map")} />}
             {screen === "schedule" && <EventScheduleScreen animDir={animDir} onBack={() => navigate("home")} />}

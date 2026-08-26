@@ -50,16 +50,6 @@ describe("RegisterScreen", () => {
 });
 
 describe("entry feedback", () => {
-  it("shows field guidance for an incomplete CPF", () => {
-    render(<LoginScreen animDir="up" onNext={vi.fn()} onRegister={vi.fn()} />);
-    fireEvent.change(screen.getByLabelText("CPF"), {
-      target: { value: "123" },
-    });
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Informe os 11 dígitos do CPF.",
-    );
-  });
-
   it("shows field guidance for an invalid email", () => {
     render(<LoginScreen animDir="up" onNext={vi.fn()} onRegister={vi.fn()} />);
     fireEvent.change(screen.getByLabelText("E-mail"), {
