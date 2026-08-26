@@ -25,6 +25,7 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "@zxing/browser": "^0.2.1",
+    "firebase": "^12.18.0",
     "lucide-react": "0.487.0",
     "motion": "^12.42.2",
     "next": "^16.2.10",
