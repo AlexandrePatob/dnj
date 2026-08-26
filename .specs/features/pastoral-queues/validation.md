@@ -1,6 +1,6 @@
 # Filas Pastorais Validation
 
-**Date**: 2026-08-26 (re-validation pass 2)  
+**Date**: 2026-08-26 (re-validation pass 3)  
 **Spec**: `.specs/features/pastoral-queues/spec.md`  
 **Diff range**: `f53789a..ef281d2`  
 **Verifier**: independent sub-agent (author ≠ verifier)
@@ -12,12 +12,12 @@
 | T1 | ✅ Done | `src/lib/pastoral-queue/firebase.ts` and package dependency present; typecheck/build pass. |
 | T2 | ✅ Done | Domain types, paths, statuses, milestones and config validator present; unit tests pass. |
 | T3 | ⚠️ Partial | Participant transaction tests pass, but the UI has no identity recovery listener. |
-| T4 | ⚠️ Partial | Service tests cover basic call/resolve paths; manager console bypasses the service and no concurrent-call test exists. |
+| T4 | ⚠️ Partial | Console now routes through atomic manager transitions; no concurrent-call test exists. |
 | T5 | ❌ Not done | Listener and intent helper exist, but no realtime-service tests and no listener integration creates intents. |
 | T6 | ⚠️ Partial | Participant screen uses Firestore and its stale unit test was corrected; cross-device recovery remains absent. |
 | T7 | ✅ Done | Scope union/composition and tests for `pastoral_queue` are present. |
 | T8 | ⚠️ Partial | Read/update/validation service exists; no test preserves a valid document after an invalid write, and push fields have no manager controls. |
-| T9 | ❌ Not done | Console renders basic call/resolve controls, but does not use atomic manager transitions, does not implement a 2-minute alert, and does not expose push/delay controls. |
+| T9 | ⚠️ Partial | Console now uses atomic transitions and highlights the 2-minute threshold; no push/delay controls or behavior-level timeout test exists. |
 | T10 | ✅ Done | Admin navigation/overview and read-only assertions are present. |
 | T11 | ⚠️ Partial | Firebase boundary/rules/indexes/package exist and function TypeScript build passes; emulator gate remains blocked by missing Java. |
 | T12 | ❌ Not done | No notification Function source or trigger exists. |
@@ -88,11 +88,11 @@ Evidence is required as `file:line` plus an assertion. Where there is no behavio
 
 | Gate | Command | Result |
 | --- | --- | --- |
-| Typecheck | `npm run typecheck` | ❌ fail: `manager-service.ts:12-14` passes a Query to a transaction `get` typed as a DocumentReference and then reads `.empty`/`.docs` from a DocumentSnapshot. |
+| Typecheck | `npm run typecheck` | ✅ pass after `a500286` restored the transaction query compatibility. |
 | Lint | `npm run lint` | ✅ pass with 0 errors, 157 pre-existing/style warnings |
 | Unit | `npm run test:unit` | ✅ 53 files passed; 229 tests passed, 0 failed |
 | Build | `npm run build` | ✅ pass; Next production build completed. |
-| Complete | `npm run validate` | ❌ stops at typecheck with the manager transaction typing errors above. |
+| Complete | `npm run validate` | ⚠️ not rerun in this pass; the previously failing typecheck now passes, while functional gaps remain. |
 | Functions build | `npm --prefix functions run build` | ✅ pass |
 | Functions unit | `npm --prefix functions test` | ✅ 1 passed, 0 failed |
 | Firestore emulator | `npm --prefix functions run test:emulator` | ⚠️ blocked: `Could not spawn java -version`; Java is not installed/on PATH. |
@@ -114,8 +114,8 @@ Evidence is required as `file:line` plus an assertion. Where there is no behavio
 **Overall**: ❌ Not ready  
 **Spec-anchored check**: 6/19 have direct passing evidence, 8 partial, 5 uncovered; no precise evidence for the core notification/timeout/concurrency flows.  
 **Sensor**: blocked; 0/0 completed because the mandatory gate still fails at typecheck.  
-**Gate**: lint/unit/build/functions build+unit pass; typecheck/validate fail; emulator blocked.
+**Gate**: typecheck/lint/unit/build/functions build+unit pass; complete gate not rerun; emulator blocked.
 
 **What works**: Firestore client/domain foundation, participant basic transaction guards, basic manager service transitions, manager scope composition, Admin read-only fixture, config bounds, isolated rules/package scaffolding, and runbook.  
-**Issues found**: core queue operation is split between tested services and an unsafe console implementation; notifications, 2-minute alert semantics and E2E are absent; standalone typecheck still fails.  
-**Next step**: fix the transaction typing and route the remaining T12/T13/T14/timeout gaps to implementers, then rerun this independent verifier.
+**Issues found**: atomic manager routing and threshold highlighting are now present, but notifications (T12/T13), pastoral E2E (T14), cross-device recovery and behavior-level concurrency/timeout coverage remain absent.  
+**Next step**: route the remaining T12/T13/T14/cross-device and coverage gaps to implementers, then rerun this independent verifier.
