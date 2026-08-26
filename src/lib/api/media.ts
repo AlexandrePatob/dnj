@@ -2,7 +2,7 @@ import { apiMutation, newIdempotencyKey } from "@/lib/api/client";
 import type { Moment } from "@/types/experience";
 type Intent = { mediaAssetId: string; uploadUrl: string; method: "PUT"; headers: Record<string, string>; expiresAt: string };
 export type PublishProgress = "hashing" | "requesting_intent" | "uploading" | "completing" | "publishing" | "success" | "error";
-async function checksum(file: File) { const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer()); return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join(""); }
+async function checksum(file: File) { const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer()); return btoa(String.fromCharCode(...new Uint8Array(digest))); }
 export async function publishMoment(input: { file: File; participationId?: string; publishConsent: boolean; onProgress?: (state: PublishProgress) => void }): Promise<Moment> {
   if (!/image\/(jpeg|png)/.test(input.file.type) || input.file.size > 10 * 1024 * 1024) throw new Error("A imagem deve ser JPEG ou PNG de até 10 MiB.");
   input.onProgress?.("hashing"); const sha256 = await checksum(input.file); input.onProgress?.("requesting_intent");
