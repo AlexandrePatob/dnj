@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createManagerCookie, managerCookie, readManagerCookie, type ManagerScope } from "@/lib/operator-session";
-import { uiScope } from "@/lib/manager-api";
+import { query, uiScope } from "@/lib/manager-api";
 import { supabaseRest } from "@/lib/supabase-server";
 
 type LoginRow = { user_id: string; display_name: string; scopes: ManagerScope[] };
