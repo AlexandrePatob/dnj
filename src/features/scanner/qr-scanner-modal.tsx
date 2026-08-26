@@ -163,7 +163,7 @@ export function QrScannerModal({
 
   return (
     <motion.section
-      className="absolute inset-0 z-50 flex flex-col items-center justify-center px-6"
+      className="qr-modal absolute inset-0 z-50 flex flex-col items-center justify-center overflow-y-auto px-6"
       style={{ background: "var(--background)" }}
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -199,7 +199,7 @@ export function QrScannerModal({
         </p>
       </div>
       <div
-        className="relative mb-4 aspect-square w-[80vw] max-w-[34rem] overflow-hidden rounded-3xl"
+        className="qr-frame relative mb-4 aspect-square w-[min(80vw,34rem)] max-w-full overflow-hidden rounded-3xl"
         style={{ background: "var(--muted)" }}
       >
         <video
