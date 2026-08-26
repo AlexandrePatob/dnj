@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AdminDashboard } from "./admin-dashboard";
 
@@ -38,6 +38,35 @@ describe("AdminDashboard V2", () => {
     expect(await screen.findByText("Capela")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.anything());
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/spaces", expect.anything());
+  });
+
+  it("keeps session logout outside the V2 proxy and hides unsupported panels", async () => {
+    const onExit = vi.fn();
+    render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={onExit} />);
+    expect(screen.queryByRole("button", { name: "Visão geral" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Eventos especiais" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Participantes" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Sair" }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/admin/session", { method: "DELETE", credentials: "include" });
+    await waitFor(() => expect(onExit).toHaveBeenCalledOnce());
+  });
+
+  it("creates spaces and activities with documented V2 payloads", async () => {
+    render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    const navigation = within(screen.getByRole("navigation", { name: "Navegação administrativa" }));
+    fireEvent.click(navigation.getByRole("button", { name: "Espaços" }));
+    await screen.findByText("Capela");
+    fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Quadra" } });
+    fireEvent.change(screen.getByLabelText("Slug"), { target: { value: "quadra" } });
+    fireEvent.click(screen.getByRole("button", { name: "Criar espaço" }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/spaces", expect.objectContaining({ method: "POST", body: JSON.stringify({ name: "Quadra", slug: "quadra" }) }));
+
+    fireEvent.click(navigation.getByRole("button", { name: "Atividades" }));
+    await screen.findByText("Gincana");
+    fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Corrida" } });
+    fireEvent.change(screen.getByLabelText("Slug"), { target: { value: "corrida" } });
+    fireEvent.click(screen.getByRole("button", { name: "Criar atividade" }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.objectContaining({ method: "POST", body: JSON.stringify({ name: "Corrida", slug: "corrida", kind: "challenge", checkInPoints: 0, momentPoints: 0, cooldownSeconds: 0, allowsMoment: true }) }));
   });
 
   it("uses the documented moderation action endpoint", async () => {
