@@ -4,15 +4,10 @@ export interface AdminSession {
 }
 
 export type AdminPanel =
-  | "Visão geral"
   | "Gestores"
-  | "Experiências"
-  | "Desafios de Momento"
-  | "Eventos especiais"
-  | "Moderação geral"
-  | "Moderação de desafio"
-  | "Participantes"
-  | "Auditoria"
+  | "Atividades"
+  | "Espaços"
+  | "Moderação"
   | "Notificações";
 
 export interface AdminMoment {
