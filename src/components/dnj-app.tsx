@@ -519,7 +519,7 @@ function SpaceItem({ name, desc }: { name: string; desc: string }) {
 function QRModal({ onClose }: { onClose: () => void }) {
   return (
     <motion.div
-      className="absolute inset-0 z-50 flex flex-col items-center justify-center px-6"
+      className="qr-modal absolute inset-0 z-50 flex flex-col items-center justify-center overflow-y-auto px-6"
       style={{ background: "var(--background)" }}
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -528,7 +528,7 @@ function QRModal({ onClose }: { onClose: () => void }) {
     >
       <button
         onClick={onClose}
-        className="absolute top-12 right-6 w-10 h-10 rounded-xl flex items-center justify-center"
+        className="absolute right-6 top-[max(3rem,env(safe-area-inset-top))] flex h-10 w-10 items-center justify-center rounded-xl"
         style={{ background: "var(--muted)" }}
       >
         <X size={18} style={{ color: "var(--foreground)" }} />
@@ -549,7 +549,7 @@ function QRModal({ onClose }: { onClose: () => void }) {
         </p>
       </div>
 
-      <div style={{ position: "relative", width: "256px", height: "256px", marginBottom: "32px" }}>
+      <div className="qr-frame" style={{ position: "relative", width: "min(256px, 72vw)", aspectRatio: "1", marginBottom: "32px" }}>
         {(["tl", "tr", "bl", "br"] as const).map((c) => (
           <div
             key={c}
@@ -599,7 +599,7 @@ function QRModal({ onClose }: { onClose: () => void }) {
 
 // ─── Top Bar ─────────────────────────────────────────────────────────────────
 
-function TopBar() {
+function TopBar({ theme: _theme }: { theme?: Theme }) {
   return (
     <motion.div
       style={{
@@ -660,11 +660,11 @@ function BottomNav({
 
   return (
     <motion.nav
-      className="absolute bottom-0 left-0 right-0 flex items-stretch z-40"
+      className="bottom-nav absolute bottom-0 left-0 right-0 z-40 flex items-stretch"
       style={{
         background: "var(--card)",
         borderTop:  "1px solid var(--border)",
-        height:     "68px",
+        minHeight:  "68px",
       }}
       initial={{ y: 68 }}
       animate={{ y: 0 }}
