@@ -7,7 +7,7 @@ const fetchMock = vi.fn();
 beforeEach(() => {
   fetchMock.mockReset();
   fetchMock.mockImplementation((input: string, init?: RequestInit) => {
-    if (input === "/api/v2/admin/moments/moderation")
+    if (input === "/api/v2/admin/moments/moderation?queue=challenge&page=1" || input === "/api/v2/admin/moments/moderation?queue=general&page=1")
       return Promise.resolve(new Response(JSON.stringify({ data: [{ momentId: "moment-1", imageUrl: "https://image.test/moment-1.jpg", capturedAt: "2026-10-18T17:35:00.000Z", participantName: "Alex", activity: { id: "activity-1", name: "Gincana" }, pointsAwarded: 30, photoStatus: "available", availableActions: ["deny_points"] }] })));
     if (input === "/api/v2/admin/moments/moment-1/moderation")
       return Promise.resolve(new Response(JSON.stringify({ ok: true })));
@@ -75,6 +75,15 @@ describe("AdminDashboard V2", () => {
     expect(await screen.findByText("Alex")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Retirar pontos" }));
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/moments/moment-1/moderation", expect.objectContaining({ method: "POST", body: JSON.stringify({ action: "deny_points" }) }));
+  });
+
+  it("sends the required moderation queue and reloads it when changed", async () => {
+    render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Moderação" }));
+    await screen.findByText("Alex");
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/moments/moderation?queue=challenge&page=1", expect.anything());
+    fireEvent.change(screen.getByLabelText("Fila"), { target: { value: "general" } });
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/moments/moderation?queue=general&page=1", expect.anything()));
   });
 
   it("sends notifications with the documented payload", async () => {
