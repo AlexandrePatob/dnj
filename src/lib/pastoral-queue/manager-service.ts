@@ -1,4 +1,4 @@
-import { collection, doc, limit, orderBy, query, runTransaction, serverTimestamp, where, type Firestore } from "firebase/firestore";
+import { collection, doc, limit, orderBy, query, runTransaction, serverTimestamp, where, type Firestore, type Transaction } from "firebase/firestore";
 import { PARTICIPANT_STATES_PATH, QUEUE_ENTRIES_PATH, type PastoralQueueType, type QueueEntry, type ParticipantQueueState } from "./types";
 
 export interface ManagerIdentity { id: string; name: string }
@@ -7,8 +7,7 @@ export class ManagerQueueError extends Error {
 }
 
 export async function callNext(db: Firestore, type: PastoralQueueType, manager: ManagerIdentity): Promise<QueueEntry> {
-  return runTransaction(db, async (rawTransaction) => {
-    const transaction = rawTransaction as any;
+  return runTransaction(db, async (transaction: Transaction) => {
     const entries = query(collection(db, QUEUE_ENTRIES_PATH), where("type", "==", type), where("status", "==", "queued"), orderBy("createdAt", "asc"), limit(1));
     const snapshot = await transaction.get(entries);
     if (snapshot.empty) throw new ManagerQueueError("Não há pessoas aguardando.", "empty");
@@ -22,8 +21,7 @@ export async function callNext(db: Firestore, type: PastoralQueueType, manager: 
 }
 
 export async function resolveCalled(db: Firestore, entryId: string, outcome: "completed" | "no_show", manager: ManagerIdentity): Promise<void> {
-  await runTransaction(db, async (rawTransaction) => {
-    const transaction = rawTransaction as any;
+  await runTransaction(db, async (transaction: Transaction) => {
     const ref = doc(db, QUEUE_ENTRIES_PATH, entryId);
     const snapshot = await transaction.get(ref);
     if (!snapshot.exists() || (snapshot.data() as QueueEntry).status !== "called") throw new ManagerQueueError("Esta chamada já foi encerrada.", "conflict");
