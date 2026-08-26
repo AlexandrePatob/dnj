@@ -57,10 +57,10 @@ describe("AdminDashboard V2", () => {
     const navigation = within(screen.getByRole("navigation", { name: "Navegação administrativa" }));
     fireEvent.click(navigation.getByRole("button", { name: "Espaços" }));
     await screen.findByText("Capela");
-    fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Quadra" } });
-    fireEvent.change(screen.getByLabelText("Slug"), { target: { value: "quadra" } });
+    fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Quadra São José" } });
+    expect(screen.getByLabelText("Slug")).toHaveValue("quadra-sao-jose");
     fireEvent.click(screen.getByRole("button", { name: "Criar espaço" }));
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/spaces", expect.objectContaining({ method: "POST", body: JSON.stringify({ name: "Quadra", slug: "quadra" }) }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/spaces", expect.objectContaining({ method: "POST", headers: expect.objectContaining({ "Idempotency-Key": expect.stringMatching(/^[0-9a-f-]{36}$/i) }), body: JSON.stringify({ name: "Quadra São José", slug: "quadra-sao-jose" }) }));
 
     fireEvent.click(navigation.getByRole("button", { name: "Atividades" }));
     await screen.findByText("Gincana");
