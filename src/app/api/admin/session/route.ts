@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import { env } from "@/lib/env";
-import { readOperationalToken, validateAccessToken } from "@/lib/operational-auth";
+import { hasOperationalRole, readOperationalToken, validateAccessToken } from "@/lib/operational-auth";
 
 const cookieName = "dnj_admin_access";
 const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/", maxAge: 60 * 60 * 8 };
 
 async function session(accessToken: string) {
   const { response, identity } = await validateAccessToken(accessToken);
-  if (!response.ok || identity?.user?.role !== "ADMIN" || !identity.user.email) return null;
+  if (!response.ok || !hasOperationalRole(identity, "ADMIN") || !identity?.user?.email) {
+    console.warn("Admin session validation failed", { upstreamStatus: response.status, role: identity?.user?.role, hasEmail: Boolean(identity?.user?.email) });
+    return null;
+  }
   return { email: identity.user.email, name: identity.user.name ?? "Administração DNJ" };
 }
 

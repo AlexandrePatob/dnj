@@ -3,6 +3,10 @@ import { env } from "@/lib/env";
 
 export type OperationalIdentity = { user?: { id?: string; email?: string; name?: string; role?: string } };
 
+export function hasOperationalRole(identity: OperationalIdentity | null, role: string) {
+  return identity?.user?.role?.trim().toUpperCase() === role;
+}
+
 export async function validateAccessToken(accessToken: string) {
   const response = await fetch(`${env.v2UpstreamUrl}/auth/session`, { headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store" });
   const identity = await response.json().catch(() => null) as OperationalIdentity | null;

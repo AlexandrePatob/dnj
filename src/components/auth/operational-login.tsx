@@ -26,7 +26,7 @@ export function OperationalLogin({ area, role, sessionPath, destination }: Props
 
   const finish = useCallback(async (accessToken: string, returnedRole: ApiUserRole) => {
     if (returnedRole !== role) throw new Error("Esta conta não tem acesso a esta área.");
-    const response = await fetch(sessionPath.replace(/^\/api\/admin/, "/api/v2/admin"), { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accessToken }) });
+    const response = await fetch(sessionPath, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accessToken }) });
     if (!response.ok) throw new Error("Não foi possível liberar o acesso a esta área.");
     router.replace(destination);
   }, [destination, role, router, sessionPath]);
