@@ -39,12 +39,11 @@ export function LoginScreen({
   onGoogleLogin,
   animDir,
 }: {
-  onNext: (email: string, cpf: string) => Promise<void>;
+  onNext: (email: string) => Promise<void>;
   onRegister: () => void;
   onGoogleLogin?: (idToken: string) => Promise<void>;
   animDir: AnimDir;
 }) {
-  const [cpf, setCpf] = useState("");
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -67,19 +66,7 @@ export function LoginScreen({
     return () => script.remove();
   }, [onGoogleLogin]);
 
-  function formatCPF(raw: string) {
-    const d = raw.replace(/\D/g, "").slice(0, 11);
-    return d
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
-      .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
-  }
-
-  const valid = cpf.replace(/\D/g, "").length === 11 && email.includes("@");
-  const cpfError =
-    cpf && cpf.replace(/\D/g, "").length !== 11
-      ? "Informe os 11 dígitos do CPF."
-      : "";
+  const valid = email.includes("@");
   const emailError =
     email && !email.includes("@") ? "Informe um e-mail válido." : "";
 
@@ -88,7 +75,7 @@ export function LoginScreen({
     setSubmitting(true);
     setSubmitError("");
     try {
-      await onNext(email, cpf);
+      await onNext(email);
     } catch (error) {
       setSubmitError(requestErrorMessage(error));
     } finally {
@@ -155,15 +142,6 @@ export function LoginScreen({
           }}
         >
           <FieldInput
-            label="CPF"
-            type="text"
-            inputMode="numeric"
-            placeholder="000.000.000-00"
-            value={cpf}
-            onChange={(e) => setCpf(formatCPF(e.target.value))}
-            error={cpfError}
-          />
-          <FieldInput
             label="E-mail"
             type="email"
             placeholder="seu@email.com"
@@ -181,7 +159,7 @@ export function LoginScreen({
             disabled={!valid || submitting}
             className="mt-1"
           >
-            {submitting ? "Enviando código..." : "Entrar"}
+            {submitting ? "Enviando código..." : "Entrar com e-mail"}
           </PrimaryButton>
           {onGoogleLogin ? <><div className="my-1 flex items-center gap-3 text-xs" style={{ color: "var(--muted-foreground)" }}><span className="h-px flex-1" style={{ background: "var(--border)" }} />ou<span className="h-px flex-1" style={{ background: "var(--border)" }} /></div><div ref={googleButton} className="flex justify-center" aria-label="Entrar com Google" /></> : null}
         </div>
