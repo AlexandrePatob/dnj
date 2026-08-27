@@ -10,6 +10,7 @@ import { gameApi } from "@/lib/api/game";
 type ScannerStatus = "starting" | "reading" | "error" | "success";
 type CameraFacing = "environment" | "user";
 type ZoomRange = { min: number; max: number; step: number } | null;
+const cameraStartTimeout = "CAMERA_START_TIMEOUT";
 type ZoomCapableTrack = MediaStreamTrack & {
   getCapabilities?: () => {
     zoom?: { min?: number; max?: number; step?: number };
@@ -18,6 +19,8 @@ type ZoomCapableTrack = MediaStreamTrack & {
 
 function scannerMessage(error: unknown) {
   const typed = error as Partial<ExperienceError>;
+  if (error instanceof Error && error.message === cameraStartTimeout)
+    return "A câmera demorou para responder. Tente novamente.";
   if (typed.code)
     return typed.message ?? "Não foi possível validar este QR Code.";
   if (error instanceof DOMException && error.name === "NotAllowedError")
@@ -110,13 +113,18 @@ export function QrScannerModal({
     try {
       const { BrowserQRCodeReader } = await import("@zxing/browser");
       const reader = new BrowserQRCodeReader();
-      controlsRef.current = await reader.decodeFromConstraints(
-        { video: { facingMode: { ideal: facingMode } }, audio: false },
-        videoRef.current,
-        (result) => {
-          if (result) void validate(result.getText());
-        },
-      );
+      controlsRef.current = await Promise.race([
+        reader.decodeFromConstraints(
+          { video: { facingMode: { ideal: facingMode } }, audio: false },
+          videoRef.current,
+          (result) => {
+            if (result) void validate(result.getText());
+          },
+        ),
+        new Promise<IScannerControls>((_, reject) =>
+          window.setTimeout(() => reject(new Error(cameraStartTimeout)), 8_000),
+        ),
+      ]);
       setStatus("reading");
       setMessage("Aponte a câmera para o QR Code do evento.");
       window.setTimeout(readZoomCapabilities, 180);

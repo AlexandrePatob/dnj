@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, apiMutation, apiRequest } from "./client";
+import { ApiError, apiMutation, apiRequest, setCsrfToken } from "./client";
 
 function response(body: unknown, init: { status?: number; contentType?: string } = {}) {
   const contentType = init.contentType ?? "application/json";
@@ -12,6 +12,7 @@ function response(body: unknown, init: { status?: number; contentType?: string }
 
 describe("apiRequest offline behavior", () => {
   beforeEach(() => {
+    setCsrfToken();
     vi.stubGlobal("window", { setTimeout, clearTimeout });
     vi.stubGlobal("navigator", { onLine: true });
     vi.stubGlobal("fetch", vi.fn());
@@ -19,6 +20,7 @@ describe("apiRequest offline behavior", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it("fails before fetch with a distinguishable Portuguese offline error", async () => {
@@ -128,6 +130,19 @@ describe("apiRequest offline behavior", () => {
     vi.mocked(fetch).mockResolvedValueOnce(response({ ok: true }));
     await apiRequest("/auth/refresh", { method: "POST" });
     expect(fetch).toHaveBeenCalledWith("/api/v2/auth/refresh", expect.objectContaining({ headers: expect.objectContaining({ "X-CSRF-Token": "published-token" }) }));
+  });
+
+  it("uses the CSRF token returned by refresh when replaying a 401 request", async () => {
+    vi.stubGlobal("document", { cookie: "csrf_token=stale-token" });
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(response({ code: "AUTH_EXPIRED", message: "expired" }, { status: 401 }))
+      .mockResolvedValueOnce(response({ csrfToken: "rotated-token" }))
+      .mockResolvedValueOnce(response({ value: 1 }));
+
+    await expect(apiRequest("/ranking")).resolves.toEqual({ value: 1 });
+
+    expect(vi.mocked(fetch).mock.calls[1][0]).toBe("/api/v2/auth/refresh");
+    expect((vi.mocked(fetch).mock.calls[2][1] as RequestInit).headers).toEqual(expect.objectContaining({ "X-CSRF-Token": "rotated-token" }));
   });
 
   it("retries transient mutations three times with the same idempotency key", async () => {

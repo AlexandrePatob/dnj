@@ -6,6 +6,7 @@ import type { Participation } from "@/types/experience";
 import { publishMoment, type PublishProgress } from "@/lib/api/media";
 
 type MomentStep = "capture" | "review";
+const CAMERA_START_TIMEOUT_MS = 8_000;
 
 export function MomentComposer({ participation, onClose, onCreated }: { participation: Participation | null; onClose: () => void; onCreated: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -28,11 +29,14 @@ export function MomentComposer({ participation, onClose, onCreated }: { particip
     if (!navigator.mediaDevices?.getUserMedia) { setStatus("Seu navegador não oferece acesso à câmera."); return; }
     stopCamera(); setStatus("Abrindo câmera...");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facingMode } }, audio: false });
+      const stream = await Promise.race([
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facingMode } }, audio: false }),
+        new Promise<MediaStream>((_, reject) => window.setTimeout(() => reject(new Error("CAMERA_START_TIMEOUT")), CAMERA_START_TIMEOUT_MS)),
+      ]);
       streamRef.current = stream;
       if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
       setCameraOpen(true); setStatus(null);
-    } catch { setStatus("Não foi possível abrir a câmera. Autorize o acesso e tente novamente."); }
+    } catch (error) { setStatus(error instanceof Error && error.message === "CAMERA_START_TIMEOUT" ? "A câmera demorou para responder. Tente novamente." : "Não foi possível abrir a câmera. Autorize o acesso e tente novamente."); }
   }, [facingMode, stopCamera]);
   useEffect(() => { const timer = window.setTimeout(() => { void startCamera(); }, 0); return () => { window.clearTimeout(timer); stopCamera(); }; }, [startCamera, stopCamera]);
   useEffect(() => { if (cameraOpen && streamRef.current && videoRef.current) { videoRef.current.srcObject = streamRef.current; void videoRef.current.play(); } }, [cameraOpen]);
@@ -54,7 +58,7 @@ export function MomentComposer({ participation, onClose, onCreated }: { particip
       window.setTimeout(onCreated, 700);
     } catch (error) { setStatus((error as { message?: string }).message ?? "Falha segura: tente publicar novamente."); }
   }
-  return <section className="absolute inset-0 z-50 flex flex-col items-center overflow-y-auto px-5" style={{ background: "var(--background)", paddingTop: "calc(76px + var(--safe-area-top))" }} aria-label="Compartilhar momento">
+  return <section role="dialog" aria-modal="true" className="absolute inset-0 z-50 flex min-h-0 flex-col items-center overflow-y-auto px-5 pb-[calc(var(--bottom-nav-total-height)+1rem)]" style={{ background: "var(--background)", paddingTop: "calc(76px + var(--safe-area-top))" }} aria-label="Compartilhar momento">
     <button type="button" onClick={() => { stopCamera(); onClose(); }} className="absolute right-6 flex h-10 w-10 items-center justify-center rounded-xl" style={{ top: "calc(48px + var(--safe-area-top))", background: "var(--muted)" }} aria-label="Fechar"><X size={18} /></button>
     <div className="text-center"><span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl" style={{ background: "var(--primary-alpha-15)" }}><Camera size={26} style={{ color: "var(--primary)" }} /></span><h2 className="text-xl font-bold">{step === "capture" ? "Compartilhar momento" : "Publicar momento"}</h2><p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>{step === "capture" ? participation ? `Registre seu momento em ${participation.place.name}.` : "Registre um momento especial do DNJ." : "Confira sua foto. A publicação passa por upload seguro."}</p></div>
     <div className="relative mt-7 aspect-square w-full max-w-[34rem] overflow-hidden rounded-3xl" style={{ background: "var(--muted)" }}>

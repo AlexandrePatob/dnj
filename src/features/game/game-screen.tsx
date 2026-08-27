@@ -144,7 +144,7 @@ function Onboarding({
 }) {
   return (
     <motion.div
-      className="absolute inset-0 z-[60] grid place-items-end bg-black/45 p-4"
+      className="absolute inset-0 z-[60] grid place-items-end bg-black/45 px-4 pb-[calc(var(--bottom-nav-total-height)+1rem)] pt-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >

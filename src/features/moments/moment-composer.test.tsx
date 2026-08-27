@@ -61,4 +61,13 @@ describe("MomentComposer", () => {
     expect(publishMoment).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("button", { name: "Publicar e ganhar pontos" })).toBeEnabled();
   });
+
+  it("shows a retryable message when camera startup times out", async () => {
+    vi.useFakeTimers();
+    Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: vi.fn(() => new Promise(() => {})) } });
+    render(<MomentComposer participation={null} onClose={vi.fn()} onCreated={vi.fn()} />);
+    await vi.advanceTimersByTimeAsync(8_000);
+    expect(screen.getByText("A câmera demorou para responder. Tente novamente.")).toBeInTheDocument();
+    vi.useRealTimers();
+  });
 });

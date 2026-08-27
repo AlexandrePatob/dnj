@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { apiRequest } from "@/lib/api/client";
 import { GalleryScreen } from "./gallery-screen";
 
 vi.mock("@/lib/api/moments", () => ({
@@ -16,8 +17,7 @@ vi.mock("@/lib/api/moments", () => ({
 }));
 
 vi.mock("@/lib/api/client", () => ({
-  apiRequest: vi.fn(async (path: string) => path === "/participations/current" ? null : { momentChallenge: { id: "challenge-1" } }),
-  apiMutation: vi.fn(async () => ({ participation: { id: "participation-1", canShareMoment: true } })),
+  apiRequest: vi.fn(async () => null),
 }));
 
 vi.mock("@/features/moments/moment-composer", () => ({
@@ -88,19 +88,16 @@ describe("GalleryScreen", () => {
     await waitFor(() => expect(share).toHaveBeenCalledWith(expect.objectContaining({ title: "DNJ 2K26", files: expect.any(Array) })));
   });
 
-  it("opens the camera from the add button for an active Moment challenge", async () => {
+  it("opens the camera for a free Moment when there is no current participation", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
-    fetchMock
-      .mockResolvedValueOnce({ ok: true, json: async () => emptyPage } as Response)
-      .mockResolvedValueOnce(new Response(null, { status: 204 }))
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ momentChallenge: { id: "challenge-1" } }) } as Response)
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ participation: { id: "participation-1", canShareMoment: true } }) } as Response);
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => emptyPage } as Response);
 
     render(<GalleryScreen animDir="up" />);
     await screen.findByRole("heading", { name: "Ainda não há momentos" });
     await user.click(screen.getByRole("button", { name: "Adicionar momento" }));
 
     expect(await screen.findByLabelText("Compartilhar momento")).toHaveTextContent("Câmera aberta");
+    expect(apiRequest).toHaveBeenCalledWith("/participations/current", { headers: {} });
   });
 });

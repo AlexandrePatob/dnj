@@ -54,6 +54,17 @@ describe("GameScreen scanner entry", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("keeps the onboarding actions above the bottom navigation and dismisses it", async () => {
+    const user = userEvent.setup();
+    localStorage.removeItem("dnj.game.onboarding.v1.ana@example.com");
+
+    render(<GameScreen animDir="up" theme="light" onPointsChange={vi.fn()} user={{ name: "Ana", cpf: "", email: "ana@example.com", group: "Chama Viva", points: 10, rankPosition: 1 }} />);
+
+    expect(screen.getByText("Seu caminho no DNJ Game").parentElement?.parentElement).toHaveClass("pb-[calc(var(--bottom-nav-total-height)+1rem)]");
+    await user.click(screen.getByRole("button", { name: "Entendi" }));
+    expect(screen.queryByText("Seu caminho no DNJ Game")).not.toBeInTheDocument();
+  });
+
   it("highlights the pending Moment in DNJ Game", async () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock
