@@ -110,5 +110,5 @@ export function BottomNav({
   );
 }
 export function AppShell({ children, theme }: { children: ReactNode; theme: Theme }) {
-  return <div className={theme === "dark" ? "dark" : ""} style={{ minHeight: "100dvh", background: theme === "dark" ? "#050e0e" : "#e8e8e8", display: "flex", justifyContent: "center", alignItems: "flex-start" }}><div className="game-shell relative w-full max-w-md overflow-hidden" style={{ minHeight: "100dvh", background: "var(--background)" }}><div className="game-atmosphere" aria-hidden="true"><span /><span /><span /></div>{children}</div></div>;
+  return <div className={theme === "dark" ? "dark" : ""} style={{ minHeight: "100dvh", background: theme === "dark" ? "#050e0e" : "#e8e8e8", color: "var(--foreground)", display: "flex", justifyContent: "center", alignItems: "flex-start" }}><div className="game-shell relative w-full max-w-md overflow-hidden" style={{ minHeight: "100dvh", background: "var(--background)" }}><div className="game-atmosphere" aria-hidden="true"><span /><span /><span /></div>{children}</div></div>;
 }

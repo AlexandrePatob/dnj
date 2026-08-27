@@ -11,7 +11,7 @@ export function EventScheduleScreen({ animDir: _animDir, onBack }: { animDir: An
   const [items, setItems] = useState<ScheduleItem[]>([]);
   const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
   useEffect(() => { let active = true; scheduleApi.list().then((response) => { if (active) { setItems(response.items); setStatus("ready"); } }).catch(() => active && setStatus("error")); return () => { active = false; }; }, []);
-  return <main className="absolute inset-0 overflow-y-auto px-5 pb-28" style={{ background: "var(--background)", paddingTop: "calc(64px + var(--safe-area-top))" }}>
+  return <main className="absolute inset-0 overflow-y-auto px-5 pb-[calc(var(--bottom-nav-total-height)+1rem)]" style={{ background: "var(--background)", paddingTop: "calc(64px + var(--safe-area-top))" }}>
     <button type="button" onClick={onBack} aria-label="Voltar"><ArrowLeft /></button>
     <h1 className="mt-4 text-2xl font-black">Cronograma completo</h1>
     <p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>Programação oficial do DNJ 2K26. O que já passou continua aqui como referência.</p>

@@ -28,4 +28,5 @@ describe("QrScannerModal", () => {
     expect(screen.getByRole("button", { name: "Tentar câmera" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Trocar câmera" })).toBeInTheDocument();
   });
+
 });

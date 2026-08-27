@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { storage } from "@/lib/storage";
 import type { AuthSession } from "@/types/domain";
-import { BottomNav } from "./layout/dnj-layout";
+import { AppShell, BottomNav } from "./layout/dnj-layout";
 import { DnjApp } from "./dnj-app";
 
 const session: AuthSession = {
@@ -109,5 +109,12 @@ describe("BottomNav", () => {
 
     await user.click(screen.getByRole("button", { name: "Momentos" }));
     expect(onNavigate).toHaveBeenCalledWith("gallery");
+  });
+});
+
+describe("AppShell", () => {
+  it("inherits the semantic foreground color in dark mode", () => {
+    const { container } = render(<AppShell theme="dark"><p>Conteúdo</p></AppShell>);
+    expect(container.firstElementChild).toHaveStyle({ color: "var(--foreground)" });
   });
 });

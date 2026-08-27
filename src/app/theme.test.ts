@@ -13,4 +13,8 @@ describe("DNJ theme tokens", () => {
   it("keeps the semantic destructive color separate from the game token", () => {
     expect(theme).toMatch(/--destructive:\s*#db3a2e;/i);
   });
+
+  it("uses high-contrast foreground tokens in dark mode", () => {
+    expect(theme).toMatch(/\.dark\s*\{[\s\S]*?--foreground:\s*#f6ffff;[\s\S]*?--muted-foreground:\s*#b9d4d4;/i);
+  });
 });

@@ -103,16 +103,16 @@
 /* ── Dark Mode Surface Tokens ── */
 .dark {
   --background: #0d1a1a;
-  --foreground: #f0f8f8;
+  --foreground: #f6ffff;
 
   --card: #162626;
-  --card-foreground: #f0f8f8;
+  --card-foreground: #f6ffff;
 
   --popover: #1f3333;
-  --popover-foreground: #f0f8f8;
+  --popover-foreground: #f6ffff;
 
   --muted: #1f3333;
-  --muted-foreground: #6aadad;
+  --muted-foreground: #b9d4d4;
 
   --accent-foreground: #0d1a1a;
 
@@ -225,6 +225,16 @@
   isolation: isolate;
   box-shadow: 0 0 80px rgba(10, 35, 35, 0.14);
   height: 100dvh;
+}
+
+.game-shell:has([aria-modal="true"]) > nav {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Keep legacy screens clear of the nav, including the device safe area. */
+.pb-28 {
+  padding-bottom: var(--main-content-bottom-padding) !important;
 }
 
 .qr-modal {

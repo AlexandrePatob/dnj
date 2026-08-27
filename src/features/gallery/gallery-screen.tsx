@@ -10,7 +10,7 @@ import { MomentComposer } from "@/features/moments/moment-composer";
 import type { AnimDir } from "@/features/app/types";
 import type { GalleryPage, Moment, Participation } from "@/types/experience";
 import { momentsApi, type MomentScope } from "@/lib/api/moments";
-import { apiMutation, apiRequest } from "@/lib/api/client";
+import { apiRequest } from "@/lib/api/client";
 
 const motion = (dir: AnimDir) => ({ animation: dir === "left" ? "slideInLeft 280ms cubic-bezier(.22,1,.36,1) both" : "fadeUp 220ms cubic-bezier(.22,1,.36,1) both" });
 
@@ -121,19 +121,8 @@ export function GalleryScreen({ animDir, group = "" }: { animDir: AnimDir; group
     const headers: HeadersInit = {};
     try {
       const current = await apiRequest<{ participation?: Participation } | null>("/participations/current", { headers });
-      if (current?.participation) {
-        const value = current;
-        if (value.participation?.canShareMoment) {
-          setComposerParticipation(value.participation);
-          return;
-        }
-      }
-      const live = await apiRequest<{ momentChallenge?: { id: string } | null }>("/special-events/active", { headers });
-      const challenge = live?.momentChallenge ?? null;
-      if (!challenge) return setComposerParticipation(null);
-      const value = await apiMutation<{ participation?: Participation; alreadySubmitted?: boolean; message?: string }>(`/moment-challenges/${challenge.id}/participations`, { method: "POST", headers });
-    if (value.alreadySubmitted) return;
-      if (value.participation) setComposerParticipation(value.participation);
+      const participation = current?.participation;
+      setComposerParticipation(participation?.canShareMoment ? participation : null);
     } catch (error) {
       setComposerMessage(error instanceof Error ? error.message : "Não foi possível abrir a câmera.");
     } finally {
@@ -142,7 +131,7 @@ export function GalleryScreen({ animDir, group = "" }: { animDir: AnimDir; group
   }
   const tabs = [{ id: "public" as const, label: "Momentos DNJ" }, { id: "mine" as const, label: "Meus" }, ...(hasGroup ? [{ id: "group" as const, label: "Grupo" }] : [])];
   const empty = tab === "public" ? { title: "Ainda não há momentos", action: "Ver meus momentos", go: () => changeTab("mine") } : { title: tab === "group" ? "Seu grupo ainda não publicou momentos" : "Você ainda não registrou momentos", action: "Ver Momentos DNJ", go: () => changeTab("public") };
-  return <div className="absolute inset-0 overflow-y-auto pb-28" style={{ background: "var(--background)", paddingTop: "calc(64px + var(--safe-area-top))", ...motion(animDir) }}>
+  return <div className="absolute inset-0 overflow-y-auto pb-[calc(var(--bottom-nav-total-height)+1rem)]" style={{ background: "var(--background)", paddingTop: "calc(64px + var(--safe-area-top))", ...motion(animDir) }}>
     <header className="px-5 pb-4"><h1 className="text-2xl font-black">Momentos</h1><p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>Memórias que a juventude está criando.</p><div className="mt-4 flex rounded-xl p-1" style={{ background: "var(--muted)" }}>{tabs.map((item) => <button key={item.id} onClick={() => changeTab(item.id)} className="flex-1 rounded-lg py-2 text-xs font-bold" style={{ background: tab === item.id ? "var(--primary)" : "transparent", color: tab === item.id ? "white" : "var(--muted-foreground)" }}>{item.label}</button>)}</div></header>
     <main className="px-4 py-4">{loadState === "loading" ? <p className="py-10 text-center text-sm">Carregando momentos...</p> : loadState === "error" ? <OperationFeedback variant="error" title="Não foi possível carregar Momentos" description="Confira sua conexão e tente novamente." onRetry={() => { setLoadState("loading"); setAttempt((value) => value + 1); }} /> : page.items.length === 0 ? <OperationFeedback variant="empty" title={empty.title} description="Participe de uma atividade para registrar uma memória do encontro." onRetry={empty.go} retryLabel={empty.action} /> : tab === "public" ? <div className="mx-auto flex max-w-sm flex-col gap-4">{page.items.map((item, index) => <FeedCard key={item.id} moment={item} index={index} onOpen={setSelected} onChanged={() => setAttempt((value) => value + 1)} />)}</div> : <PassportGrid moments={page.items} onOpen={setSelected} />}</main>
     <button type="button" aria-label="Adicionar momento" disabled={openingComposer} onClick={() => void openComposer()} className="fixed bottom-24 right-5 grid h-14 w-14 place-items-center rounded-full text-white disabled:opacity-60" style={{ background: "var(--primary)", boxShadow: "var(--shadow-card)" }}><Plus /></button>
