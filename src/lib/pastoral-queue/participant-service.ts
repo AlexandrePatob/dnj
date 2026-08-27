@@ -16,6 +16,17 @@ const entriesFor = (db: Firestore, phone: string) => query(collection(db, QUEUE_
 const calledFor = (db: Firestore, phone: string) => query(collection(db, CALLED_PEOPLE_PATH), where("phone", "==", phone));
 const queueEntryId = (name: string, type: PastoralQueueType) => `${name.trim().replaceAll("/", "-") || "Participante"}_${type}`;
 
+export async function getActiveQueue(db: Firestore, participantId: string): Promise<QueueEntry | null> {
+  const [queueSnapshot, calledSnapshot] = await Promise.all([getDocs(entriesFor(db, participantId)), getDocs(calledFor(db, participantId))]);
+  const queued = queueSnapshot.docs[0];
+  const queuedType = queued && pastoralQueueType(queued.data().queueType);
+  if (queued && queuedType) return { id: queued.id, participantId, participantName: queued.data().name, type: queuedType, status: "queued", createdAt: queued.data().createdAt, notificationMilestones: {} };
+
+  const called = calledSnapshot.docs.find((entry) => entry.data().status === "called" && pastoralQueueType(entry.data().queueType));
+  const calledType = called && pastoralQueueType(called.data().queueType);
+  return called && calledType ? { id: called.id, participantId, participantName: called.data().name, type: calledType, status: "called", createdAt: called.data().createdAt, calledAt: called.data().calledAt, notificationMilestones: {} } : null;
+}
+
 export async function getQueueEligibility(db: Firestore, participantId: string, type: PastoralQueueType) {
   const [queueSnapshot, calledSnapshot] = await Promise.all([getDocs(entriesFor(db, participantId)), getDocs(calledFor(db, participantId))]);
   const active = queueSnapshot.docs[0];
@@ -43,8 +54,9 @@ export async function joinQueue(db: Firestore, identity: ParticipantIdentity, ty
 }
 
 export async function leaveQueue(db: Firestore, participantId: string): Promise<void> {
-  const entries = await getDocs(entriesFor(db, participantId));
+  const [entries, calledEntries] = await Promise.all([getDocs(entriesFor(db, participantId)), getDocs(calledFor(db, participantId))]);
   await runTransaction(db, async (transaction) => {
     entries.docs.forEach((entry) => transaction.delete(entry.ref));
+    calledEntries.docs.filter((entry) => entry.data().status === "called").forEach((entry) => transaction.delete(entry.ref));
   });
 }
