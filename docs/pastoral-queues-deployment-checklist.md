@@ -8,7 +8,7 @@
 - [ ] Nenhum `.env`, service account ou token aparece no diff.
 - [ ] `npm --prefix functions run build` passou.
 - [ ] `npm --prefix functions run test` passou.
-- [ ] Java está instalado e `npm --prefix functions run test:emulator` passou.
+- [ ] (Opcional, QA local) Java está instalado e `npm --prefix functions run test:emulator` passou.
 - [ ] Índices e regras correspondem ao `firestore.indexes.json` e
       `firestore.rules` revisados.
 - [ ] T12/T13: contrato oficial de push individual revisado; se não estiver

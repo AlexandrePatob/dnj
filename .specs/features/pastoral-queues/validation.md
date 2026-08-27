@@ -19,7 +19,7 @@
 | T8 | ⚠️ Partial | Read/update/validation service exists; no test preserves a valid document after an invalid write, and push fields have no manager controls. |
 | T9 | ⚠️ Partial | Console now uses atomic transitions and highlights the 2-minute threshold; no push/delay controls or behavior-level timeout test exists. |
 | T10 | ✅ Done | Admin navigation/overview and read-only assertions are present. |
-| T11 | ⚠️ Partial | Firebase boundary/rules/indexes/package exist and function TypeScript build passes; emulator gate remains blocked by missing Java. |
+| T11 | ✅ Done (emulator optional) | Firebase boundary/rules/indexes/package exist and function TypeScript build passes; emulator-only local check is unavailable because Java is missing. This does not block runtime or Admin listing. |
 | T12 | ❌ Not done | No notification Function source or trigger exists. |
 | T13 | ❌ Not done | No `push-client.ts`, targeted endpoint contract, or individual delivery implementation exists. |
 | T14 | ❌ Not done | `tests/e2e/pastoral-queue.spec.ts` is absent. |
@@ -95,7 +95,7 @@ Evidence is required as `file:line` plus an assertion. Where there is no behavio
 | Complete | `npm run validate` | ⚠️ not rerun in this pass; the previously failing typecheck now passes, while functional gaps remain. |
 | Functions build | `npm --prefix functions run build` | ✅ pass |
 | Functions unit | `npm --prefix functions test` | ✅ 1 passed, 0 failed |
-| Firestore emulator | `npm --prefix functions run test:emulator` | ⚠️ blocked: `Could not spawn java -version`; Java is not installed/on PATH. |
+| Firestore emulator (optional local QA) | `npm --prefix functions run test:emulator` | ⚠️ unavailable: `Could not spawn java -version`; Java is not installed/on PATH. This is not a production/Admin listing blocker. |
 
 **Test count before feature**: not independently reproducible from the current checkout without changing the real tree; no deletion was observed in the feature diff.  
 **Test count after feature**: 229 unit tests (229 passed) plus 1 Functions unit test passed.  

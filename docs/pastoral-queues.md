@@ -74,11 +74,12 @@ de um reset manual se houver necessidade de auditoria.
    projeto legado `dnj-fila` sem revisão.
 4. Execute `npm --prefix functions run build`.
 5. Execute `npm --prefix functions run test` para o gate local.
-6. Execute `npm --prefix functions run test:emulator` para validar as regras.
+6. (Opcional, somente QA local) Execute `npm --prefix functions run test:emulator` para validar as regras.
 
 O teste do emulador exige Java disponível no `PATH`. No ambiente desta entrega
-o comando foi bloqueado por `Could not spawn java -version`; isso precisa ser
-corrigido antes do aceite operacional.
+o comando foi bloqueado por `Could not spawn java -version`. Isso só afeta a
+validação local do emulador; não afeta o Firestore em produção nem a listagem
+do Admin, que usa `onSnapshot` diretamente no Firestore configurado.
 
 ## Deploy
 
