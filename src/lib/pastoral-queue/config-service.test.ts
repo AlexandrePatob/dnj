@@ -15,7 +15,7 @@ describe("pastoral queue config service", () => {
   it("rejects invalid delay and does not write it", async () => {
     getDoc.mockResolvedValueOnce({ exists: () => true, data: () => DEFAULT_QUEUE_CONFIG });
     const { updateQueueConfig } = await import("./config-service");
-    await expect(updateQueueConfig({ notificationDelaySeconds: 301 })).rejects.toThrow("inválida");
+    await expect(updateQueueConfig({ notificationDelay: 301 })).rejects.toThrow("inválida");
     expect(setDoc).not.toHaveBeenCalled();
     expect(QUEUE_CONFIG_PATH).toContain("config/default");
   });

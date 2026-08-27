@@ -1,28 +1,19 @@
 {
   "indexes": [
     {
-      "collectionGroup": "entries",
+      "collectionGroup": "queue",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "queueType", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "ASCENDING" }
       ]
     },
     {
-      "collectionGroup": "entries",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "participantId", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "notification_intents",
+      "collectionGroup": "calledPeople",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "ASCENDING" }
+        { "fieldPath": "expiresAt", "order": "ASCENDING" }
       ]
     }
   ],

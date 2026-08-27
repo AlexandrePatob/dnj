@@ -1,64 +1,56 @@
-import {
-  collection,
-  doc,
-  onSnapshot,
-  orderBy,
-  query,
-  runTransaction,
-  where,
-  type DocumentData,
-  type Unsubscribe,
-} from "firebase/firestore";
+import { collection, onSnapshot, orderBy, query, where, type DocumentData, type Unsubscribe } from "firebase/firestore";
 import { pastoralFirestore } from "./firebase";
-import {
-  NOTIFICATION_INTENTS_PATH,
-  QUEUE_ENTRIES_PATH,
-  notificationIntentId,
-  type NotificationIntent,
-  type NotificationMilestone,
-  type PastoralQueueType,
-  type QueueEntry,
-} from "./types";
+import { CALLED_PEOPLE_PATH, QUEUE_ENTRIES_PATH, firebaseQueueType, pastoralQueueType, type PastoralQueueType, type QueueEntry } from "./types";
 
-export interface QueueSnapshot {
-  type: PastoralQueueType;
-  queued: QueueEntry[];
-  called: QueueEntry | null;
-  totalWaiting: number;
-}
+export interface QueueSnapshot { type: PastoralQueueType; queued: QueueEntry[]; called: QueueEntry | null; calledEntries: QueueEntry[]; totalWaiting: number; }
+export interface QueueHistoryStats { totalCalled: number; completed: number; noShows: number; }
 
 function requireFirestore() {
   if (!pastoralFirestore) throw new Error("Firestore pastoral indisponível neste ambiente.");
   return pastoralFirestore;
 }
 
-function toEntry(data: DocumentData, id: string): QueueEntry {
-  return { id, ...(data as Omit<QueueEntry, "id">), notificationMilestones: data.notificationMilestones ?? {} };
+function toEntry(data: DocumentData, id: string, status: QueueEntry["status"]): QueueEntry | null {
+  const type = pastoralQueueType(data.queueType);
+  return type ? { id, participantId: data.phone, participantName: data.name, type, status, createdAt: data.createdAt, calledAt: data.calledAt, notificationMilestones: {} } : null;
 }
 
 export function subscribeQueue(type: PastoralQueueType | null, onChange: (snapshot: QueueSnapshot) => void, onError?: (error: Error) => void): Unsubscribe {
   if (!type) throw new Error("Tipo de fila inválido.");
   const db = requireFirestore();
-  const q = query(collection(db, QUEUE_ENTRIES_PATH), where("type", "==", type), orderBy("createdAt", "asc"));
-  return onSnapshot(q, (snap) => {
-    const entries = snap.docs.map((item) => toEntry(item.data(), item.id));
-    const called = entries.find((entry) => entry.status === "called") ?? null;
-    const queued = entries.filter((entry) => entry.status === "queued");
-    onChange({ type, queued, called, totalWaiting: queued.length });
+  const legacyType = firebaseQueueType(type);
+  let queued: QueueEntry[] = [];
+  let called: QueueEntry | null = null;
+  let calledEntries: QueueEntry[] = [];
+  const emit = () => onChange({ type, queued, called, calledEntries, totalWaiting: queued.length });
+  const unsubscribeQueue = onSnapshot(query(collection(db, QUEUE_ENTRIES_PATH), where("queueType", "==", legacyType), orderBy("createdAt", "asc")), (snap) => {
+    queued = snap.docs.map((item) => toEntry(item.data(), item.id, "queued")).filter((entry): entry is QueueEntry => entry !== null);
+    emit();
   }, (error) => onError?.(error));
+  const unsubscribeCalled = onSnapshot(collection(db, CALLED_PEOPLE_PATH), (snap) => {
+    calledEntries = snap.docs
+      .filter((item) => item.data().status === "called" && pastoralQueueType(item.data().queueType) === type)
+      .map((item) => toEntry(item.data(), item.id, "called"))
+      .filter((entry): entry is QueueEntry => entry !== null)
+      .sort((a, b) => timestamp(a.calledAt) - timestamp(b.calledAt));
+    called = calledEntries[0] ?? null;
+    emit();
+  }, (error) => onError?.(error));
+  return () => { unsubscribeQueue(); unsubscribeCalled(); };
 }
 
-export function subscribeParticipantEntry(entryId: string, onChange: (entry: QueueEntry | null) => void, onError?: (error: Error) => void): Unsubscribe {
-  const db = requireFirestore();
-  return onSnapshot(doc(db, QUEUE_ENTRIES_PATH, entryId), (snap) => onChange(snap.exists() ? toEntry(snap.data(), snap.id) : null), (error) => onError?.(error));
+function timestamp(value: QueueEntry["calledAt"]) {
+  return value?.toMillis?.() ?? 0;
 }
 
-export async function createNotificationIntent(entryId: string, participantId: string, milestone: NotificationMilestone): Promise<void> {
+export function subscribeQueueHistory(type: PastoralQueueType, onChange: (stats: QueueHistoryStats) => void, onError?: (error: Error) => void): Unsubscribe {
   const db = requireFirestore();
-  const intent = doc(db, NOTIFICATION_INTENTS_PATH, notificationIntentId(entryId, milestone));
-  await runTransaction(db, async (transaction) => {
-    const existing = await transaction.get(intent);
-    if (existing.exists()) return;
-    transaction.set(intent, { id: intent.id, entryId, participantId, milestone, status: "pending", createdAt: new Date() } satisfies Omit<NotificationIntent, "createdAt"> & { createdAt: Date });
-  });
+  return onSnapshot(collection(db, CALLED_PEOPLE_PATH), (snap) => {
+    const entries = snap.docs.filter((entry) => pastoralQueueType(entry.data().queueType) === type);
+    onChange({
+      totalCalled: entries.length,
+      completed: entries.filter((entry) => entry.data().status === "confirmed").length,
+      noShows: entries.filter((entry) => entry.data().status === "no-show").length,
+    });
+  }, (error) => onError?.(error));
 }

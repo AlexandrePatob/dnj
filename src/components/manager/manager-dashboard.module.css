@@ -55,7 +55,7 @@
   cursor: pointer;
 }
 .content {
-  width: min(100%, 720px);
+  width: min(100%, 1280px);
   margin: 0 auto;
   padding: 24px 16px 42px;
 }
@@ -555,6 +555,41 @@
   color: #356a50;
   font-weight: 800;
 }
+.queueConsole { display: grid; gap: 18px; }
+.queueToolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid #d8e5dc; padding: 0 0 16px; }
+.queueToolbar strong, .queueToolbar span { display: block; }
+.queueToolbar strong { margin-top: 3px; color: #1d4e3a; font-size: 1.05rem; }
+.queueToolbar span { margin-top: 3px; color: #668278; font-size: 0.76rem; }
+.queueGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.queuePanel { min-width: 0; overflow: hidden; border: 1px solid #d5e2da; border-radius: 16px; background: #fff; box-shadow: 0 10px 24px rgba(17, 56, 42, 0.08); }
+.queuePanelHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 20px 16px; }
+.queuePanelHeader > div { display: flex; align-items: center; gap: 10px; }
+.queuePanelHeader h2 { margin: 0; font-size: 1.2rem; letter-spacing: -0.035em; }
+.confession .queuePanelHeader { color: #284b9b; }
+.spiritual .queuePanelHeader { color: #087c59; }
+.callButton { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; border: 0; border-radius: 9px; padding: 8px 11px; background: #128653; color: #fff; font: inherit; font-size: 0.75rem; font-weight: 800; cursor: pointer; }
+.callButton:hover:not(:disabled) { background: #0c6841; }
+.callButton:disabled { cursor: not-allowed; opacity: 0.45; }
+.queueMetrics { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; border-top: 1px solid #edf2ee; border-bottom: 1px solid #edf2ee; }
+.queueMetrics div { min-width: 0; padding: 13px 15px; border-right: 1px solid #edf2ee; }
+.queueMetrics div:last-child { border-right: 0; }
+.queueMetrics dt { color: #6b877c; font-size: 0.68rem; font-weight: 700; }
+.queueMetrics dd { margin: 3px 0 0; color: #183f30; font-size: 1.18rem; font-weight: 900; letter-spacing: -0.045em; }
+.calledArea { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 82px; padding: 14px 20px; background: #f5faef; }
+.calledArea p { margin: auto; color: #627f73; font-size: 0.8rem; }
+.calledArea span, .calledArea strong, .calledArea small { display: block; }
+.calledArea span { color: #587568; font-size: 0.67rem; font-weight: 800; }
+.calledArea strong { margin-top: 2px; color: #234b3a; font-size: 0.9rem; }
+.calledArea small { margin-top: 2px; color: #708b80; font-size: 0.7rem; }
+.calledActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.calledActions .secondary, .calledActions .danger { min-height: 35px; padding: 7px 9px; font-size: 0.72rem; }
+.queueList { margin: 0; padding: 4px 20px 10px; list-style: none; }
+.queueList li { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 11px; align-items: center; border-top: 1px solid #edf2ee; padding: 12px 0; }
+.queueList li:first-child { border-top: 0; }
+.queueList strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.84rem; }
+.queueList small { grid-column: 2; margin-top: 2px; color: #6e897e; font-size: 0.7rem; }
+.position { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #e7f2e6; color: #2a704e; font-size: 0.72rem; font-weight: 900; }
+.queueEmpty { display: block !important; padding: 30px 0 !important; color: #708b80; text-align: center; font-size: 0.8rem; }
 @media (min-width: 640px) {
   .actions {
     grid-template-columns: repeat(3, 1fr);
@@ -590,4 +625,15 @@
   .danger {
     transition: none;
   }
+}
+@media (max-width: 860px) { .queueGrid { grid-template-columns: 1fr; } }
+@media (max-width: 520px) {
+  .queueToolbar, .queuePanelHeader, .calledArea { align-items: flex-start; flex-direction: column; }
+  .queueToolbar .button, .queueToolbar .danger, .callButton { width: 100%; }
+  .queuePanelHeader { padding: 18px 16px 14px; }
+  .queueMetrics div { padding: 12px 10px; }
+  .calledArea { padding: 14px 16px; }
+  .calledActions { width: 100%; justify-content: stretch; }
+  .calledActions .secondary, .calledActions .danger { flex: 1; }
+  .queueList { padding-right: 16px; padding-left: 16px; }
 }

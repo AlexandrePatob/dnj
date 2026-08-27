@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { env } from "@/lib/env";
 import { hasOperationalRole, readOperationalToken, validateAccessToken } from "@/lib/operational-auth";
 
 const cookieName = "dnj_manager_access";
@@ -23,6 +24,7 @@ async function session(accessToken: string) {
 }
 
 export async function GET() {
+  if (process.env.NODE_ENV !== "production" && env.localHomologation) return NextResponse.json({ manager: { email: "gestor.local@dnj.test", name: "Gestor local", scope: "pastoral_queue" }, email: "gestor.local@dnj.test", name: "Gestor local", scope: "pastoral_queue" });
   const token = await readOperationalToken(cookieName);
   const current = token ? await session(token) : null;
   return current ? NextResponse.json({ manager: current, ...current }) : NextResponse.json({ error: "Não autorizado." }, { status: 401 });

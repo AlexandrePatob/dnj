@@ -2,10 +2,14 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // The pastoral queue intentionally uses direct Firestore access. The DNJ
-    // app is the product boundary; no identity data or pastoral content is
-    // stored here. Management authorization remains at the DNJ surface.
-    match /pastoral_queue/{document=**} {
+    // Legacy DNJ queue collections intentionally use direct Firestore access.
+    match /config/{document=**} {
+      allow read, write: if true;
+    }
+    match /queue/{document=**} {
+      allow read, write: if true;
+    }
+    match /calledPeople/{document=**} {
       allow read, write: if true;
     }
 

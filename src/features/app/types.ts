@@ -9,6 +9,7 @@ export interface UserData {
   name: string;
   cpf: string;
   email: string;
+  mobilePhone?: string;
   group: string;
   points: number;
   rankPosition: number;
