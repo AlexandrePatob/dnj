@@ -19,14 +19,16 @@ describe("pastoral queue domain model", () => {
 
   it("keeps configuration limited to valid global fields and bounded delay", () => {
     expect(Object.keys(DEFAULT_QUEUE_CONFIG).sort()).toEqual([
+      "almostTherePosition",
       "isQueueOpen",
-      "notificationDelaySeconds",
+      "notificationDelay",
       "pushEnabled",
+      "whatsAppEnabled",
     ]);
     expect(isQueueConfig(DEFAULT_QUEUE_CONFIG)).toBe(true);
-    expect(isQueueConfig({ ...DEFAULT_QUEUE_CONFIG, notificationDelaySeconds: -1 })).toBe(false);
-    expect(isQueueConfig({ ...DEFAULT_QUEUE_CONFIG, notificationDelaySeconds: 301 })).toBe(false);
-    expect(isQueueConfig({ ...DEFAULT_QUEUE_CONFIG, notificationDelaySeconds: 1.5 })).toBe(false);
+    expect(isQueueConfig({ ...DEFAULT_QUEUE_CONFIG, notificationDelay: -1 })).toBe(false);
+    expect(isQueueConfig({ ...DEFAULT_QUEUE_CONFIG, notificationDelay: 301 })).toBe(false);
+    expect(isQueueConfig({ ...DEFAULT_QUEUE_CONFIG, notificationDelay: 1.5 })).toBe(false);
   });
 
   it("does not expose operational transitions for terminal states", () => {

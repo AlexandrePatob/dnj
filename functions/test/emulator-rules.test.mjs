@@ -13,8 +13,8 @@ test("emulator allows pastoral documents and denies unrelated documents", async 
 
   try {
     const db = env.unauthenticatedContext().firestore();
-    await assertSucceeds(setDoc(doc(db, "pastoral_queue/current/config/default"), {isQueueOpen: true}));
-    await assertSucceeds(getDoc(doc(db, "pastoral_queue/current/config/default")));
+    await assertSucceeds(setDoc(doc(db, "config/default"), {isQueueOpen: true}));
+    await assertSucceeds(getDoc(doc(db, "config/default")));
     await assertFails(setDoc(doc(db, "unrelated/data"), {value: true}));
   } finally {
     await env.cleanup();

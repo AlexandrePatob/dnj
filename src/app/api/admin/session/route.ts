@@ -15,6 +15,7 @@ async function session(accessToken: string) {
 }
 
 export async function GET() {
+  if (process.env.NODE_ENV !== "production" && env.localHomologation) return NextResponse.json({ session: { email: "admin.local@dnj.test", name: "Admin local" } });
   const token = await readOperationalToken(cookieName);
   const current = token ? await session(token) : null;
   return current ? NextResponse.json({ session: current }) : NextResponse.json({ error: "Não autorizado." }, { status: 401 });

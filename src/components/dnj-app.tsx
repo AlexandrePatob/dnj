@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { authApi } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
+import { env } from "@/lib/env";
 import { groupsApi } from "@/lib/api/groups";
 import { mapApiUser, mapIdentityUser } from "@/lib/api/mappers";
 import type { AuthSession } from "@/types/domain";
@@ -30,6 +31,7 @@ function sessionUserData(session: AuthSession): UserData {
     name: session.user.name,
     cpf: session.user.document,
     email: session.user.email,
+    mobilePhone: session.user.mobilePhone,
     group: session.user.group?.groupName ?? "",
     points: session.user.points,
     rankPosition: session.user.rankPosition,
@@ -77,7 +79,7 @@ export function DnjApp() {
   const [emailVal, setEmailVal]     = useState("");
   const [registration, setRegistration] = useState<RegistrationData | null>(null);
   const [user, setUser] = useState<UserData>({
-    name: "João Paulo", cpf: "", email: "", group: "",
+    name: "João Paulo", cpf: "", email: "", mobilePhone: "", group: "",
     points: 150, rankPosition: 9,
   });
   const [offlineSnapshotCapturedAt, setOfflineSnapshotCapturedAt] = useState<string | null>(null);
@@ -122,6 +124,7 @@ export function DnjApp() {
       name: apiUser.name,
       cpf: apiUser.document,
       email: apiUser.email,
+      mobilePhone: apiUser.mobilePhone,
       group: apiUser.group?.groupName ?? "",
       points: apiUser.points,
       rankPosition: apiUser.rankPosition,
@@ -135,7 +138,7 @@ export function DnjApp() {
     const apiUser = mapApiUser(response);
     const session = { user: apiUser, identityToken: response.identityToken };
     storage.setSession(session);
-    setUser({ name: apiUser.name, cpf: apiUser.document, email: apiUser.email, group: apiUser.group?.groupName ?? "", points: apiUser.points, rankPosition: apiUser.rankPosition });
+    setUser({ name: apiUser.name, cpf: apiUser.document, email: apiUser.email, mobilePhone: apiUser.mobilePhone, group: apiUser.group?.groupName ?? "", points: apiUser.points, rankPosition: apiUser.rankPosition });
     navigate("home");
   }, [navigate, registration]);
 
@@ -157,6 +160,13 @@ export function DnjApp() {
   useEffect(() => {
     if (restoredSession.current) return;
     restoredSession.current = true;
+    if (env.localHomologation) {
+      setUser({ name: "Participante local", cpf: "", email: "participante.local@dnj.test", mobilePhone: "+5511999990000", group: "", points: 0, rankPosition: 0 });
+      setPrevScreen("login");
+      setScreen("home");
+      setSessionReady(true);
+      return;
+    }
     let disposed = false;
     void authApi.getSession().then((identity) => {
       if (disposed) return;
@@ -238,7 +248,7 @@ export function DnjApp() {
             {screen === "schedule" && <EventScheduleScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "map" && <EventMapScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "game"    && <GameScreen    user={user} theme={theme} animDir={animDir} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
-            {screen === "queue"   && <QueueScreen user={{ id: user.email, name: user.name }} animDir={animDir} />}
+            {screen === "queue"   && <QueueScreen user={{ id: user.mobilePhone || user.email, name: user.name }} animDir={animDir} />}
             {screen === "gallery" && <GalleryScreen group={user.group}             animDir={animDir} />}
             {screen === "account" && <AccountScreen user={user} onLogout={() => { void authApi.logout().catch(() => undefined); storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
           </motion.div>

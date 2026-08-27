@@ -16,6 +16,20 @@ vi.mock("firebase/firestore", () => ({
     return () => undefined;
   }),
 }));
+vi.mock("@/lib/pastoral-queue/realtime-service", () => ({
+  subscribeQueue: vi.fn((type, onChange) => {
+    onChange(type === "confession"
+      ? { queued: [{ participantName: "Ana", type: "confession", status: "queued", createdAt: "2026-10-18T10:00:00Z" }], calledEntries: [{ participantName: "Bia", type: "confession", status: "called", createdAt: "2026-10-18T09:00:00Z", calledAt: "2026-10-18T09:00:00Z" }, { participantName: "Davi", type: "confession", status: "called", createdAt: "2026-10-18T09:05:00Z", calledAt: "2026-10-18T09:05:00Z" }] }
+      : { queued: [{ participantName: "Caio", type: "spiritual", status: "queued", createdAt: "2026-10-18T11:00:00Z" }], calledEntries: [] });
+    return () => undefined;
+  }),
+}));
+const queueConfig = vi.hoisted(() => ({
+  getQueueConfig: vi.fn(),
+  subscribeToQueueConfig: vi.fn((onChange) => { onChange({ isQueueOpen: true, pushEnabled: true, notificationDelay: 30, whatsAppEnabled: true, almostTherePosition: 10 }); return () => undefined; }),
+  updateQueueConfig: vi.fn(async (patch) => ({ isQueueOpen: patch.isQueueOpen, pushEnabled: true, notificationDelay: 30, whatsAppEnabled: true, almostTherePosition: 10 })),
+}));
+vi.mock("@/lib/pastoral-queue/config-service", () => queueConfig);
 
 const fetchMock = vi.fn();
 const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -62,10 +76,21 @@ describe("AdminDashboard V2", () => {
     expect(await screen.findByRole("heading", { name: "Confissão" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Direção espiritual" })).toBeInTheDocument();
     expect(screen.getAllByText("1 aguardando")).toHaveLength(2);
-    expect(screen.getByText("Atualmente chamado: Bia")).toBeInTheDocument();
+    expect(screen.getByText("2 chamados para encaminhar.")).toBeInTheDocument();
+    expect(screen.getByText("Bia")).toBeInTheDocument();
+    expect(screen.getByText("Davi")).toBeInTheDocument();
+    expect(screen.getByText("Encaminhar para Confissão · chamado às 06:00")).toBeInTheDocument();
     expect(screen.getByText(/Ana/)).toBeInTheDocument();
     expect(screen.getByText(/Caio/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /chamar|concluir|ausência/i })).not.toBeInTheDocument();
+  });
+
+  it("allows the admin to open or close the pastoral queues", async () => {
+    render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Filas pastorais" }));
+    await screen.findByRole("heading", { name: "Filas abertas" });
+    fireEvent.click(screen.getByRole("button", { name: "Fechar filas" }));
+    await waitFor(() => expect(queueConfig.updateQueueConfig).toHaveBeenCalledWith({ isQueueOpen: false }));
   });
 
   it("keeps session logout outside the V2 proxy and hides unsupported panels", async () => {

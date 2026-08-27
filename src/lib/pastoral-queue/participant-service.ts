@@ -1,25 +1,7 @@
-import {
-  deleteField,
-  doc,
-  getDoc,
-  runTransaction,
-  serverTimestamp,
-  type Firestore,
-} from "firebase/firestore";
-import {
-  DEFAULT_QUEUE_CONFIG,
-  PARTICIPANT_STATES_PATH,
-  QUEUE_CONFIG_PATH,
-  QUEUE_ENTRIES_PATH,
-  type ParticipantQueueState,
-  type PastoralQueueType,
-  type QueueEntry,
-} from "./types";
+import { collection, doc, getDocs, query, runTransaction, serverTimestamp, where, type Firestore } from "firebase/firestore";
+import { CALLED_PEOPLE_PATH, DEFAULT_QUEUE_CONFIG, QUEUE_CONFIG_PATH, QUEUE_ENTRIES_PATH, firebaseQueueType, pastoralQueueType, type PastoralQueueType, type QueueEntry } from "./types";
 
-export interface ParticipantIdentity {
-  id: string;
-  name: string;
-}
+export interface ParticipantIdentity { id: string; name: string; }
 
 export class ParticipantQueueError extends Error {
   constructor(message: string, public readonly code: "queue_closed" | "already_active" | "already_completed" | "not_active" | "unavailable") {
@@ -28,74 +10,41 @@ export class ParticipantQueueError extends Error {
   }
 }
 
-const stateRef = (db: Firestore, participantId: string) => doc(db, PARTICIPANT_STATES_PATH, participantId);
 const entryRef = (db: Firestore, entryId: string) => doc(db, QUEUE_ENTRIES_PATH, entryId);
 const configRef = (db: Firestore) => doc(db, QUEUE_CONFIG_PATH);
+const entriesFor = (db: Firestore, phone: string) => query(collection(db, QUEUE_ENTRIES_PATH), where("phone", "==", phone));
+const calledFor = (db: Firestore, phone: string) => query(collection(db, CALLED_PEOPLE_PATH), where("phone", "==", phone));
+const queueEntryId = (name: string, type: PastoralQueueType) => `${name.trim().replaceAll("/", "-") || "Participante"}_${type}`;
 
 export async function getQueueEligibility(db: Firestore, participantId: string, type: PastoralQueueType) {
-  const stateSnapshot = await getDoc(stateRef(db, participantId));
-  const state = stateSnapshot.exists() ? (stateSnapshot.data() as ParticipantQueueState) : { completedTypes: {} };
-  return {
-    canJoin: !state.activeEntryId && !state.completedTypes?.[type],
-    activeEntryId: state.activeEntryId,
-    completed: Boolean(state.completedTypes?.[type]),
-  };
+  const [queueSnapshot, calledSnapshot] = await Promise.all([getDocs(entriesFor(db, participantId)), getDocs(calledFor(db, participantId))]);
+  const active = queueSnapshot.docs[0];
+  const completed = calledSnapshot.docs.some((entry) => entry.data().status === "confirmed" && pastoralQueueType(entry.data().queueType) === type);
+  return { canJoin: !active && !completed, activeEntryId: active?.id, completed };
 }
 
-export async function joinQueue(
-  db: Firestore,
-  identity: ParticipantIdentity,
-  type: PastoralQueueType,
-  options: { entryId?: string } = {},
-): Promise<QueueEntry> {
-  const id = options.entryId ?? `${identity.id}_${type}`;
+export async function joinQueue(db: Firestore, identity: ParticipantIdentity, type: PastoralQueueType, options: { entryId?: string } = {}): Promise<QueueEntry> {
+  const id = options.entryId ?? queueEntryId(identity.name, type);
+  const [existingEntries, calledEntries] = await Promise.all([getDocs(entriesFor(db, identity.id)), getDocs(calledFor(db, identity.id))]);
+  if (!existingEntries.empty) {
+    const existing = existingEntries.docs[0];
+    if (pastoralQueueType(existing.data().queueType) === type) return { id: existing.id, participantId: identity.id, participantName: existing.data().name, type, status: "queued", createdAt: existing.data().createdAt, notificationMilestones: {} };
+    throw new ParticipantQueueError("O participante já está em uma fila.", "already_active");
+  }
+  if (calledEntries.docs.some((entry) => entry.data().status === "confirmed" && pastoralQueueType(entry.data().queueType) === type)) throw new ParticipantQueueError("Este atendimento já foi concluído nesta edição.", "already_completed");
   return runTransaction(db, async (transaction) => {
-    const participant = stateRef(db, identity.id);
-    const stateSnapshot = await transaction.get(participant);
-    const state = stateSnapshot.exists() ? (stateSnapshot.data() as ParticipantQueueState) : { completedTypes: {} };
-
-    if (state.activeEntryId) {
-      if (state.activeType === type) {
-        const existing = await transaction.get(entryRef(db, state.activeEntryId));
-        if (existing.exists()) return existing.data() as QueueEntry;
-      }
-      throw new ParticipantQueueError("O participante já está em uma fila.", "already_active");
-    }
-    if (state.completedTypes?.[type]) {
-      throw new ParticipantQueueError("Este atendimento já foi concluído nesta edição.", "already_completed");
-    }
-
     const configSnapshot = await transaction.get(configRef(db));
     const config = configSnapshot.exists() ? configSnapshot.data() : DEFAULT_QUEUE_CONFIG;
     if (config.isQueueOpen !== true) throw new ParticipantQueueError("A fila está fechada.", "queue_closed");
-
-    const entry: QueueEntry = {
-      id,
-      participantId: identity.id,
-      participantName: identity.name,
-      type,
-      status: "queued",
-      createdAt: serverTimestamp() as QueueEntry["createdAt"],
-      notificationMilestones: {},
-    };
-    transaction.set(entryRef(db, id), entry);
-    transaction.set(participant, { activeEntryId: id, activeType: type, completedTypes: state.completedTypes ?? {} });
-    return entry;
+    const createdAt = serverTimestamp() as QueueEntry["createdAt"];
+    transaction.set(entryRef(db, id), { phone: identity.id, name: identity.name, queueType: firebaseQueueType(type), createdAt });
+    return { id, participantId: identity.id, participantName: identity.name, type, status: "queued", createdAt, notificationMilestones: {} };
   });
 }
 
 export async function leaveQueue(db: Firestore, participantId: string): Promise<void> {
+  const entries = await getDocs(entriesFor(db, participantId));
   await runTransaction(db, async (transaction) => {
-    const participant = stateRef(db, participantId);
-    const snapshot = await transaction.get(participant);
-    if (!snapshot.exists()) return;
-    const state = snapshot.data() as ParticipantQueueState;
-    if (!state.activeEntryId) return;
-    const entry = entryRef(db, state.activeEntryId);
-    const entrySnapshot = await transaction.get(entry);
-    if (entrySnapshot.exists() && (entrySnapshot.data() as QueueEntry).status === "queued") {
-      transaction.update(entry, { status: "cancelled", resolvedAt: serverTimestamp() });
-    }
-    transaction.set(participant, { activeEntryId: deleteField(), activeType: deleteField(), completedTypes: state.completedTypes ?? {} }, { merge: true });
+    entries.docs.forEach((entry) => transaction.delete(entry.ref));
   });
 }

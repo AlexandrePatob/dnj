@@ -485,6 +485,24 @@
 .help {
   margin: 12px 0 6px;
 }
+.calledPeople {
+  margin-top: 14px;
+  border: 1px solid #b8e1c4;
+  border-radius: 10px;
+  background: #f3fbf5;
+  padding: 12px 14px;
+}
+.calledPeople > p {
+  margin: 0;
+  color: #137345;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.calledPeople ol { padding-top: 5px; }
+.calledPeople li { padding: 10px 0; }
+.calledDot { height: 8px; width: 8px; border-radius: 50%; background: #16a34a; box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12); }
 .empty {
   margin: 22px 0 4px;
   color: #69857a;

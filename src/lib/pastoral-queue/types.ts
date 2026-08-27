@@ -31,13 +31,17 @@ export interface ParticipantQueueState {
 export interface QueueConfig {
   isQueueOpen: boolean;
   pushEnabled: boolean;
-  notificationDelaySeconds: number;
+  notificationDelay: number;
+  whatsAppEnabled?: boolean;
+  almostTherePosition: number;
 }
 
 export const DEFAULT_QUEUE_CONFIG: QueueConfig = {
   isQueueOpen: false,
   pushEnabled: true,
-  notificationDelaySeconds: 0,
+  notificationDelay: 30,
+  whatsAppEnabled: true,
+  almostTherePosition: 10,
 };
 
 export interface NotificationIntent {
@@ -50,11 +54,17 @@ export interface NotificationIntent {
   deliveredAt?: Timestamp;
 }
 
-export const PASTORAL_QUEUE_PATH = "pastoral_queue/current";
-export const QUEUE_ENTRIES_PATH = `${PASTORAL_QUEUE_PATH}/entries`;
-export const PARTICIPANT_STATES_PATH = `${PASTORAL_QUEUE_PATH}/participants`;
-export const NOTIFICATION_INTENTS_PATH = `${PASTORAL_QUEUE_PATH}/notification_intents`;
-export const QUEUE_CONFIG_PATH = `${PASTORAL_QUEUE_PATH}/config/default`;
+export const QUEUE_ENTRIES_PATH = "queue";
+export const CALLED_PEOPLE_PATH = "calledPeople";
+export const QUEUE_CONFIG_PATH = "config/default";
+
+export function firebaseQueueType(type: PastoralQueueType): "confissoes" | "direcao-espiritual" {
+  return type === "confession" ? "confissoes" : "direcao-espiritual";
+}
+
+export function pastoralQueueType(type: unknown): PastoralQueueType | null {
+  return type === "confissoes" ? "confession" : type === "direcao-espiritual" ? "spiritual" : null;
+}
 
 export const TERMINAL_ENTRY_STATUSES: readonly PastoralEntryStatus[] = [
   "completed",
@@ -88,9 +98,13 @@ export function isQueueConfig(value: unknown): value is QueueConfig {
   return (
     typeof config.isQueueOpen === "boolean" &&
     typeof config.pushEnabled === "boolean" &&
-    typeof config.notificationDelaySeconds === "number" &&
-    Number.isInteger(config.notificationDelaySeconds) &&
-    config.notificationDelaySeconds >= 0 &&
-    config.notificationDelaySeconds <= 300
+    typeof config.notificationDelay === "number" &&
+    Number.isInteger(config.notificationDelay) &&
+    config.notificationDelay >= 0 &&
+    config.notificationDelay <= 300 &&
+    (config.whatsAppEnabled === undefined || typeof config.whatsAppEnabled === "boolean") &&
+    typeof config.almostTherePosition === "number" &&
+    Number.isInteger(config.almostTherePosition) &&
+    config.almostTherePosition > 0
   );
 }

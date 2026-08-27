@@ -142,11 +142,12 @@ export function ManagerDashboard() {
   const overviewPollInFlight = useRef(false);
   const load = useCallback(async () => {
     try {
-      const [sessionData, overviewData] = await Promise.all([
-        api("/api/manager/session"),
-        api("/manager/game-overview"),
-      ]);
-      setSession(sessionData as Session);
+      const sessionData = await api("/api/manager/session") as Session;
+      const scope = sessionData.manager?.scope ?? sessionData.scope;
+      const overviewData = scope === "pastoral_queue"
+        ? { scope }
+        : await api("/manager/game-overview");
+      setSession(sessionData);
       setOverview(overviewData as Overview);
       setError("");
     } catch {
