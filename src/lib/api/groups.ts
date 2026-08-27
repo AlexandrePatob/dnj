@@ -6,17 +6,17 @@ export const groupsApi = {
     const query = search ? `?search=${encodeURIComponent(search)}` : "";
     return apiRequest<ApiGroup[]>(`/groups${query}`, { token });
   },
-  current: (token?: string) => apiRequest<ApiGroup | null>("/users/me/group", { token }),
-  members: (token?: string) => apiRequest<ApiUser[]>("/users/me/group/members", { token }),
+  current: (token?: string) => apiRequest<{ group: ApiGroup | null; membership: unknown | null }>("/groups/me", { token }),
+  members: (token?: string) => apiRequest<{ data: ApiUser[]; pagination: { currentPage: number; hasNextPage: boolean; limit: number } }>("/groups/me/members", { token }),
 
   updateUserGroup: (
-    group: { groupId?: string },
+    group: { groupId: string | null },
     token?: string,
   ) =>
     apiMutation<ApiUser>("/users/me/group", {
       method: "PATCH",
       token,
-      body: { groupId: group.groupId },
+      body: group,
       idempotencyKey: undefined,
     }),
 };

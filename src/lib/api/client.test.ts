@@ -122,4 +122,22 @@ describe("apiRequest offline behavior", () => {
     await expect(apiMutation("/moments", { method: "POST", body: {}, idempotencyKey: "same-key" })).rejects.toMatchObject({ status: 409, code: "IDEMPOTENCY_KEY_REUSED", requestId: "req-2" });
     expect(fetch).toHaveBeenCalledTimes(1);
   });
+
+  it("reads the published csrf_token cookie", async () => {
+    vi.stubGlobal("document", { cookie: "csrf_token=published-token" });
+    vi.mocked(fetch).mockResolvedValueOnce(response({ ok: true }));
+    await apiRequest("/auth/refresh", { method: "POST" });
+    expect(fetch).toHaveBeenCalledWith("/api/v2/auth/refresh", expect.objectContaining({ headers: expect.objectContaining({ "X-CSRF-Token": "published-token" }) }));
+  });
+
+  it("retries transient mutations three times with the same idempotency key", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(response({ message: "Indisponível" }, { status: 503 }))
+      .mockResolvedValueOnce(response({ message: "Indisponível" }, { status: 503 }))
+      .mockResolvedValueOnce(response({ ok: true }));
+    await expect(apiMutation("/admin/activities", { method: "POST", body: {}, idempotencyKey: "same-key" })).resolves.toEqual({ ok: true });
+    expect(fetch).toHaveBeenCalledTimes(3);
+    for (const [, init] of vi.mocked(fetch).mock.calls)
+      expect((init as RequestInit).headers).toEqual(expect.objectContaining({ "Idempotency-Key": "same-key" }));
+  });
 });

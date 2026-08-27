@@ -11,7 +11,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     let active = true;
-    void fetch("/api/v2/admin/session", { cache: "no-store", credentials: "include" }).then(async (response) => {
+    void fetch("/api/admin/session", { cache: "no-store", credentials: "include" }).then(async (response) => {
       if (!active) return;
       if (!response.ok) { setSession(null); return; }
       const body = await response.json() as { session: AdminSession };

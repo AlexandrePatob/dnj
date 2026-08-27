@@ -72,6 +72,14 @@
 - **Trade-off**: Reuso entre futuras ediÃ§Ãµes exigirÃ¡ novo deployment, evoluÃ§Ã£o do schema ou uma decisÃ£o futura de reintroduzir tenancy; OpenAPI 1.1.0 precisarÃ¡ de versÃ£o maior para Moments livres e remoÃ§Ã£o de `event`.
 - **Scope**: Backend PostgreSQL/S3 futuro, contratos pÃºblicos V2 e migraÃ§Ã£o do front.
 - **Date**: 2026-08-06
+- **Status**: superseded by AD-010
+
+### AD-010
+- **Decision**: Confissão e Direção Espiritual serão filas pastorais isoladas no Firestore, fora dos fluxos V2 regulares; a identidade e os papéis continuam na API/banco DNJ existente, e o Firestore mantém somente o estado operacional mínimo da fila.
+- **Reason**: A operação exige atualização em tempo real e já possui telas, participantes, gestores e Admin no DNJ. Um módulo isolado reaproveita esses dados sem transformar a fila em domínio dos fluxos padrão.
+- **Trade-off**: As operações diretas no Firestore não aplicam por si só os papéis da API; o produto aceita esse risco operacional limitado e não armazena e-mail ou conteúdo sensível na fila.
+- **Scope**: Filas pastorais, Firestore, Cloud Functions de aviso, telas de Fila/Admin/Gestor e integração de push individual.
+- **Date**: 2026-08-26
 - **Status**: active
 
 ## Handoff

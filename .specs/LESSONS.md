@@ -26,6 +26,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: PWAIP-04 (pwa)
 - last seen: 2026-07-22T22:04:02Z
 
+### L-003 — Run the complete feature gate before claiming a queue feature is ready.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `pastoral-queue` · harmful: 0
+- features: pastoral-queues
+- evidence: validation.md:181 (pastoral-queue)
+- last seen: 2026-08-26T17:20:01Z
+
+### L-004 — Cover every realtime state transition with a behavior-level assertion before integrating the UI.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `pastoral-queue` · harmful: 0
+- features: pastoral-queues
+- evidence: validation.md:134 (pastoral-queue)
+- last seen: 2026-08-26T17:20:01Z
+
 ## Quarantined (failed when applied — ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

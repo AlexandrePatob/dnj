@@ -26,9 +26,12 @@ import {
   Trophy,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toDataURL } from "qrcode";
+import { apiMutation, apiRequest } from "@/lib/api/client";
 import styles from "./manager-dashboard.module.css";
+import { PastoralQueueConsole } from "./pastoral-queue-console";
 
-type Scope = "space" | "actions" | "special_events";
+type Scope = "space" | "actions" | "special_events" | "pastoral_queue";
 type Session = {
   name?: string;
   email?: string;
@@ -89,6 +92,12 @@ type Overview = {
 };
 
 async function api(path: string, init?: RequestInit) {
+  if (!path.startsWith("/api/")) {
+    const body = typeof init?.body === "string" ? JSON.parse(init.body) : init?.body;
+    return init?.method && init.method !== "GET"
+      ? apiMutation(path, { method: init.method, body })
+      : apiRequest(path);
+  }
   const response = await fetch(path, {
     cache: "no-store",
     ...init,
@@ -102,9 +111,9 @@ async function api(path: string, init?: RequestInit) {
   return response.status === 204 ? null : response.json();
 }
 function getScope(session: Session, overview: Overview): Scope | undefined {
-  return (
-    session.manager?.scope ?? session.scope ?? session.role ?? overview.scope
-  );
+  if (session.manager?.scope) return session.manager.scope;
+  if (overview.scope) return overview.scope;
+  return session.scope === "pastoral_queue" ? session.scope : undefined;
 }
 function time(value?: string) {
   return value
@@ -135,7 +144,7 @@ export function ManagerDashboard() {
     try {
       const [sessionData, overviewData] = await Promise.all([
         api("/api/manager/session"),
-        api("/api/manager/overview"),
+        api("/manager/game-overview"),
       ]);
       setSession(sessionData as Session);
       setOverview(overviewData as Overview);
@@ -162,7 +171,7 @@ export function ManagerDashboard() {
         return;
       overviewPollInFlight.current = true;
       try {
-        const data = await api("/api/manager/overview");
+        const data = await api("/manager/game-overview");
         if (active) setOverview(data as Overview);
       } catch {
         // A leitura automática não interfere nas ações do gestor.
@@ -189,9 +198,11 @@ export function ManagerDashboard() {
       ? "Cronometrista"
       : scope === "actions"
         ? "Gestor de Radicalidade"
-        : scope === "special_events"
-          ? "Gestor de eventos especiais"
-          : "Gestor DNJ";
+      : scope === "special_events"
+        ? "Gestor de eventos especiais"
+        : scope === "pastoral_queue"
+          ? "Gestor das filas pastorais"
+        : "Gestor DNJ";
   return (
     <main className={styles.shell}>
       <header className={styles.top}>
@@ -216,6 +227,8 @@ export function ManagerDashboard() {
                 ? "Seu cronograma"
                 : scope === "actions"
                   ? "Radicalidade"
+                : scope === "pastoral_queue"
+                  ? "Filas pastorais"
                   : "Eventos especiais"}
             </h1>
             <p>
@@ -223,6 +236,8 @@ export function ManagerDashboard() {
                 ? "Registre o horário real e mantenha a programação do seu espaço atualizada."
                 : scope === "actions"
                   ? "Abra partidas, acompanhe os scans e confirme a pontuação de cada participante."
+                : scope === "pastoral_queue"
+                  ? "Acompanhe e opere as filas de Confissão e Direção Espiritual."
                   : "Prepare o anúncio, libere o QR no momento certo e acompanhe a experiência."}
             </p>
           </div>
@@ -252,6 +267,8 @@ export function ManagerDashboard() {
             refresh={load}
             setError={setError}
           />
+        ) : scope === "pastoral_queue" ? (
+          <PastoralQueueConsole />
         ) : (
           <Empty
             icon={<AlertCircle size={28} />}
@@ -432,11 +449,11 @@ function ActionConsole({
   }
   async function openRun(gameId: string) {
     try {
-      const created = (await api("/api/manager/actions/runs", {
+      const created = (await api("/manager/runs", {
         method: "POST",
         body: JSON.stringify({ gameId }),
-      })) as { qrImageUrl?: string };
-      setQrImageUrl(created.qrImageUrl);
+      })) as { id: string };
+      setQrImageUrl(undefined);
       await refresh();
     } catch (error) {
       setError((error as Error).message);
@@ -555,9 +572,8 @@ function RunConsole({
   const people = run.participants ?? [];
   const saveResults = () =>
     call(
-      "/api/manager/actions/results",
+      `/manager/runs/${run.id}/results`,
       {
-        runId: run.id,
         results: people.map((person) => ({
           participantId: person.id,
           result: results[person.id] ?? person.result ?? "participation",
@@ -568,10 +584,10 @@ function RunConsole({
     );
   async function renewQr() {
     try {
-      const created = (await api(`/api/manager/actions/runs/${run.id}/qr`, {
+      const created = (await api(`/manager/runs/${run.id}/qr`, {
         method: "POST",
-      })) as { qrImageUrl?: string };
-      setQrImageUrl(created.qrImageUrl);
+      })) as { qrToken: string };
+      setQrImageUrl(await toDataURL(created.qrToken));
     } catch (error) {
       setError((error as Error).message);
     }
@@ -634,8 +650,8 @@ function RunConsole({
                 className={styles.button}
                 onClick={() =>
                   void call(
-                    "/api/manager/actions/start",
-                    { runId: run.id },
+                    `/manager/runs/${run.id}/start`,
+                    {},
                     refresh,
                     setError,
                   )
@@ -658,8 +674,8 @@ function RunConsole({
               className={styles.danger}
               onClick={() =>
                 void call(
-                  "/api/manager/actions/close",
-                  { runId: run.id },
+                  `/manager/runs/${run.id}/cancel`,
+                  {},
                   refresh,
                   setError,
                 )
@@ -684,8 +700,8 @@ function RunConsole({
                 className={styles.secondary}
                 onClick={() =>
                   void call(
-                    "/api/manager/actions/pause",
-                    { runId: run.id },
+                    `/manager/runs/${run.id}/pause`,
+                    {},
                     refresh,
                     setError,
                   )
@@ -699,8 +715,8 @@ function RunConsole({
                 className={styles.button}
                 onClick={() =>
                   void call(
-                    "/api/manager/actions/start",
-                    { runId: run.id },
+                    `/manager/runs/${run.id}/resume`,
+                    {},
                     refresh,
                     setError,
                   )
@@ -714,8 +730,8 @@ function RunConsole({
               className={styles.danger}
               onClick={() =>
                 void call(
-                  "/api/manager/actions/finish",
-                  { runId: run.id },
+                  `/manager/runs/${run.id}/results`,
+                  { results: people.map((person) => ({ participantId: person.id, result: results[person.id] ?? person.result ?? "participation" })) },
                   refresh,
                   setError,
                 )
@@ -745,8 +761,8 @@ function RunConsole({
               className={styles.danger}
               onClick={() =>
                 void call(
-                  "/api/manager/actions/close",
-                  { runId: run.id },
+                  `/manager/runs/${run.id}/cancel`,
+                  {},
                   refresh,
                   setError,
                 )

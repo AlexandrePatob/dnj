@@ -7,18 +7,18 @@ vi.mock("./client", () => ({ apiRequest: vi.fn(), apiMutation: vi.fn(), newIdemp
 describe("notificationsApi", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("lists notifications and forwards the opaque cursor", () => {
-    notificationsApi.list("a/b?c", "session");
-    expect(apiRequest).toHaveBeenCalledWith("/notifications?cursor=a%2Fb%3Fc", { token: "session" });
+  it("lists notifications with the published page parameter", () => {
+    notificationsApi.list(2, "session");
+    expect(apiRequest).toHaveBeenCalledWith("/notifications?page=2", { token: "session" });
   });
 
   it("marks one notification read with an idempotency key", () => {
     notificationsApi.markRead("notice/1", "session", "key-1");
-    expect(apiMutation).toHaveBeenCalledWith("/notifications/notice%2F1/read", { method: "PATCH", token: "session", idempotencyKey: "key-1" });
+    expect(apiMutation).toHaveBeenCalledWith("/notifications/notice%2F1/read", { method: "POST", token: "session", idempotencyKey: "key-1" });
   });
 
   it("updates notification preferences idempotently", () => {
-    notificationsApi.updatePreferences({ email: false, push: true }, "session", "key-2");
-    expect(apiMutation).toHaveBeenCalledWith("/notifications/preferences", { method: "PATCH", body: { email: false, push: true }, token: "session", idempotencyKey: "key-2" });
+    notificationsApi.updatePreferences({ announcementEnabled: false, pointsEnabled: true }, "session", "key-2");
+    expect(apiMutation).toHaveBeenCalledWith("/notifications/preferences", { method: "PUT", body: { announcementEnabled: false, pointsEnabled: true }, token: "session", idempotencyKey: "key-2" });
   });
 });

@@ -1,0 +1,22 @@
+{
+  "name": "pastoral-queue-functions",
+  "private": true,
+  "engines": { "node": "22" },
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test test/rules.test.mjs",
+    "test:emulator": "firebase emulators:exec --only firestore --project demo-pastoral-queue \"node --test test/emulator-rules.test.mjs\""
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.2",
+    "firebase-functions": "^6.4.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
+    "@types/node": "^22.10.2",
+    "firebase": "^10.14.1",
+    "firebase-tools": "^14.7.0",
+    "typescript": "^5.7.3"
+  }
+}
