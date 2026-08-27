@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { joinQueue, leaveQueue } from "./participant-service";
+import { getActiveQueue, joinQueue, leaveQueue } from "./participant-service";
 
 const firestore = vi.hoisted(() => ({
   collection: vi.fn((_db: unknown, path: string) => path),
@@ -46,6 +46,15 @@ describe("participant queue transactions", () => {
     const db = fakeDb({ queue: { empty: false, docs: [item("e1", { queueType: "confissoes" })] } });
     await leaveQueue(db, "u1");
     expect(db.writes).toEqual([{ op: "delete" }]);
+  });
+
+  it("restores an active called entry and removes it when the participant leaves", async () => {
+    const db = fakeDb({ called: { empty: false, docs: [item("c1", { queueType: "direcao-espiritual", name: "Alexandre", status: "called", createdAt: "EARLY", calledAt: "NOW" })] } });
+    await expect(getActiveQueue(db, "u1")).resolves.toMatchObject({ id: "c1", type: "spiritual", status: "called" });
+
+    const leaving = fakeDb({ called: { empty: false, docs: [item("c1", { status: "called" })] } });
+    await leaveQueue(leaving, "u1");
+    expect(leaving.writes).toEqual([{ op: "delete" }]);
   });
 
   it("returns the existing entry when joining the same queue again", async () => {

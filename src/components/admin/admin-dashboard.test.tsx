@@ -125,10 +125,24 @@ describe("AdminDashboard V2", () => {
     fireEvent.change(screen.getByLabelText("Pontos no check-in"), { target: { value: "10" } });
     fireEvent.change(screen.getByLabelText("Pontos por momento"), { target: { value: "20" } });
     fireEvent.change(screen.getByLabelText("Intervalo entre check-ins (segundos)"), { target: { value: "60" } });
-    fireEvent.change(screen.getByLabelText("Início"), { target: { value: "2026-08-24T18:00" } });
-    fireEvent.change(screen.getByLabelText("Duração"), { target: { value: "5" } });
+    fireEvent.change(screen.getByLabelText("Início (opcional)"), { target: { value: "2026-08-24T18:00" } });
     fireEvent.click(screen.getByRole("button", { name: "Criar atividade" }));
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.objectContaining({ method: "POST", headers: expect.objectContaining({ "Idempotency-Key": expect.stringMatching(/^[0-9a-f-]{36}$/i) }), body: JSON.stringify({ name: "Corrida", slug: "corrida", description: "Registre um momento no local.", kind: "challenge", spaceId: "space-1", checkInPoints: 10, momentPoints: 20, cooldownSeconds: 60, allowsMoment: true, startsAt: new Date("2026-08-24T18:00").toISOString(), endsAt: new Date(new Date("2026-08-24T18:00").getTime() + 5 * 60_000).toISOString() }) }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.objectContaining({ method: "POST", headers: expect.objectContaining({ "Idempotency-Key": expect.stringMatching(/^[0-9a-f-]{36}$/i) }), body: JSON.stringify({ name: "Corrida", slug: "corrida", description: "Registre um momento no local.", kind: "challenge", spaceId: "space-1", checkInPoints: 10, momentPoints: 20, cooldownSeconds: 60, allowsMoment: true, startsAt: new Date("2026-08-24T18:00").toISOString(), endsAt: null }) }));
+  });
+
+  it("activates, edits and removes an activity through its operation endpoint", async () => {
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Atividades" }));
+    await screen.findByText("Gincana");
+    fireEvent.click(screen.getByRole("button", { name: "Ativar" }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities/activity-1", expect.objectContaining({ method: "PATCH", body: JSON.stringify({ status: "active" }) }));
+    fireEvent.click(screen.getByRole("button", { name: "Editar" }));
+    fireEvent.change(screen.getByLabelText("Fim (opcional)"), { target: { value: "2026-08-24T19:00" } });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar alterações" }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities/activity-1", expect.objectContaining({ method: "PATCH", body: expect.stringContaining('"endsAt":"2026-08-24T22:00:00.000Z"') }));
+    fireEvent.click(screen.getByRole("button", { name: "Excluir" }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities/activity-1", expect.objectContaining({ method: "DELETE" }));
   });
 
   it("uses the documented moderation action endpoint", async () => {
@@ -153,8 +167,8 @@ describe("AdminDashboard V2", () => {
     fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Notificações" }));
     fireEvent.change(screen.getByLabelText("Título"), { target: { value: "Aviso" } });
     fireEvent.change(screen.getByLabelText("Mensagem"), { target: { value: "Chegue cedo" } });
-    fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
-    expect(await screen.findByText("Comunicado enviado para 3 destinatário(s).")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Enviar para inscritos" }));
+    expect(await screen.findByText("Notificação enfileirada para 3 destinatário(s). Confirme o recebimento em um dispositivo inscrito.")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/notifications", expect.objectContaining({ method: "POST", body: JSON.stringify({ title: "Aviso", body: "Chegue cedo" }) }));
   });
 });
