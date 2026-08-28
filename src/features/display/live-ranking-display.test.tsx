@@ -166,6 +166,6 @@ describe("LiveRankingDisplay", () => {
     expect(
       screen.getByRole("heading", { name: "Ranking dos grupos" }),
     ).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

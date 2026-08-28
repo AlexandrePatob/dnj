@@ -800,12 +800,18 @@ export function GroupScreen({
   onBack,
   animDir,
   initialGroup = "",
+  initialDocument = "",
+  initialMobilePhone = "",
 }: {
-  onNext: (group: string, groupId?: string) => Promise<void>;
+  onNext: (document: string, mobilePhone: string, group: string, groupId?: string) => Promise<void>;
   onBack: () => void;
   animDir: AnimDir;
   initialGroup?: string;
+  initialDocument?: string;
+  initialMobilePhone?: string;
 }) {
+  const [document, setDocument] = useState(initialDocument);
+  const [mobilePhone, setMobilePhone] = useState(initialMobilePhone);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(initialGroup);
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(
@@ -849,7 +855,7 @@ export function GroupScreen({
   const filtered = apiGroups.map((group) => group.groupName);
 
   async function confirmGroup() {
-    if (!selected || confirming) return;
+    if (!selected || document.replace(/\D/g, "").length !== 11 || mobilePhone.replace(/\D/g, "").length < 10 || confirming) return;
     setConfirming(true);
     setGroupsError("");
     try {
@@ -860,7 +866,7 @@ export function GroupScreen({
         setGroupsError("Escolha um dos grupos disponíveis para o DNJ 2K26.");
         return;
       }
-      await onNext(selected, groupId);
+      await onNext(document, mobilePhone, selected, groupId);
     } catch (error) {
       setGroupsError(requestErrorMessage(error));
     } finally {
@@ -888,8 +894,23 @@ export function GroupScreen({
           Seu grupo jovem
         </h2>
         <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-          Confirme ou selecione seu grupo de juventude
+          Complete seus dados e confirme seu grupo de juventude
         </p>
+      </div>
+
+      <div className="mb-4 flex flex-col gap-3">
+        <FieldInput
+          label="CPF"
+          placeholder="000.000.000-00"
+          value={document}
+          onChange={(event) => setDocument(event.target.value.replace(/\D/g, "").slice(0, 11))}
+        />
+        <FieldInput
+          label="Telefone WhatsApp"
+          placeholder="(41) 99999-0000"
+          value={mobilePhone}
+          onChange={(event) => setMobilePhone(event.target.value.replace(/\D/g, "").slice(0, 11))}
+        />
       </div>
 
       <AnimatePresence>
@@ -1108,7 +1129,7 @@ export function GroupScreen({
         </div>
       )}
 
-      <PrimaryButton onClick={confirmGroup} disabled={!selected || confirming}>
+      <PrimaryButton onClick={confirmGroup} disabled={!selected || document.replace(/\D/g, "").length !== 11 || mobilePhone.replace(/\D/g, "").length < 10 || confirming}>
         {confirming ? "Salvando..." : "Confirmar grupo"}
       </PrimaryButton>
     </div>

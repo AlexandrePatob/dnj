@@ -52,6 +52,7 @@ describe("GameScreen scanner entry", () => {
     expect(
       screen.queryByText("Participe de uma atividade e ganhe pontos"),
     ).not.toBeInTheDocument();
+    expect(screen.queryByText("Desafio Momento DNJ")).not.toBeInTheDocument();
   });
 
   it("keeps the onboarding actions above the bottom navigation and dismisses it", async () => {
@@ -78,7 +79,20 @@ describe("GameScreen scanner entry", () => {
     expect(screen.getByRole("button", { name: "Abrir câmera e compartilhar" })).toBeInTheDocument();
   });
 
-  it("keeps the Moment CTA available after the photo is published", async () => {
+  it("keeps rendering when a QR participation has no activity or place details", async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce(new Response(JSON.stringify({ participation: { id: "participation-1", activity: null, place: null } })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 1 } })))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+
+    render(<GameScreen animDir="up" theme="light" onPointsChange={vi.fn()} user={{ name: "Ana", cpf: "", email: "ana@example.com", group: "Chama Viva", points: 10, rankPosition: 1 }} />);
+
+    expect(await screen.findByText("Desafio Momento DNJ")).toBeInTheDocument();
+    expect(screen.getByText("Registre uma foto especial do encontro.")).toBeInTheDocument();
+  });
+
+  it("hides the Moment CTA after the photo is published", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
     fetchMock
@@ -90,7 +104,7 @@ describe("GameScreen scanner entry", () => {
 
     await user.click(await screen.findByRole("button", { name: "Abrir câmera e compartilhar" }));
     await user.click(screen.getByRole("button", { name: "Concluir Momento" }));
-    expect(screen.getByText("Desafio Momento DNJ")).toBeInTheDocument();
+    expect(screen.queryByText("Desafio Momento DNJ")).not.toBeInTheDocument();
   });
 
   it("blocks scanning offline before opening the camera flow", async () => {

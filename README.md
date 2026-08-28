@@ -23,15 +23,12 @@ Abra `http://localhost:3000`.
 
 Os scripts `predev` e `prebuild` geram `public/sw.js` automaticamente. Para testar instalação, cache e atualização como em produção, use uma build local (`npm run build` e `npm run start`) ou uma URL HTTPS da Vercel; o modo de desenvolvimento não substitui esse teste.
 
-Por padrão, `NEXT_PUBLIC_USE_MOCKS=true` permite percorrer o fluxo inteiro sem a API. Qualquer código de seis dígitos é aceito nesse modo.
-
 ## Integração com a API externa
 
 Configure `.env.local`:
 
 ```env
 NEXT_PUBLIC_API_URL=/api/v2
-NEXT_PUBLIC_USE_MOCKS=false
 DNJ_V2_UPSTREAM_URL=https://ttwkfudhvvhuhp5yvsoydxggum0ictpg.lambda-url.sa-east-1.on.aws/v2
 ```
 

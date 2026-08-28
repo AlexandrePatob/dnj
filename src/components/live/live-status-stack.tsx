@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Radio, Timer, UsersRound, X } from "lucide-react";
+import { ArrowRight, Bell, Camera, Radio, Timer, UsersRound, X } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
@@ -19,8 +19,19 @@ export type LiveMomentChallenge = {
   id: string;
   title: string;
   description: string | null;
-  endsAt: string;
+  endsAt?: string | null;
   points: number;
+};
+
+export type LiveQueueNotification = {
+  title: string;
+  body: string;
+};
+
+export type LiveAdminNotification = {
+  id: string;
+  title: string;
+  body: string;
 };
 
 function countdown(iso: string) {
@@ -34,40 +45,42 @@ function countdown(iso: string) {
 export function LiveStatusStack({
   special,
   momentChallenge,
-  queueSummary,
+  queueNotification,
+  adminNotification,
+  onOpenMoment,
+  onOpenQueue,
+  onReadAdmin,
 }: {
   special: LiveSpecialEvent | null;
   momentChallenge?: LiveMomentChallenge | null;
-  queueSummary?: string;
+  queueNotification?: LiveQueueNotification | null;
+  adminNotification?: LiveAdminNotification | null;
+  onOpenMoment?: () => void;
+  onOpenQueue?: () => void;
+  onReadAdmin?: (notificationId: string) => void;
 }) {
   const [now, setNow] = useState(() => Date.now());
   const [showMomentNotice, setShowMomentNotice] = useState(false);
   const [dismissedSpecialKey, setDismissedSpecialKey] = useState<string | null>(null);
   const announcedChallenge = useRef<string | null>(null);
   const specialKey = special ? special.id ?? `${special.title}-${special.startsAt}` : null;
-  const visibleSpecial = special && dismissedSpecialKey !== specialKey ? special : null;
-  const activeMomentChallenge = momentChallenge && new Date(momentChallenge.endsAt).getTime() > now ? momentChallenge : null;
+  const visibleSpecial = special && dismissedSpecialKey !== specialKey && new Date(special.endsAt).getTime() > now ? special : null;
+  const activeMomentChallenge = momentChallenge && (!momentChallenge.endsAt || new Date(momentChallenge.endsAt).getTime() > now) ? momentChallenge : null;
 
   useEffect(() => {
-    if ((!visibleSpecial || visibleSpecial.status === "active") && !activeMomentChallenge) return;
-    const interval = window.setInterval(() => setNow((value) => value + 1), 1_000);
+    if (!visibleSpecial && !activeMomentChallenge) return;
+    const interval = window.setInterval(() => setNow(Date.now()), 1_000);
     return () => window.clearInterval(interval);
   }, [activeMomentChallenge, visibleSpecial?.status]);
   useEffect(() => {
     if (!activeMomentChallenge || announcedChallenge.current === activeMomentChallenge.id) return;
     announcedChallenge.current = activeMomentChallenge.id;
     setShowMomentNotice(true);
-    const timer = window.setTimeout(
-      () => setShowMomentNotice(false),
-      Math.min(6_000, Math.max(0, new Date(activeMomentChallenge.endsAt).getTime() - Date.now())),
-    );
-    return () => window.clearTimeout(timer);
   }, [activeMomentChallenge]);
-
-  if (!visibleSpecial && !showMomentNotice) return null;
+  if (!visibleSpecial && !showMomentNotice && !queueNotification && !adminNotification) return null;
   const detail =
     visibleSpecial?.status === "active" ? (
-      "QR disponível agora"
+      <><Timer className="mr-1 inline" size={12} /> Encerra em {countdown(visibleSpecial.endsAt)}</>
     ) : visibleSpecial ? (
       <>
         <Timer className="mr-1 inline" size={12} /> QR em {countdown(visibleSpecial.qrAvailableAt ?? visibleSpecial.startsAt)}
@@ -94,6 +107,7 @@ export function LiveStatusStack({
               {visibleSpecial.points} pontos
             </span>
             <button
+              type="button"
               aria-label="Fechar evento especial"
               className="grid h-7 w-7 place-items-center rounded-full text-white/80 hover:bg-white/10"
               onClick={() => setDismissedSpecialKey(specialKey)}
@@ -126,15 +140,37 @@ export function LiveStatusStack({
             </span>
           </div>
           <p className="mt-1 text-xs text-white/85">{activeMomentChallenge.title}. Vá ao DNJ Game e compartilhe seu momento.</p>
+          {onOpenMoment && <button type="button" className="mt-3 inline-flex items-center gap-1 rounded-lg bg-white/20 px-3 py-2 text-xs font-bold" onClick={() => { setShowMomentNotice(false); onOpenMoment(); }}>Ir para foto <ArrowRight size={14} /></button>}
         </motion.section>
       )}
-      {queueSummary && visibleSpecial && (
+      {queueNotification && (
         <section
           className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold"
           style={{ background: "var(--card)", border: "1px solid var(--border)" }}
         >
           <UsersRound size={15} style={{ color: "var(--primary)" }} />
-          {queueSummary}
+          <span className="flex-1">
+            <strong className="block">{queueNotification.title}</strong>
+            <span className="font-normal" style={{ color: "var(--muted-foreground)" }}>{queueNotification.body}</span>
+          </span>
+          {onOpenQueue && <button type="button" className="inline-flex items-center gap-1 rounded-lg px-2 py-1 font-bold" style={{ color: "var(--primary)" }} onClick={onOpenQueue}>Ver fila <ArrowRight size={14} /></button>}
+        </section>
+      )}
+      {adminNotification && (
+        <section
+          role="status"
+          tabIndex={onReadAdmin ? 0 : undefined}
+          aria-label={onReadAdmin ? `Ler notificação: ${adminNotification.title}` : undefined}
+          className="flex items-start gap-2 rounded-xl px-3 py-2 text-xs"
+          style={{ background: "var(--card)", border: "1px solid var(--border)", cursor: onReadAdmin ? "pointer" : undefined }}
+          onClick={onReadAdmin ? () => onReadAdmin(adminNotification.id) : undefined}
+          onKeyDown={onReadAdmin ? (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onReadAdmin(adminNotification.id); } } : undefined}
+        >
+          <Bell size={15} className="mt-0.5 shrink-0" style={{ color: "var(--primary)" }} />
+          <span>
+            <strong className="block font-bold">{adminNotification.title}</strong>
+            <span style={{ color: "var(--muted-foreground)" }}>{adminNotification.body}</span>
+          </span>
         </section>
       )}
     </aside>

@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Crown, Medal, Trophy } from "lucide-react";
 import { BrandSticker } from "@/components/brand/brand-sticker";
+import { env } from "@/lib/env";
+import { toDataURL } from "qrcode";
+
+const DISPLAY_POLL_MS = 15_000;
 
 export type DisplayTarget = "tv" | "screen";
 
@@ -21,6 +25,7 @@ type SpecialEvent = {
   endsAt: string;
   readyAt: string | null;
   qrImageUrl: string | null;
+  qrToken?: string | null;
 };
 type DisplayData = {
   updatedAt: string;
@@ -223,11 +228,18 @@ export function LiveRankingDisplay({ target }: { target: DisplayTarget }) {
     let mounted = true;
     const load = async () => {
       try {
-        const response = await fetch(`/api/display?target=${target}`, {
+        const response = await fetch(`${env.apiBaseUrl}/live-display?target=${target}`, {
           cache: "no-store",
         });
         if (!response.ok) throw new Error("display unavailable");
-        const next = (await response.json()) as DisplayData;
+        const raw = (await response.json()) as DisplayData | (SpecialEvent & { qrToken?: string | null }) | null;
+        const next: DisplayData = raw && typeof raw === "object" && "rankings" in raw
+          ? raw as DisplayData
+          : {
+              updatedAt: new Date().toISOString(),
+              rankings: { individual: [], groups: [] },
+              specialEvent: raw ? { ...raw, qrImageUrl: raw.qrToken ? await toDataURL(raw.qrToken, { width: 360, margin: 1 }) : null } : null,
+            };
         if (mounted) {
           setData(next);
           setError(false);
@@ -237,7 +249,7 @@ export function LiveRankingDisplay({ target }: { target: DisplayTarget }) {
       }
     };
     void load();
-    const poll = window.setInterval(() => void load(), 5_000);
+    const poll = window.setInterval(() => void load(), DISPLAY_POLL_MS);
     return () => {
       mounted = false;
       window.clearInterval(poll);

@@ -47,7 +47,7 @@ beforeEach(() => {
       return Promise.resolve(jsonResponse({ data: [{ id: "activity-1", name: "Gincana", slug: "gincana", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 10, momentPoints: 20, cooldownSeconds: 60, allowsMoment: true }] }));
     if (input === "/api/v2/admin/spaces")
       return Promise.resolve(jsonResponse({ data: [{ id: "space-1", name: "Capela", slug: "capela", mapReference: null }] }));
-    return Promise.resolve(jsonResponse({ data: [{ id: "staff-1", name: "Ana Gestora", role: "EVENT_MANAGER", onboardingComplete: true }] }));
+    return Promise.resolve(jsonResponse({ data: [{ id: "staff-1", name: "Ana Gestora", email: "ana.gestora@example.com", role: "EVENT_MANAGER", onboardingComplete: true }] }));
   });
   vi.stubGlobal("fetch", fetchMock);
 });
@@ -56,6 +56,7 @@ describe("AdminDashboard V2", () => {
   it("loads the documented staff endpoint by default", async () => {
     render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
     expect(await screen.findByText("Ana Gestora")).toBeInTheDocument();
+    expect(screen.getByText("ana.gestora@example.com")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/staff?role=EVENT_MANAGER", expect.anything());
   });
 

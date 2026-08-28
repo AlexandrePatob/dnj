@@ -16,16 +16,19 @@ describe("AccountScreen", () => {
   });
 
   it("exposes the selected light theme as accessible text", () => {
-    render(<AccountScreen user={user} onLogout={vi.fn()} theme="light" onToggleTheme={vi.fn()} animDir="up" />);
+    render(<AccountScreen user={user} onAvatarChange={vi.fn()} onLogout={vi.fn()} theme="light" onToggleTheme={vi.fn()} animDir="up" />);
 
     expect(screen.getByText("Tema atual: modo claro")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Tema atual: modo claro/ })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByLabelText("Alterar foto de perfil")).toHaveAttribute("accept", "image/jpeg,image/png,image/webp");
+    expect(screen.getByText("Momentos")).toBeInTheDocument();
+    expect(screen.queryByText("Sua jornada continua")).not.toBeInTheDocument();
   });
 
   it("announces the selected dark theme and keeps its control actionable", async () => {
     const onToggleTheme = vi.fn();
     const interaction = userEvent.setup();
-    render(<AccountScreen user={user} onLogout={vi.fn()} theme="dark" onToggleTheme={onToggleTheme} animDir="up" />);
+    render(<AccountScreen user={user} onAvatarChange={vi.fn()} onLogout={vi.fn()} theme="dark" onToggleTheme={onToggleTheme} animDir="up" />);
 
     expect(screen.getByText("Tema atual: modo escuro")).toBeInTheDocument();
     const control = screen.getByRole("button", { name: /Tema atual: modo escuro/ });
