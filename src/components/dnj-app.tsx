@@ -329,7 +329,7 @@ export function DnjApp() {
           </motion.div>
         </AnimatePresence>
 
-        {isMain && <TopBar />}
+        {isMain && <TopBar points={user.points} />}
         {isMain && <LiveStatusStack special={specialEvent} momentChallenge={momentChallenge} queueNotification={queueNotification} adminNotification={adminNotification} onOpenMoment={() => { setMomentOpenRequest((value) => value + 1); navigate("game"); }} onOpenQueue={() => navigate("queue")} onReadAdmin={handleReadAdminNotification} />}
         {!network.isOnline && offlineSnapshotCapturedAt && (
           <p

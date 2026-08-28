@@ -62,15 +62,20 @@ describe("HomeScreen", () => {
     );
 
     expect(await screen.findByText("Abertura")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Olá, Ana!" })).toBeInTheDocument();
     expect(screen.getByText("ACONTECENDO AGORA")).toBeInTheDocument();
-    expect(screen.getByText("Animação da Manhã")).toBeInTheDocument();
+    expect(screen.queryByText("Animação da Manhã")).not.toBeInTheDocument();
+    expect(screen.queryByText("EM SEGUIDA")).not.toBeInTheDocument();
+    expect(screen.getByText("Jornada DNJ")).toBeInTheDocument();
     expect(screen.getByText("Nível Iniciante")).toBeInTheDocument();
+    expect(screen.getByLabelText("Progresso da jornada")).toBeInTheDocument();
     expect(screen.queryByText(/MISSÃO ATIVA/i)).not.toBeInTheDocument();
     expect(screen.queryByText("Cronograma do Evento")).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "Ver cronograma completo" }),
     );
     expect(onOpenSchedule).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("img", { name: "Mapa isométrico oficial do evento DNJ 2026" })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Abrir" }));
     expect(onOpenMap).toHaveBeenCalledOnce();
   });

@@ -36,7 +36,7 @@ Concluir as frentes abaixo usando os contratos oficiais V2 quando disponíveis, 
 | P05 | Nomenclatura | todo texto visível troca Cronograma por Programação; identificadores internos permanecem estáveis | — |
 | P06 | Programação | abas Agora/Espaços; quatro espaços na ordem definida; accordion e horários/status reais | P05, contrato agenda |
 | P07 | Home agora | somente a Home mostra Acontecendo agora e não renderiza Em seguida/próxima atividade; outras telas mantêm esse conteúdo | P06 |
-| P08 | Mapa | usa `MapaIsometrico_DNJ_FINAL.png` como preview oficial ampliável; CTA abre o mapa interativo existente; imagem legível em mobile | ativo/rota de mapa existentes |
+| P08 | Mapa | a tela Mapa do evento usa `MapaIsometrico_DNJ_FINAL.png` como único Mapa Oficial ampliável e legível em mobile; Home mantém apenas o atalho de acesso; não exibe espaços por enquanto | ativo/rota de mapa existentes |
 | P09 | Ranking e níveis | faixas existentes mapeadas; Home/Header/Perfil/Ranking exibem a mesma regra e progresso | fonte oficial de pontos |
 | P10 | Momentos estrutura | abas Momentos DNJ/Meus Momentos; foto livre publica sem desafio/pontos; desafio válido vincula e premia; cards usam o ícone do usuário e, quando houver foto de perfil, exibem-na no canto do card | P13, contrato Moments |
 | P11 | Momentos feed | mídia, likes idempotentes, estados de tela e contexto condicional ao desafio funcionam | P10 |

@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { storage } from "@/lib/storage";
 import type { AuthSession } from "@/types/domain";
-import { AppShell, BottomNav } from "./layout/dnj-layout";
+import { AppShell, BottomNav, TopBar } from "./layout/dnj-layout";
 import { DnjApp } from "./dnj-app";
 
 const session: AuthSession = {
@@ -58,7 +58,7 @@ describe("DnjApp session restoration", () => {
     render(<DnjApp />);
 
     expect(await screen.findByText(/Ana!/)).toBeInTheDocument();
-    expect(screen.getByText("Dia Nacional da Juventude")).toBeInTheDocument();
+    expect(screen.queryByText("Dia Nacional da Juventude")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Entrar" })).not.toBeInTheDocument();
   });
 
@@ -124,6 +124,16 @@ describe("BottomNav", () => {
 
     await user.click(screen.getByRole("button", { name: "Momentos" }));
     expect(onNavigate).toHaveBeenCalledWith("gallery");
+  });
+});
+
+describe("TopBar", () => {
+  it("centers the logo, shows unified points, and removes the former slogan", () => {
+    render(<TopBar points={230} />);
+
+    expect(screen.getByAltText("DNJ 2K26")).toBeInTheDocument();
+    expect(screen.getByText("230 pontos")).toBeInTheDocument();
+    expect(screen.queryByText("Vai, jovem, e reconstrói a minha igreja!")).not.toBeInTheDocument();
   });
 });
 
