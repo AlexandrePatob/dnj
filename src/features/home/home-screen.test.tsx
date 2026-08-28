@@ -72,7 +72,7 @@ describe("HomeScreen", () => {
     expect(screen.queryByText(/MISSÃO ATIVA/i)).not.toBeInTheDocument();
     expect(screen.queryByText("Cronograma do Evento")).not.toBeInTheDocument();
     await user.click(
-      screen.getByRole("button", { name: "Ver cronograma completo" }),
+      screen.getByRole("button", { name: "Ver programação completa" }),
     );
     expect(onOpenSchedule).toHaveBeenCalledOnce();
     expect(screen.queryByRole("img", { name: "Mapa isométrico oficial do evento DNJ 2026" })).not.toBeInTheDocument();

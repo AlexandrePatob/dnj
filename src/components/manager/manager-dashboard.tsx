@@ -229,7 +229,7 @@ export function ManagerDashboard() {
           <div>
             <h1>
               {scope === "space"
-                ? "Seu cronograma"
+                ? "Sua programação"
                 : scope === "actions"
                   ? "Radicalidade"
                 : scope === "pastoral_queue"
@@ -378,7 +378,7 @@ function SpaceConsole({
             }
           >
             <Clock3 size={16} />
-            Avançar cronograma
+            Avançar programação
           </button>
         </div>
       </section>

@@ -27,12 +27,12 @@ const navigation: Array<{ label: DashboardPanel; icon: typeof LayoutDashboard }>
 ];
 const managerScopes = [
   { value: "actions", label: "Radicalidade" },
-  { value: "space", label: "Cronograma" },
+  { value: "space", label: "Programação" },
   { value: "pastoral_queue", label: "Fila" },
   { value: "special_events", label: "Eventos especiais" },
 ] as const;
 const activityTypes = [
-  { kind: "schedule", label: "Programação", description: "Organize o cronograma do encontro.", icon: CalendarClock },
+  { kind: "schedule", label: "Programação", description: "Organize a programação do encontro.", icon: CalendarClock },
   { kind: "checkpoint", label: "Estáticos", description: "Crie pontos de presença com QR Code.", icon: QrCode },
   { kind: "competitive", label: "Games", description: "Acompanhe jogos conduzidos pela Radicalidade.", icon: Gamepad2 },
   { kind: "live", label: "Eventos especiais", description: "Publique ações e chamadas ao vivo.", icon: Zap },

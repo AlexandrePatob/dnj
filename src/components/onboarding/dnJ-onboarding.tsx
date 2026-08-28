@@ -9,7 +9,7 @@ const slides = [
   { icon: Camera, title: "Registre Momentos", body: "Em experiências elegíveis, compartilhe uma foto e ganhe pontos extras." },
   { icon: Trophy, title: "Acompanhe seus Pontos", body: "Veja seu progresso, ranking individual e ranking do seu grupo." },
   { icon: Users, title: "Filas e desafios", body: "Acompanhe sua posição e fique atento aos desafios especiais." },
-  { icon: Map, title: "Explore o DNJ", body: "Use o mapa e o cronograma para encontrar o que acontece agora." },
+  { icon: Map, title: "Explore o DNJ", body: "Use o mapa e a programação para encontrar o que acontece agora." },
 ];
 
 export function DnjOnboarding({ onClose }: { onClose: () => void }) {
