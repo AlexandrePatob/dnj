@@ -3,7 +3,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { authApi } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
-import { env } from "@/lib/env";
 import { mapIdentityUser } from "@/lib/api/mappers";
 import { profileApi } from "@/lib/api/profile";
 import type { AuthSession } from "@/types/domain";
@@ -59,7 +58,7 @@ function getAnimDir(from: Screen, to: Screen): AnimDir {
 }
 
 import { AccountScreen } from "@/features/account/account-screen";
-import { GroupScreen, LoginScreen, RegisterScreen, VerifyScreen } from "@/features/auth/auth-screens";
+import { CreateAccountScreen, GroupScreen, LoginScreen, VerifyScreen } from "@/features/auth/auth-screens";
 import { GameScreen } from "@/features/game/game-screen";
 import { GalleryScreen } from "@/features/gallery/gallery-screen";
 import { HomeScreen } from "@/features/home/home-screen";
@@ -91,7 +90,6 @@ export function DnjApp() {
   const [screen, setScreen]         = useState<Screen>("login");
   const [prevScreen, setPrevScreen] = useState<Screen>("login");
   const [emailVal, setEmailVal]     = useState("");
-  const [emailVerificationCode, setEmailVerificationCode] = useState<string | null>(null);
   const [registration, setRegistration] = useState<RegistrationData | null>(null);
   const [user, setUser] = useState<UserData>({
     name: "João Paulo", cpf: "", email: "", mobilePhone: "", group: "",
@@ -124,8 +122,7 @@ export function DnjApp() {
   const handleLogin = useCallback(async (email: string) => {
     setEmailVal(email);
     setUser((u) => ({ ...u, email }));
-    const response = await authApi.requestCode(email);
-    setEmailVerificationCode(response.debugCode ?? null);
+    await authApi.requestCode(email);
     navigate("verify");
   }, [navigate]);
 
@@ -141,8 +138,7 @@ export function DnjApp() {
   }, [navigate]);
 
   const handleResendVerification = useCallback(async () => {
-    const response = await authApi.requestCode(emailVal);
-    setEmailVerificationCode(response.debugCode ?? null);
+    await authApi.requestCode(emailVal);
   }, [emailVal]);
 
   const handleVerification = useCallback(async (code: string) => {
@@ -174,16 +170,16 @@ export function DnjApp() {
     navigate("group");
   }, [navigate, registration]);
 
-  const handleGroupConfirm = useCallback(async (document: string, mobilePhone: string, group: string, groupId?: string) => {
+  const handleGroupConfirm = useCallback(async (name: string, document: string, mobilePhone: string, group: string, groupId?: string) => {
     const session = storage.getSession();
     if (!session) throw new ApiError("Sessão não encontrada. Entre novamente.", 401);
     const identity = await authApi.completeOnboarding({ document, mobilePhone, groupId: group === "Sem grupo de jovens" ? null : groupId ?? null });
     let apiUser = mapIdentityUser(identity.user);
-    if (registration?.name) apiUser = mapIdentityUser(await profileApi.update({ name: registration.name }, session.identityToken));
+    if (name !== apiUser.name) apiUser = mapIdentityUser(await profileApi.update({ name }, session.identityToken));
     storage.setSession({ identityToken: session.identityToken, user: apiUser });
     setUser(sessionUserData({ identityToken: session.identityToken, user: apiUser }));
     navigate("home");
-  }, [navigate, registration]);
+  }, [navigate]);
 
   const animDir = getAnimDir(prevScreen, screen);
   const isMain  = ["home", "schedule", "map", "game", "queue", "gallery", "account"].includes(screen);
@@ -192,13 +188,6 @@ export function DnjApp() {
   useEffect(() => {
     if (restoredSession.current) return;
     restoredSession.current = true;
-    if (env.localHomologation) {
-      setUser({ name: "Participante local", cpf: "", email: "participante.local@dnj.test", mobilePhone: "+5511999990000", group: "", points: 0, rankPosition: 0 });
-      setPrevScreen("login");
-      setScreen("home");
-      setSessionReady(true);
-      return;
-    }
     let disposed = false;
     void authApi.getSession().then((identity) => {
       if (disposed) return;
@@ -260,7 +249,6 @@ export function DnjApp() {
     if (!sessionReady || !isMain) return;
     if (specialEventsUnavailable.current) return;
     let active = true;
-    let timer: number | undefined;
     const load = async () => {
       try {
         const data = await apiRequest<{ event?: LiveSpecialEvent | null }>("/special-events/active?target=app");
@@ -268,13 +256,13 @@ export function DnjApp() {
       } catch (error) {
         if (error instanceof ApiError && error.status === 404) {
           specialEventsUnavailable.current = true;
-          if (timer !== undefined) window.clearInterval(timer);
+          window.clearInterval(timer);
         }
         if (active) setSpecialEvent(null);
       }
     };
     void load();
-    timer = window.setInterval(() => void load(), SPECIAL_EVENT_POLL_MS);
+    const timer = window.setInterval(() => void load(), SPECIAL_EVENT_POLL_MS);
     return () => { active = false; window.clearInterval(timer); };
   }, [isMain, sessionReady]);
 
@@ -324,10 +312,10 @@ export function DnjApp() {
             transition={{ duration: reduceMotion ? 0.01 : 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
             {screen === "login"           && <LoginScreen    onNext={handleLogin} onGoogleLogin={handleGoogleLogin} onRegister={() => navigate("register")} animDir={animDir} />}
-            {screen === "register"        && <RegisterScreen onBack={() => navigate("login")} onDone={async (data) => { setRegistration(data); setEmailVal(data.email); const response = await authApi.requestCode(data.email); setEmailVerificationCode(response.debugCode ?? null); navigate("register-verify"); }} animDir={animDir} />}
-            {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} simulatedSmsCode={emailVerificationCode} />}
-            {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onResend={handleResendVerification} onBack={() => navigate("login")}  animDir={animDir} simulatedSmsCode={emailVerificationCode} />}
-            {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("verify")} animDir={animDir} initialGroup={user.group} initialDocument={user.cpf} initialMobilePhone={user.mobilePhone || registration?.mobilePhone} />}
+            {screen === "register"        && <CreateAccountScreen onBack={() => navigate("login")} onDone={async (data) => { setRegistration(data); setEmailVal(data.email); await authApi.requestCode(data.email); navigate("register-verify"); }} animDir={animDir} />}
+            {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} />}
+            {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onResend={handleResendVerification} onBack={() => navigate("login")}  animDir={animDir} />}
+            {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("login")} animDir={animDir} initialName={registration?.name ?? ""} initialGroup={user.group} initialDocument={user.cpf} initialMobilePhone={user.mobilePhone || registration?.mobilePhone} />}
             {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} onOpenSchedule={() => navigate("schedule")} onOpenMap={() => navigate("map")} />}
             {screen === "schedule" && <EventScheduleScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "map" && <EventMapScreen animDir={animDir} onBack={() => navigate("home")} />}

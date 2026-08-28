@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { groupsApi } from "@/lib/api/groups";
 import { storage } from "@/lib/storage";
 import {
+  CreateAccountScreen,
   GroupScreen,
   LoginScreen,
   RegisterScreen,
@@ -49,7 +50,30 @@ describe("RegisterScreen", () => {
   });
 });
 
+describe("CreateAccountScreen", () => {
+  it("collects name and email before verification, leaving group selection for authenticated onboarding", () => {
+    const onDone = vi.fn();
+    render(<CreateAccountScreen animDir="up" onBack={vi.fn()} onDone={onDone} />);
+
+    fireEvent.change(screen.getByLabelText("Nome completo"), { target: { value: "Ana Silva" } });
+    fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "ana@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar código" }));
+
+    expect(onDone).toHaveBeenCalledWith({ name: "Ana Silva", email: "ana@example.com", mobilePhone: "", group: "" });
+    expect(screen.queryByText("Grupo de Jovens")).not.toBeInTheDocument();
+  });
+});
+
 describe("entry feedback", () => {
+  it("puts Google before the email flow with a visible separator", () => {
+    render(<LoginScreen animDir="up" onNext={vi.fn()} onGoogleLogin={vi.fn()} onRegister={vi.fn()} />);
+
+    const google = screen.getByLabelText("Entrar com Google");
+    const email = screen.getByLabelText("E-mail");
+    expect(screen.getByText("OU")).toBeInTheDocument();
+    expect(google.compareDocumentPosition(email) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
+  });
+
   it("shows field guidance for an invalid email", () => {
     render(<LoginScreen animDir="up" onNext={vi.fn()} onRegister={vi.fn()} />);
     fireEvent.change(screen.getByLabelText("E-mail"), {
@@ -92,6 +116,43 @@ describe("entry feedback", () => {
 });
 
 describe("GroupScreen", () => {
+  it("creates and selects a real group when the search has no match", async () => {
+    storage.setSession({
+      identityToken: "participant-token",
+      user: { id: "participant-1", name: "Ana Silva", email: "ana@example.com", document: "", group: null, points: 0, rankPosition: 0 },
+    });
+    vi.spyOn(groupsApi, "search").mockResolvedValue([]);
+    const create = vi.spyOn(groupsApi, "create").mockResolvedValue({ id: "group-new", groupName: "Jovens da Serra" });
+    render(<GroupScreen animDir="up" onBack={vi.fn()} onNext={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Não encontrei meu grupo" }));
+    fireEvent.change(screen.getByPlaceholderText("Nome do seu grupo"), { target: { value: "Jovens da Serra" } });
+    fireEvent.click(screen.getByRole("button", { name: "Criar grupo" }));
+
+    expect(await screen.findByText("Jovens da Serra")).toBeInTheDocument();
+    expect(create).toHaveBeenCalledWith({ name: "Jovens da Serra" }, "participant-token");
+    expect(screen.queryByText(/seis grupos cadastrados/i)).not.toBeInTheDocument();
+  });
+
+  it("collects name, formats CPF and WhatsApp, and sends only digits for onboarding", async () => {
+    storage.setSession({
+      identityToken: "participant-token",
+      user: { id: "participant-1", name: "Ana Silva", email: "ana@example.com", document: "", group: null, points: 0, rankPosition: 0 },
+    });
+    vi.spyOn(groupsApi, "search").mockResolvedValue([{ id: "group-1", groupName: "Jovens da Luz" }]);
+    const onNext = vi.fn().mockResolvedValue(undefined);
+    render(<GroupScreen animDir="up" onBack={vi.fn()} onNext={onNext} initialName="Ana Silva" />);
+
+    fireEvent.change(screen.getByLabelText("CPF"), { target: { value: "08621231948" } });
+    fireEvent.change(screen.getByLabelText("Telefone WhatsApp"), { target: { value: "41999786268" } });
+    expect(screen.getByLabelText("CPF")).toHaveValue("086.212.319-48");
+    expect(screen.getByLabelText("Telefone WhatsApp")).toHaveValue("(41) 99978-6268");
+
+    fireEvent.click(await screen.findByRole("button", { name: "Jovens da Luz" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar grupo" }));
+    expect(onNext).toHaveBeenCalledWith("Ana Silva", "08621231948", "41999786268", "Jovens da Luz", "group-1");
+  });
+
   it("lists persisted groups immediately after verification", async () => {
     storage.setSession({
       identityToken: "participant-token",

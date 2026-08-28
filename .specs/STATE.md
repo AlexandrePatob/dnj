@@ -84,13 +84,13 @@
 
 ## Handoff
 
-- **Feature**: Modularização DNJ / `.specs/features/dnj-modularization/`
-- **Phase / Task**: Fase 3; M3-08 é próxima.
-- **Completed**: Fase 1 modularizada; Fase 2 aplicou viewport-fit, variáveis únicas de safe area, BottomNav segura, padding de telas e avisos PWA, Conta hierárquica com saída confirmada e CTA grande para scanner. Typecheck, lint e 113 testes unitários aprovados.
+- **Feature**: Onda 1A — Login e Onboarding / `.specs/features/wave-1-auth-onboarding/`
+- **Phase / Task**: Onda 1A concluída — validada manualmente e verificada de forma independente.
+- **Completed**: Google antes do e-mail, separador OU, mensagem de primeiro acesso, largura responsiva do botão GIS, conta nova via código, nome/CPF/WhatsApp/grupo no onboarding, criação real de grupo e remoção de todas as simulações de runtime. Testes relevantes: 20 aprovados; typecheck e lint aprovados.
 - **In-progress** (file:line): none
-- **Next step**: M3-08, criar Route Handlers de galeria geral e pessoal.
-- **Blockers**: validação visual automatizada falha 6/8 contra snapshots existentes; usuário assumirá validação manual e orientará eventuais correções.
-- **Uncommitted files**: `.gitignore`, `graphify-out/` e `test-results/`; preservar e não incluir em commits desta feature sem revisão separada.
+- **Next step**: iniciar a Onda 2 após direcionamento do usuário; P10 registra o ajuste pendente do avatar em Momentos.
+- **Blockers**: nenhum conhecido.
+- **Uncommitted files**: alterações prévias de Home/Mapa, specs e Onda 1A; `functions.pre-main-update-20260827/` e `test-results/` devem ser preservados e excluídos de commits.
 - **Branch**: dev
 
 ## Handoff update — 2026-07-23

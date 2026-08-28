@@ -1,6 +1,6 @@
 import { apiMutation, apiRequest } from "./client";
 import type { IdentitySessionResponse } from "./contracts";
-type EmailSignupResponse = { status: string; debugCode?: string };
+type EmailSignupResponse = { status: string };
 export const authApi = {
   loginWithGoogle: (idToken: string) => apiMutation<IdentitySessionResponse>("/auth/google", { method: "POST", body: { idToken } }),
   getSession: () => apiRequest<IdentitySessionResponse>("/auth/session"),
