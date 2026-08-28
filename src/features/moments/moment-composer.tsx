@@ -356,7 +356,10 @@ export function MomentComposer({
             className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-bold disabled:opacity-40"
             style={{ background: "var(--primary)", color: "white" }}
           >
-            <Check size={18} /> {mode === "challenge" ? "Publicar e ganhar pontos" : "Publicar momento"}
+            <Check size={18} />{" "}
+            {mode === "challenge"
+              ? "Publicar e ganhar pontos"
+              : "Publicar momento"}
           </button>
           <button
             type="button"

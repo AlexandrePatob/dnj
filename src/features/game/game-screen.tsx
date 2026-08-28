@@ -517,39 +517,6 @@ export function GameScreen({
                 challenge={momentChallenge}
                 onOpen={() => setMomentOpen(true)}
               />
-            ) : participation && (participation.canShareMoment ?? true) ? (
-              <section
-                className="relative overflow-hidden rounded-2xl p-4"
-                style={{
-                  background:
-                    "linear-gradient(135deg, var(--game) 0%, #d9ef8c 100%)",
-                  boxShadow: "var(--shadow-card)",
-                }}
-              >
-                <span className="text-[.65rem] font-black uppercase tracking-[.14em]">
-                  Desafio Momento DNJ
-                </span>
-                <strong className="mt-1 block text-lg">
-                  Registre sua memória
-                </strong>
-                <p
-                  className="mt-1 text-sm"
-                  style={{ color: "rgba(0,0,0,.65)" }}
-                >
-                  {momentChallenge
-                    ? `${momentChallenge.title}${momentChallenge.description ? ` · ${momentChallenge.description}` : ""}`
-                    : participation?.activity?.name && participation.place?.name
-                      ? `${participation.activity.name} · ${participation.place.name}`
-                      : "Registre uma foto especial do encontro."}
-                </p>
-                <button
-                  onClick={() => setMomentOpen(true)}
-                  className="mt-3 rounded-xl px-4 py-2 text-sm font-bold text-white"
-                  style={{ background: "var(--primary)" }}
-                >
-                  Abrir câmera e compartilhar
-                </button>
-              </section>
             ) : null}
             <section>
               <h2 className="mb-2 text-sm font-bold">Histórico de pontos</h2>
@@ -747,7 +714,9 @@ export function GameScreen({
           onCreated={(moment) => {
             setMomentOpen(false);
             if (moment.pointsAwarded > 0) {
-              setCompletedMomentChallengeId(momentChallenge?.id ?? null);
+              setCompletedMomentChallengeId(
+                momentChallenge?.id ?? participation?.activity?.id ?? null,
+              );
               onMomentCompleted?.();
               setCelebration({
                 points: moment.pointsAwarded,

@@ -80,9 +80,7 @@ describe("MomentComposer", () => {
     await user.click(
       await screen.findByRole("button", { name: "Capturar foto" }),
     );
-    await user.click(
-      screen.getByRole("button", { name: "Publicar momento" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Publicar momento" }));
     await waitFor(() => expect(publishFreeMoment).toHaveBeenCalledTimes(1));
     expect(publishFreeMoment.mock.calls[0][0]).toMatchObject({
       publishConsent: true,

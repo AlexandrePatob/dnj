@@ -5,9 +5,18 @@ import { GameScreen } from "./game-screen";
 
 vi.mock("@/lib/api/game", () => ({
   gameApi: {
-    currentParticipation: async () => { const response = await fetch("/api/v2/participations/current"); return response.status === 204 ? null : response.json(); },
-    overview: async () => { const response = await fetch("/api/v2/game/overview"); return response.json(); },
-    currentRun: async () => { const response = await fetch("/api/v2/activity-runs/current"); return response.status === 204 ? null : response.json(); },
+    currentParticipation: async () => {
+      const response = await fetch("/api/v2/participations/current");
+      return response.status === 204 ? null : response.json();
+    },
+    overview: async () => {
+      const response = await fetch("/api/v2/game/overview");
+      return response.json();
+    },
+    currentRun: async () => {
+      const response = await fetch("/api/v2/activity-runs/current");
+      return response.status === 204 ? null : response.json();
+    },
   },
 }));
 
@@ -17,7 +26,15 @@ vi.mock("@/features/scanner/qr-scanner-modal", () => ({
   ),
 }));
 vi.mock("@/features/moments/moment-composer", () => ({
-  MomentComposer: ({ onCreated }: { onCreated: () => void }) => <button onClick={onCreated}>Concluir Momento</button>,
+  MomentComposer: ({
+    onCreated,
+  }: {
+    onCreated: (moment: { pointsAwarded: number }) => void;
+  }) => (
+    <button onClick={() => onCreated({ pointsAwarded: 50 })}>
+      Concluir Momento
+    </button>
+  ),
 }));
 
 describe("GameScreen scanner entry", () => {
@@ -59,50 +76,189 @@ describe("GameScreen scanner entry", () => {
     const user = userEvent.setup();
     localStorage.removeItem("dnj.game.onboarding.v1.ana@example.com");
 
-    render(<GameScreen animDir="up" theme="light" onPointsChange={vi.fn()} user={{ name: "Ana", cpf: "", email: "ana@example.com", group: "Chama Viva", points: 10, rankPosition: 1 }} />);
+    render(
+      <GameScreen
+        animDir="up"
+        theme="light"
+        onPointsChange={vi.fn()}
+        user={{
+          name: "Ana",
+          cpf: "",
+          email: "ana@example.com",
+          group: "Chama Viva",
+          points: 10,
+          rankPosition: 1,
+        }}
+      />,
+    );
 
-    expect(screen.getByText("Seu caminho no DNJ Game").parentElement?.parentElement).toHaveClass("pb-[calc(var(--bottom-nav-total-height)+1rem)]");
+    expect(
+      screen.getByText("Seu caminho no DNJ Game").parentElement?.parentElement,
+    ).toHaveClass("pb-[calc(var(--bottom-nav-total-height)+1rem)]");
     await user.click(screen.getByRole("button", { name: "Entendi" }));
-    expect(screen.queryByText("Seu caminho no DNJ Game")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Seu caminho no DNJ Game"),
+    ).not.toBeInTheDocument();
   });
 
   it("highlights the pending Moment in DNJ Game", async () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock
-      .mockResolvedValueOnce(new Response(JSON.stringify({ participation: { id: "participation-1", canShareMoment: true, activity: { id: "challenge-1", name: "Foto com a galera" }, place: { id: "space-1", name: "Espaço DNJ" } } })))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 1 } })))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            participation: {
+              id: "participation-1",
+              canShareMoment: true,
+              activity: { id: "challenge-1", name: "Foto com a galera" },
+              place: { id: "space-1", name: "Espaço DNJ" },
+            },
+          }),
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            individual: [],
+            groups: [],
+            pointEntries: [],
+            current: { groupId: null, rankPosition: 1 },
+          }),
+        ),
+      )
       .mockResolvedValueOnce(new Response(null, { status: 204 }));
 
-    render(<GameScreen animDir="up" theme="light" onPointsChange={vi.fn()} user={{ name: "Ana", cpf: "", email: "ana@example.com", group: "Chama Viva", points: 10, rankPosition: 1 }} />);
+    render(
+      <GameScreen
+        animDir="up"
+        theme="light"
+        onPointsChange={vi.fn()}
+        user={{
+          name: "Ana",
+          cpf: "",
+          email: "ana@example.com",
+          group: "Chama Viva",
+          points: 10,
+          rankPosition: 1,
+        }}
+      />,
+    );
 
     expect(await screen.findByText("Desafio Momento DNJ")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Abrir câmera e compartilhar" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Abrir câmera e compartilhar" }),
+    ).toBeInTheDocument();
   });
 
   it("keeps rendering when a QR participation has no activity or place details", async () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock
-      .mockResolvedValueOnce(new Response(JSON.stringify({ participation: { id: "participation-1", activity: null, place: null } })))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 1 } })))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            participation: {
+              id: "participation-1",
+              activity: null,
+              place: null,
+            },
+          }),
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            individual: [],
+            groups: [],
+            pointEntries: [],
+            current: { groupId: null, rankPosition: 1 },
+          }),
+        ),
+      )
       .mockResolvedValueOnce(new Response(null, { status: 204 }));
 
-    render(<GameScreen animDir="up" theme="light" onPointsChange={vi.fn()} user={{ name: "Ana", cpf: "", email: "ana@example.com", group: "Chama Viva", points: 10, rankPosition: 1 }} />);
+    render(
+      <GameScreen
+        animDir="up"
+        theme="light"
+        onPointsChange={vi.fn()}
+        momentChallenge={{
+          id: "challenge-1",
+          title: "Foto com a galera",
+          description: "",
+          points: 50,
+        }}
+        user={{
+          name: "Ana",
+          cpf: "",
+          email: "ana@example.com",
+          group: "Chama Viva",
+          points: 10,
+          rankPosition: 1,
+        }}
+      />,
+    );
 
     expect(await screen.findByText("Desafio Momento DNJ")).toBeInTheDocument();
-    expect(screen.getByText("Registre uma foto especial do encontro.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Registre uma foto especial do encontro."),
+    ).toBeInTheDocument();
   });
 
   it("hides the Moment CTA after the photo is published", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
     fetchMock
-      .mockResolvedValueOnce(new Response(JSON.stringify({ participation: { id: "participation-1", canShareMoment: true, activity: { id: "challenge-1", name: "Foto com a galera" }, place: { id: "space-1", name: "Espaço DNJ" } } })))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 1 } })))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            participation: {
+              id: "participation-1",
+              canShareMoment: true,
+              activity: { id: "challenge-1", name: "Foto com a galera" },
+              place: { id: "space-1", name: "Espaço DNJ" },
+            },
+          }),
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            individual: [],
+            groups: [],
+            pointEntries: [],
+            current: { groupId: null, rankPosition: 1 },
+          }),
+        ),
+      )
       .mockResolvedValueOnce(new Response(null, { status: 204 }));
 
-    render(<GameScreen animDir="up" theme="light" onPointsChange={vi.fn()} user={{ name: "Ana", cpf: "", email: "ana@example.com", group: "Chama Viva", points: 10, rankPosition: 1 }} />);
+    render(
+      <GameScreen
+        animDir="up"
+        theme="light"
+        onPointsChange={vi.fn()}
+        momentChallenge={{
+          id: "challenge-1",
+          title: "Foto com a galera",
+          description: "",
+          points: 50,
+        }}
+        user={{
+          name: "Ana",
+          cpf: "",
+          email: "ana@example.com",
+          group: "Chama Viva",
+          points: 10,
+          rankPosition: 1,
+        }}
+      />,
+    );
 
-    await user.click(await screen.findByRole("button", { name: "Abrir câmera e compartilhar" }));
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Abrir câmera",
+      }),
+    );
     await user.click(screen.getByRole("button", { name: "Concluir Momento" }));
     expect(screen.queryByText("Desafio Momento DNJ")).not.toBeInTheDocument();
   });
@@ -153,7 +309,9 @@ describe("GameScreen scanner entry", () => {
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
-            id: "run-1", status: "draft", gameName: "Corrida do saco",
+            id: "run-1",
+            status: "draft",
+            gameName: "Corrida do saco",
           }),
         ),
       );
@@ -185,7 +343,15 @@ describe("GameScreen scanner entry", () => {
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
-            individual: [{ id: "ana", name: "Ana", points: 0, group: "Chama Viva", isUser: true }],
+            individual: [
+              {
+                id: "ana",
+                name: "Ana",
+                points: 0,
+                group: "Chama Viva",
+                isUser: true,
+              },
+            ],
             groups: [],
             pointEntries: [],
             current: { groupId: null, rankPosition: 1 },
@@ -193,14 +359,30 @@ describe("GameScreen scanner entry", () => {
         ),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ id: "run-1", status: "completed", gameName: "Corrida do saco" })),
+        new Response(
+          JSON.stringify({
+            id: "run-1",
+            status: "completed",
+            gameName: "Corrida do saco",
+          }),
+        ),
       )
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
-            individual: [{ id: "ana", name: "Ana", points: 120, group: "Chama Viva", isUser: true }],
+            individual: [
+              {
+                id: "ana",
+                name: "Ana",
+                points: 120,
+                group: "Chama Viva",
+                isUser: true,
+              },
+            ],
             groups: [],
-            pointEntries: [{ id: "entry-1", label: "Pontos DNJ", points: 120, icon: "qr" }],
+            pointEntries: [
+              { id: "entry-1", label: "Pontos DNJ", points: 120, icon: "qr" },
+            ],
             current: { groupId: null, rankPosition: 1 },
           }),
         ),
@@ -211,7 +393,14 @@ describe("GameScreen scanner entry", () => {
         animDir="up"
         theme="light"
         onPointsChange={onPointsChange}
-        user={{ name: "Ana", cpf: "", email: "ana@example.com", group: "Chama Viva", points: 0, rankPosition: 1 }}
+        user={{
+          name: "Ana",
+          cpf: "",
+          email: "ana@example.com",
+          group: "Chama Viva",
+          points: 0,
+          rankPosition: 1,
+        }}
       />,
     );
 
