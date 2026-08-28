@@ -133,6 +133,12 @@ describe("GameScreen scanner entry", () => {
         animDir="up"
         theme="light"
         onPointsChange={vi.fn()}
+        momentChallenge={{
+          id: "challenge-1",
+          title: "Foto com a galera",
+          description: "Registre seu grupo",
+          points: 50,
+        }}
         user={{
           name: "Ana",
           cpf: "",
@@ -146,7 +152,7 @@ describe("GameScreen scanner entry", () => {
 
     expect(await screen.findByText("Desafio Momento DNJ")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Abrir câmera e compartilhar" }),
+      screen.getByRole("button", { name: "Abrir câmera" }),
     ).toBeInTheDocument();
   });
 
@@ -199,9 +205,7 @@ describe("GameScreen scanner entry", () => {
     );
 
     expect(await screen.findByText("Desafio Momento DNJ")).toBeInTheDocument();
-    expect(
-      screen.getByText("Registre uma foto especial do encontro."),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Abrir câmera" })).toBeInTheDocument();
   });
 
   it("hides the Moment CTA after the photo is published", async () => {
@@ -230,7 +234,17 @@ describe("GameScreen scanner entry", () => {
           }),
         ),
       )
-      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            individual: [],
+            groups: [],
+            pointEntries: [],
+            current: { groupId: null, rankPosition: 1 },
+          }),
+        ),
+      );
 
     render(
       <GameScreen
@@ -260,7 +274,7 @@ describe("GameScreen scanner entry", () => {
       }),
     );
     await user.click(screen.getByRole("button", { name: "Concluir Momento" }));
-    expect(screen.queryByText("Desafio Momento DNJ")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Abrir câmera" })).not.toBeInTheDocument();
   });
 
   it("blocks scanning offline before opening the camera flow", async () => {

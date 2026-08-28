@@ -281,7 +281,6 @@ export function GameScreen({
   user,
   theme,
   animDir,
-  momentOpenRequest,
   momentChallenge,
   onMomentCompleted,
   onPointsChange,
@@ -289,9 +288,8 @@ export function GameScreen({
   user: UserData;
   theme: "light" | "dark";
   animDir: AnimDir;
-  momentOpenRequest?: number;
   momentChallenge?: LiveMomentChallenge | null;
-  onMomentCompleted?: () => void;
+  onMomentCompleted?: (challengeId: string) => void;
   onPointsChange: (points: number) => void;
 }) {
   const [tab, setTab] = useState<GameTab>("overview");
@@ -306,9 +304,7 @@ export function GameScreen({
     null,
   );
   const [liveRun, setLiveRun] = useState<LiveRun | null>(null);
-  const [momentOpen, setMomentOpen] = useState(() =>
-    Boolean(momentOpenRequest),
-  );
+  const [momentOpen, setMomentOpen] = useState(false);
   const [completedMomentChallengeId, setCompletedMomentChallengeId] = useState<
     string | null
   >(null);
@@ -340,6 +336,7 @@ export function GameScreen({
       nextOverview.individual.find((entry) => entry.isUser)?.points;
     if (ownPoints !== undefined && ownPoints !== user.points)
       onPointsChange(ownPoints);
+    return nextOverview;
   }, [loadOverview, onPointsChange, user.points]);
   useEffect(() => {
     let alive = true;
@@ -380,13 +377,20 @@ export function GameScreen({
     if (["completed", "cancelled"].includes(liveRun.status)) {
       if (refreshedTerminalRunId.current !== liveRun.id) {
         refreshedTerminalRunId.current = liveRun.id;
-        void refreshOverview();
-      }
-      if (liveRun.status === "completed" && participation) {
-        setCelebration({
-          ...participation,
-          checkInPoints: liveRun.points ?? participation.checkInPoints,
-        });
+        const previousPoints =
+          overview?.current?.points ??
+          overview?.individual.find((entry) => entry.isUser)?.points ??
+          user.points;
+        void refreshOverview().then((nextOverview) => {
+          const currentPoints =
+            nextOverview.current?.points ??
+            nextOverview.individual.find((entry) => entry.isUser)?.points ??
+            previousPoints;
+          const awardedPoints = currentPoints - previousPoints;
+          if (liveRun.status === "completed" && awardedPoints > 0) {
+            setCelebration({ points: awardedPoints, label: liveRun.gameName });
+          }
+        }).catch(() => undefined);
       }
       const timer = window.setTimeout(() => setLiveRun(null), 1_800);
       return () => window.clearTimeout(timer);
@@ -395,7 +399,7 @@ export function GameScreen({
       void loadLiveRun(liveRun.id).then((run) => run && setLiveRun(run));
     }, LIVE_RUN_POLL_MS);
     return () => window.clearInterval(timer);
-  }, [liveRun, loadLiveRun, participation, refreshOverview]);
+  }, [liveRun, loadLiveRun, overview, refreshOverview, user.points]);
   const groups = showAll
     ? (overview?.groups ?? [])
     : (overview?.groups ?? []).slice(0, 10);
@@ -717,7 +721,7 @@ export function GameScreen({
               setCompletedMomentChallengeId(
                 momentChallenge?.id ?? participation?.activity?.id ?? null,
               );
-              onMomentCompleted?.();
+              if (momentChallenge) onMomentCompleted?.(momentChallenge.id);
               setCelebration({
                 points: moment.pointsAwarded,
                 label: "Desafio Momento DNJ",
