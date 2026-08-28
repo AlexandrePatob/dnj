@@ -113,6 +113,13 @@ describe("entry feedback", () => {
       await screen.findByText("Código inválido. Confira os 6 dígitos."),
     ).toBeInTheDocument();
   });
+
+  it("shows the API-provided code only for local homologation", () => {
+    render(<VerifyScreen email="ana@example.com" animDir="up" onBack={vi.fn()} onNext={vi.fn()} homologationCode="123456" />);
+
+    expect(screen.getByRole("heading", { name: "Código de homologação" })).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("123456");
+  });
 });
 
 describe("GroupScreen", () => {

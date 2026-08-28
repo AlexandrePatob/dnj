@@ -586,12 +586,14 @@ export function VerifyScreen({
   onResend,
   onBack,
   animDir,
+  homologationCode = null,
 }: {
   email: string;
   onNext: (code: string) => Promise<void>;
   onResend?: () => Promise<void>;
   onBack: () => void;
   animDir: AnimDir;
+  homologationCode?: string | null;
 }) {
   const masked = email.replace(
     /^(.)(.*)(@.*)$/,
@@ -668,22 +670,17 @@ export function VerifyScreen({
           className="text-2xl font-bold mb-2"
           style={{ color: "var(--foreground)" }}
         >
-          Verifique seu e-mail
+          {homologationCode ? "Código de homologação" : "Verifique seu e-mail"}
         </h2>
         <p
           className="text-sm leading-relaxed"
           style={{ color: "var(--muted-foreground)" }}
         >
-          Enviamos um código de 6 dígitos para{" "}
-          <span
-            className="font-semibold"
-            style={{ color: "var(--accent)" }}
-          >
-            {masked}
-          </span>
-          . Verifique também o spam.
+          {homologationCode ? "Use o código abaixo para homologar localmente." : <>Enviamos um código de 6 dígitos para{" "}<span className="font-semibold" style={{ color: "var(--accent)" }}>{masked}</span>. Verifique também o spam.</>}
         </p>
       </div>
+
+      {homologationCode ? <p role="status" className="mb-6 rounded-xl px-4 py-3 text-center text-sm font-bold" style={{ background: "var(--accent-alpha-15)", color: "var(--foreground)", border: "1px solid var(--accent-alpha-30)" }}>Código local: <span style={{ color: "var(--primary)", letterSpacing: ".16em" }}>{homologationCode}</span></p> : null}
 
       <div
         className="flex gap-2.5 justify-center mb-5"

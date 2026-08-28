@@ -21,6 +21,7 @@ export function OperationalLogin({ area, role, sessionPath, destination }: Props
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [codeSent, setCodeSent] = useState(false);
+  const [homologationCode, setHomologationCode] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
@@ -55,7 +56,8 @@ export function OperationalLogin({ area, role, sessionPath, destination }: Props
     event.preventDefault(); setPending(true); setError("");
     try {
       if (!codeSent) {
-        await authApi.requestCode(email);
+        const response = await authApi.requestCode(email);
+        setHomologationCode(process.env.NODE_ENV !== "production" ? response.debugCode ?? "" : "");
         setCodeSent(true);
         return;
       }
@@ -71,6 +73,7 @@ export function OperationalLogin({ area, role, sessionPath, destination }: Props
       <p className={styles.description}>Entre com e-mail ou Google. O acesso é liberado pelas permissões da sua conta.</p>
       <label className={styles.field}>E-mail<input className={styles.input} value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="email" required disabled={codeSent} /></label>
       {codeSent && <label className={styles.field}>Código de 6 dígitos<input className={styles.input} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" required /></label>}
+      {homologationCode && <p role="status" className={styles.hint}>Código local: <strong>{homologationCode}</strong></p>}
       {error && <p role="alert" className={styles.error}>{error}</p>}
       <button className={styles.button} disabled={pending || !email || (codeSent && code.length !== 6)} type="submit">{pending ? "Entrando…" : codeSent ? "Confirmar código" : "Enviar código"}</button>
       <div ref={googleButton} className={styles.google} aria-label="Entrar com Google" />

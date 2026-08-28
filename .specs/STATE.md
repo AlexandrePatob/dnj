@@ -2,6 +2,14 @@
 
 ## Decisions
 
+### AD-011
+- **Decision**: Durante a homologação, o código de e-mail retornado como `debugCode` pela API pode ser exibido somente no ambiente de desenvolvimento; produção nunca o mostra nem o gera no frontend.
+- **Reason**: Permite validar localmente o fluxo completo de e-mail sem enfraquecer o fluxo de produção.
+- **Trade-off**: O contrato de homologação possui um campo temporário adicional que deve ser removido ao término da homologação total, sob segunda ordem do usuário.
+- **Scope**: Login de participante e operacional, resposta de `POST /auth/signup` e telas de verificação.
+- **Date**: 2026-08-28
+- **Status**: temporary
+
 ### AD-001
 - **Decision**: A primeira versão PWA manterá Next.js 16 e usará um service worker próprio e enxuto, sem migrar para Vite e sem adotar Serwist.
 - **Reason**: O projeto já usa App Router e integrações da Vercel; o Next.js suporta manifest e service worker, e a abordagem reduz mudanças de stack e risco de regressão visual.

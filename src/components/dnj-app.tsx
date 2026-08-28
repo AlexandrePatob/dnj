@@ -90,6 +90,7 @@ export function DnjApp() {
   const [screen, setScreen]         = useState<Screen>("login");
   const [prevScreen, setPrevScreen] = useState<Screen>("login");
   const [emailVal, setEmailVal]     = useState("");
+  const [emailVerificationCode, setEmailVerificationCode] = useState<string | null>(null);
   const [registration, setRegistration] = useState<RegistrationData | null>(null);
   const [user, setUser] = useState<UserData>({
     name: "João Paulo", cpf: "", email: "", mobilePhone: "", group: "",
@@ -122,7 +123,8 @@ export function DnjApp() {
   const handleLogin = useCallback(async (email: string) => {
     setEmailVal(email);
     setUser((u) => ({ ...u, email }));
-    await authApi.requestCode(email);
+    const response = await authApi.requestCode(email);
+    setEmailVerificationCode(process.env.NODE_ENV !== "production" ? response.debugCode ?? null : null);
     navigate("verify");
   }, [navigate]);
 
@@ -138,7 +140,8 @@ export function DnjApp() {
   }, [navigate]);
 
   const handleResendVerification = useCallback(async () => {
-    await authApi.requestCode(emailVal);
+    const response = await authApi.requestCode(emailVal);
+    setEmailVerificationCode(process.env.NODE_ENV !== "production" ? response.debugCode ?? null : null);
   }, [emailVal]);
 
   const handleVerification = useCallback(async (code: string) => {
@@ -312,9 +315,9 @@ export function DnjApp() {
             transition={{ duration: reduceMotion ? 0.01 : 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
             {screen === "login"           && <LoginScreen    onNext={handleLogin} onGoogleLogin={handleGoogleLogin} onRegister={() => navigate("register")} animDir={animDir} />}
-            {screen === "register"        && <CreateAccountScreen onBack={() => navigate("login")} onDone={async (data) => { setRegistration(data); setEmailVal(data.email); await authApi.requestCode(data.email); navigate("register-verify"); }} animDir={animDir} />}
-            {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} />}
-            {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onResend={handleResendVerification} onBack={() => navigate("login")}  animDir={animDir} />}
+            {screen === "register"        && <CreateAccountScreen onBack={() => navigate("login")} onDone={async (data) => { setRegistration(data); setEmailVal(data.email); const response = await authApi.requestCode(data.email); setEmailVerificationCode(process.env.NODE_ENV !== "production" ? response.debugCode ?? null : null); navigate("register-verify"); }} animDir={animDir} />}
+            {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} homologationCode={emailVerificationCode} />}
+            {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onResend={handleResendVerification} onBack={() => navigate("login")}  animDir={animDir} homologationCode={emailVerificationCode} />}
             {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("login")} animDir={animDir} initialName={registration?.name ?? ""} initialGroup={user.group} initialDocument={user.cpf} initialMobilePhone={user.mobilePhone || registration?.mobilePhone} />}
             {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} onOpenSchedule={() => navigate("schedule")} onOpenMap={() => navigate("map")} />}
             {screen === "schedule" && <EventScheduleScreen animDir={animDir} onBack={() => navigate("home")} />}
