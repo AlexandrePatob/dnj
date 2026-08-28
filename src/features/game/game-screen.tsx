@@ -14,8 +14,12 @@ import type {
 } from "@/features/app/types";
 import { getDnjLevel } from "@/lib/levels";
 import { MomentComposer } from "@/features/moments/moment-composer";
+import { MomentChallengeCard } from "@/features/moments/moment-challenge-card";
 import type { LiveMomentChallenge } from "@/components/live/live-status-stack";
-import { QrScannerModal, type QrValidation } from "@/features/scanner/qr-scanner-modal";
+import {
+  QrScannerModal,
+  type QrValidation,
+} from "@/features/scanner/qr-scanner-modal";
 import { QrSuccessCelebration } from "@/features/scanner/qr-success-celebration";
 import { useNetworkStatus } from "@/hooks/use-network-status";
 import { gameApi } from "@/lib/api/game";
@@ -279,6 +283,7 @@ export function GameScreen({
   animDir,
   momentOpenRequest,
   momentChallenge,
+  onMomentCompleted,
   onPointsChange,
 }: {
   user: UserData;
@@ -286,18 +291,27 @@ export function GameScreen({
   animDir: AnimDir;
   momentOpenRequest?: number;
   momentChallenge?: LiveMomentChallenge | null;
+  onMomentCompleted?: () => void;
   onPointsChange: (points: number) => void;
 }) {
   const [tab, setTab] = useState<GameTab>("overview");
   const [rankingTab, setRankingTab] = useState<RankingTab>("individual");
   const [qrOpen, setQrOpen] = useState(false);
-  const [celebration, setCelebration] = useState<(Participation & { qrAction?: "joined" | "scored" }) | MomentCelebration | null>(null);
+  const [celebration, setCelebration] = useState<
+    | (Participation & { qrAction?: "joined" | "scored" })
+    | MomentCelebration
+    | null
+  >(null);
   const [participation, setParticipation] = useState<Participation | null>(
     null,
   );
   const [liveRun, setLiveRun] = useState<LiveRun | null>(null);
-  const [momentOpen, setMomentOpen] = useState(() => Boolean(momentOpenRequest));
-  const [completedMomentChallengeId, setCompletedMomentChallengeId] = useState<string | null>(null);
+  const [momentOpen, setMomentOpen] = useState(() =>
+    Boolean(momentOpenRequest),
+  );
+  const [completedMomentChallengeId, setCompletedMomentChallengeId] = useState<
+    string | null
+  >(null);
   const [showAll, setShowAll] = useState(false);
   const [scanFeedback, setScanFeedback] = useState("");
   const [overview, setOverview] = useState<GameOverview | null>(null);
@@ -321,26 +335,42 @@ export function GameScreen({
   const refreshOverview = useCallback(async () => {
     const nextOverview = await loadOverview();
     setOverview(nextOverview);
-    const ownPoints = nextOverview.current?.points ?? nextOverview.individual.find((entry) => entry.isUser)?.points;
-    if (ownPoints !== undefined && ownPoints !== user.points) onPointsChange(ownPoints);
+    const ownPoints =
+      nextOverview.current?.points ??
+      nextOverview.individual.find((entry) => entry.isUser)?.points;
+    if (ownPoints !== undefined && ownPoints !== user.points)
+      onPointsChange(ownPoints);
   }, [loadOverview, onPointsChange, user.points]);
   useEffect(() => {
     let alive = true;
     const participationRequest = gameApi.currentParticipation();
     const overviewRequest = loadOverview();
     const runRequest = loadLiveRun();
-    void overviewRequest.then((nextOverview) => {
-      if (!alive) return;
-      setOverview(nextOverview);
-      const ownPoints = nextOverview.current?.points ?? nextOverview.individual.find((entry) => entry.isUser)?.points;
-      if (ownPoints !== undefined && ownPoints !== user.points) onPointsChange(ownPoints);
-    }).catch(() => undefined);
-    void participationRequest.then((current) => {
-      if (alive) setParticipation((current as unknown as { participation?: Participation } | null)?.participation ?? current as unknown as Participation | null);
-    }).catch(() => undefined);
-    void runRequest.then((run) => {
-      if (alive) setLiveRun(run);
-    }).catch(() => undefined);
+    void overviewRequest
+      .then((nextOverview) => {
+        if (!alive) return;
+        setOverview(nextOverview);
+        const ownPoints =
+          nextOverview.current?.points ??
+          nextOverview.individual.find((entry) => entry.isUser)?.points;
+        if (ownPoints !== undefined && ownPoints !== user.points)
+          onPointsChange(ownPoints);
+      })
+      .catch(() => undefined);
+    void participationRequest
+      .then((current) => {
+        if (alive)
+          setParticipation(
+            (current as unknown as { participation?: Participation } | null)
+              ?.participation ?? (current as unknown as Participation | null),
+          );
+      })
+      .catch(() => undefined);
+    void runRequest
+      .then((run) => {
+        if (alive) setLiveRun(run);
+      })
+      .catch(() => undefined);
     return () => {
       alive = false;
     };
@@ -400,8 +430,10 @@ export function GameScreen({
     if (value.qrAction === "joined") {
       const run = await loadLiveRun();
       if (run) setLiveRun(run);
+      if (momentChallenge) setMomentOpen(true);
     }
-    if (value.qrAction === "scored") setCelebration({ ...value, checkInPoints: value.qrPoints });
+    if (value.qrAction === "scored")
+      setCelebration({ ...value, checkInPoints: value.qrPoints });
   };
   return (
     <div
@@ -479,23 +511,36 @@ export function GameScreen({
                 />
               </div>
             </section>
-            {(momentChallenge && momentChallenge.id !== completedMomentChallengeId) || (participation && (participation.canShareMoment ?? true)) ? (
-            <section
+            {momentChallenge &&
+            momentChallenge.id !== completedMomentChallengeId ? (
+              <MomentChallengeCard
+                challenge={momentChallenge}
+                onOpen={() => setMomentOpen(true)}
+              />
+            ) : participation && (participation.canShareMoment ?? true) ? (
+              <section
                 className="relative overflow-hidden rounded-2xl p-4"
                 style={{
-                  background: "linear-gradient(135deg, var(--game) 0%, #d9ef8c 100%)",
+                  background:
+                    "linear-gradient(135deg, var(--game) 0%, #d9ef8c 100%)",
                   boxShadow: "var(--shadow-card)",
                 }}
               >
-                <span className="text-[.65rem] font-black uppercase tracking-[.14em]">Desafio Momento DNJ</span>
-                <strong className="mt-1 block text-lg">Registre sua memória</strong>
+                <span className="text-[.65rem] font-black uppercase tracking-[.14em]">
+                  Desafio Momento DNJ
+                </span>
+                <strong className="mt-1 block text-lg">
+                  Registre sua memória
+                </strong>
                 <p
                   className="mt-1 text-sm"
                   style={{ color: "rgba(0,0,0,.65)" }}
                 >
-                  {momentChallenge ? `${momentChallenge.title}${momentChallenge.description ? ` · ${momentChallenge.description}` : ""}` : participation?.activity?.name && participation.place?.name
-                    ? `${participation.activity.name} · ${participation.place.name}`
-                    : "Registre uma foto especial do encontro."}
+                  {momentChallenge
+                    ? `${momentChallenge.title}${momentChallenge.description ? ` · ${momentChallenge.description}` : ""}`
+                    : participation?.activity?.name && participation.place?.name
+                      ? `${participation.activity.name} · ${participation.place.name}`
+                      : "Registre uma foto especial do encontro."}
                 </p>
                 <button
                   onClick={() => setMomentOpen(true)}
@@ -504,7 +549,7 @@ export function GameScreen({
                 >
                   Abrir câmera e compartilhar
                 </button>
-            </section>
+              </section>
             ) : null}
             <section>
               <h2 className="mb-2 text-sm font-bold">Histórico de pontos</h2>
@@ -675,9 +720,21 @@ export function GameScreen({
         )}
         {celebration && (
           <QrSuccessCelebration
-            points={"points" in celebration ? celebration.points : celebration.checkInPoints}
-            scored={"points" in celebration || celebration.qrAction === "scored"}
-            label={"points" in celebration ? celebration.label : celebration.activity?.name && celebration.place?.name ? `${celebration.activity.name} · ${celebration.place.name}` : "Participação confirmada"}
+            points={
+              "points" in celebration
+                ? celebration.points
+                : celebration.checkInPoints
+            }
+            scored={
+              "points" in celebration || celebration.qrAction === "scored"
+            }
+            label={
+              "points" in celebration
+                ? celebration.label
+                : celebration.activity?.name && celebration.place?.name
+                  ? `${celebration.activity.name} · ${celebration.place.name}`
+                  : "Participação confirmada"
+            }
             onDone={() => setCelebration(null)}
           />
         )}
@@ -685,9 +742,21 @@ export function GameScreen({
       </AnimatePresence>
       {momentOpen && (
         <MomentComposer
-          participation={participation}
+          mode="challenge"
           onClose={() => setMomentOpen(false)}
-          onCreated={(moment) => { setMomentOpen(false); if (!moment || !("pointsAwarded" in moment)) { setParticipation(null); return; } if (moment.pointsAwarded > 0) { setCompletedMomentChallengeId(momentChallenge?.id ?? participation?.activity?.id ?? null); setParticipation(null); setCelebration({ points: moment.pointsAwarded, label: "Desafio Momento DNJ" }); onPointsChange(user.points + moment.pointsAwarded); } void refreshOverview(); }}
+          onCreated={(moment) => {
+            setMomentOpen(false);
+            if (moment.pointsAwarded > 0) {
+              setCompletedMomentChallengeId(momentChallenge?.id ?? null);
+              onMomentCompleted?.();
+              setCelebration({
+                points: moment.pointsAwarded,
+                label: "Desafio Momento DNJ",
+              });
+              onPointsChange(user.points + moment.pointsAwarded);
+            }
+            void refreshOverview();
+          }}
         />
       )}
     </div>
