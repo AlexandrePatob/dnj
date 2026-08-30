@@ -449,6 +449,7 @@ describe("GameScreen scanner entry", () => {
               id: "run-1",
               status: "completed",
               gameName: "Corrida do saco",
+              points: 50,
             }),
           ),
         )
@@ -479,6 +480,12 @@ describe("GameScreen scanner entry", () => {
       expect(
         screen.getByRole("dialog", { name: "Status da partida" }),
       ).toHaveTextContent("Partida finalizada");
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2_000);
+      });
+      expect(screen.getByLabelText("Pontos creditados")).toHaveTextContent(
+        "+50 pontos",
+      );
 
     } finally {
       vi.useRealTimers();

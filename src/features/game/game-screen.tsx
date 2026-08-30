@@ -45,7 +45,7 @@ type LiveRun = {
   gameName: string;
   points?: number;
 };
-type MomentCelebration = { points: number; label: string };
+type MomentCelebration = { points: number; label: string; durationMs?: number };
 const LIVE_RUN_POLL_MS = 5_000;
 
 const onboardingKey = (email: string) =>
@@ -375,24 +375,21 @@ export function GameScreen({
   useEffect(() => {
     if (!liveRun) return;
     if (["completed", "cancelled"].includes(liveRun.status)) {
+      const awardedPoints = liveRun.points ?? 0;
       if (refreshedTerminalRunId.current !== liveRun.id) {
         refreshedTerminalRunId.current = liveRun.id;
-        const previousPoints =
-          overview?.current?.points ??
-          overview?.individual.find((entry) => entry.isUser)?.points ??
-          user.points;
-        void refreshOverview().then((nextOverview) => {
-          const currentPoints =
-            nextOverview.current?.points ??
-            nextOverview.individual.find((entry) => entry.isUser)?.points ??
-            previousPoints;
-          const awardedPoints = currentPoints - previousPoints;
-          if (liveRun.status === "completed" && awardedPoints > 0) {
-            setCelebration({ points: awardedPoints, label: liveRun.gameName });
-          }
-        }).catch(() => undefined);
+        void refreshOverview().catch(() => undefined);
       }
-      const timer = window.setTimeout(() => setLiveRun(null), 1_800);
+      const timer = window.setTimeout(() => {
+        setLiveRun(null);
+        if (liveRun.status === "completed" && awardedPoints > 0) {
+          setCelebration({
+            points: awardedPoints,
+            label: liveRun.gameName,
+            durationMs: 3_000,
+          });
+        }
+      }, 2_000);
       return () => window.clearTimeout(timer);
     }
     const timer = window.setInterval(() => {
@@ -701,6 +698,7 @@ export function GameScreen({
             scored={
               "points" in celebration || celebration.qrAction === "scored"
             }
+            durationMs={"points" in celebration ? celebration.durationMs : undefined}
             label={
               "points" in celebration
                 ? celebration.label
