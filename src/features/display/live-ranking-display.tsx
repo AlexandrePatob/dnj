@@ -9,6 +9,7 @@ import { toDataURL } from "qrcode";
 const DISPLAY_POLL_MS = 15_000;
 
 export type DisplayTarget = "tv" | "screen";
+export type ScreenFormat = "side" | "backdrop";
 
 type RankingEntry = {
   id: string;
@@ -33,6 +34,25 @@ type DisplayData = {
   specialEvent: SpecialEvent | null;
 };
 
+type RankingPage = {
+  data?: Array<{
+    id: string | number;
+    name: string;
+    points: number;
+    groupName?: string | null;
+    members?: number;
+  }>;
+};
+
+function rankingEntries(page: RankingPage, board: "individual" | "groups"): RankingEntry[] {
+  return (page.data ?? []).map((entry) => ({
+    id: String(entry.id),
+    name: entry.name,
+    points: entry.points,
+    ...(board === "individual" ? { group: entry.groupName ?? "Sem grupo" } : { members: entry.members ?? 0 }),
+  }));
+}
+
 function remaining(target: string, now: number) {
   const seconds = Math.max(
     0,
@@ -44,9 +64,11 @@ function remaining(target: string, now: number) {
 function RankRows({
   entries,
   board,
+  format,
 }: {
   entries: RankingEntry[];
   board: "individual" | "groups";
+  format: "tv" | ScreenFormat;
 }) {
   if (!entries.length)
     return (
@@ -54,10 +76,12 @@ function RankRows({
         Aguardando os primeiros pontos do DNJ.
       </p>
     );
+  const isBackdrop = format === "backdrop";
+  const isSide = format === "side";
   const podium = [
-    { entry: entries[1], position: 2, tone: "#c7d2d9", height: "9rem" },
-    { entry: entries[0], position: 1, tone: "#f6c945", height: "12rem" },
-    { entry: entries[2], position: 3, tone: "#d9824c", height: "7rem" },
+    { entry: entries[1], position: 2, tone: "#c7d2d9", height: isBackdrop ? "6rem" : "9rem" },
+    { entry: entries[0], position: 1, tone: "#f6c945", height: isBackdrop ? "8rem" : "12rem" },
+    { entry: entries[2], position: 3, tone: "#d9824c", height: isBackdrop ? "5rem" : "7rem" },
   ].filter(
     (
       place,
@@ -70,10 +94,16 @@ function RankRows({
   );
 
   return (
-    <div className="mx-auto mt-8 w-full max-w-7xl">
+    <div
+      className={`mx-auto w-full ${
+        isBackdrop ? "mt-5 grid max-w-none grid-cols-1 gap-5 lg:grid-cols-[1.05fr_1fr] lg:items-end" : "mt-8 max-w-7xl"
+      }`}
+    >
       <section
         aria-label="Pódio"
-        className="mx-auto grid max-w-4xl grid-cols-3 items-end gap-3 px-2 text-center md:gap-6"
+        className={`mx-auto grid w-full grid-cols-3 items-end px-2 text-center ${
+          isBackdrop ? "max-w-none gap-3" : isSide ? "max-w-3xl gap-4 md:gap-7" : "max-w-4xl gap-3 md:gap-6"
+        }`}
       >
         {podium.map(({ entry, position, tone, height }) => (
           <article key={entry.id} className="min-w-0">
@@ -87,7 +117,7 @@ function RankRows({
                 <Medal size={27} strokeWidth={2.4} />
               )}
             </span>
-            <h2 className="truncate text-lg font-bold text-white md:text-3xl">
+            <h2 className={`truncate font-bold text-white ${isBackdrop ? "text-base md:text-2xl" : "text-lg md:text-3xl"}`}>
               {entry.name}
             </h2>
             <p className="mt-1 truncate text-xs font-semibold uppercase tracking-[0.12em] text-white/55 md:text-sm">
@@ -96,7 +126,7 @@ function RankRows({
                 : `${entry.members ?? 0} participantes`}
             </p>
             <div
-              className="mt-3 flex flex-col justify-end rounded-t-[2rem] border border-b-0 px-2 pb-4 pt-5 md:px-5"
+              className={`mt-3 flex flex-col justify-end rounded-t-[2rem] border border-b-0 px-2 md:px-5 ${isBackdrop ? "pb-2 pt-3" : "pb-4 pt-5"}`}
               style={{
                 minHeight: height,
                 borderColor: `${tone}88`,
@@ -109,7 +139,7 @@ function RankRows({
               >
                 {position}º lugar
               </span>
-              <strong className="mt-1 text-2xl font-bold text-white md:text-4xl">
+              <strong className={`mt-1 font-bold text-white ${isBackdrop ? "text-xl md:text-3xl" : "text-2xl md:text-4xl"}`}>
                 {entry.points}
                 <small className="ml-1 text-xs text-white/55 md:text-sm">
                   PTS
@@ -119,29 +149,6 @@ function RankRows({
           </article>
         ))}
       </section>
-      {entries.length > 3 ? (
-        <ol className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {entries.slice(3, 8).map((entry, index) => (
-            <li
-              key={entry.id}
-              className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 backdrop-blur-sm"
-            >
-              <strong className="text-xl text-[#d7ef74]">{index + 4}º</strong>
-              <span className="min-w-0 flex-1">
-                <b className="block truncate text-base text-white">
-                  {entry.name}
-                </b>
-                <small className="block truncate text-xs text-white/55">
-                  {board === "individual"
-                    ? entry.group
-                    : `${entry.members ?? 0} participantes`}
-                </small>
-              </span>
-              <strong className="text-lg text-[#d7ef74]">{entry.points}</strong>
-            </li>
-          ))}
-        </ol>
-      ) : null}
     </div>
   );
 }
@@ -218,7 +225,13 @@ function SpecialEventOverlay({
   );
 }
 
-export function LiveRankingDisplay({ target }: { target: DisplayTarget }) {
+export function LiveRankingDisplay({
+  target,
+  screenFormat,
+}: {
+  target: DisplayTarget;
+  screenFormat?: ScreenFormat;
+}) {
   const [data, setData] = useState<DisplayData | null>(null);
   const [board, setBoard] = useState<"individual" | "groups">("individual");
   const [now, setNow] = useState(() => Date.now());
@@ -228,18 +241,35 @@ export function LiveRankingDisplay({ target }: { target: DisplayTarget }) {
     let mounted = true;
     const load = async () => {
       try {
-        const response = await fetch(`${env.apiBaseUrl}/live-display?target=${target}`, {
-          cache: "no-store",
-        });
-        if (!response.ok) throw new Error("display unavailable");
-        const raw = (await response.json()) as DisplayData | (SpecialEvent & { qrToken?: string | null }) | null;
-        const next: DisplayData = raw && typeof raw === "object" && "rankings" in raw
-          ? raw as DisplayData
-          : {
-              updatedAt: new Date().toISOString(),
-              rankings: { individual: [], groups: [] },
-              specialEvent: raw ? { ...raw, qrImageUrl: raw.qrToken ? await toDataURL(raw.qrToken, { width: 360, margin: 1 }) : null } : null,
-            };
+        const [individualResponse, groupsResponse, eventResponse] = await Promise.all([
+          fetch(`${env.apiBaseUrl}/rankings?scope=individual&page=1`, { cache: "no-store" }),
+          fetch(`${env.apiBaseUrl}/rankings?scope=groups&page=1`, { cache: "no-store" }),
+          fetch(`${env.apiBaseUrl}/live-display?target=${target}`, { cache: "no-store" }),
+        ]);
+        if (![individualResponse, groupsResponse, eventResponse].every((response) => response.ok))
+          throw new Error("display unavailable");
+        const [individual, groups, raw] = await Promise.all([
+          individualResponse.json() as Promise<RankingPage>,
+          groupsResponse.json() as Promise<RankingPage>,
+          eventResponse.json() as Promise<(SpecialEvent & { qrToken?: string | null }) | null>,
+        ]);
+        const next: DisplayData = {
+          updatedAt: new Date().toISOString(),
+          rankings: {
+            individual: rankingEntries(individual, "individual"),
+            groups: rankingEntries(groups, "groups"),
+          },
+          specialEvent: raw
+            ? {
+                ...raw,
+                qrImageUrl:
+                  raw.qrImageUrl ??
+                  (raw.qrToken
+                    ? await toDataURL(raw.qrToken, { width: 360, margin: 1 })
+                    : null),
+              }
+            : null,
+        };
         if (mounted) {
           setData(next);
           setError(false);
@@ -274,9 +304,20 @@ export function LiveRankingDisplay({ target }: { target: DisplayTarget }) {
   const entries = useMemo(() => data?.rankings[board] ?? [], [board, data]);
   const title =
     board === "individual" ? "Ranking individual" : "Ranking dos grupos";
+  const format = target === "tv" ? "tv" : screenFormat ?? "side";
+  const isBackdrop = format === "backdrop";
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0b3028] px-8 py-10 text-white md:px-14">
+    <main
+      className={`relative min-h-screen overflow-hidden bg-[#0b3028] text-white ${
+        format === "side"
+          ? "mx-auto max-w-[1440px] px-8 py-10 md:px-14"
+          : isBackdrop
+            ? "px-10 py-8 md:px-20"
+            : "px-8 py-10 md:px-14"
+      }`}
+      style={format === "side" ? { aspectRatio: "3 / 4" } : isBackdrop ? { aspectRatio: "5 / 2" } : undefined}
+    >
       <span
         aria-hidden
         className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-[#f37822] via-[#d7ef74] to-[#f37822]"
@@ -284,7 +325,7 @@ export function LiveRankingDisplay({ target }: { target: DisplayTarget }) {
       {data?.specialEvent ? (
         <SpecialEventOverlay event={data.specialEvent} now={now} />
       ) : null}
-      <header className="relative z-0 mx-auto flex max-w-7xl items-center justify-between gap-8 border-b border-white/15 pb-7">
+      <header className={`relative z-0 mx-auto flex items-center justify-between gap-8 border-b border-white/15 ${isBackdrop ? "max-w-none pb-5" : "max-w-7xl pb-7"}`}>
         <BrandSticker
           decorative
           variant="header"
@@ -295,18 +336,18 @@ export function LiveRankingDisplay({ target }: { target: DisplayTarget }) {
             DNJ Game ao vivo
           </p>
           <p className="mt-1 text-lg text-white/65">
-            {target === "tv" ? "TV" : "Telão"}
+            {target === "tv" ? "TV" : isBackdrop ? "Telão · Fundo" : "Telão · Lateral"}
           </p>
         </div>
       </header>
       <section
-        className="relative z-0 mx-auto max-w-7xl py-12"
+        className={`relative z-0 mx-auto ${isBackdrop ? "max-w-none py-6" : "max-w-7xl py-12"}`}
         aria-live="polite"
       >
         <p className="text-center text-sm font-bold uppercase tracking-[0.28em] text-[#d7ef74]">
           DNJ 2K26
         </p>
-        <h1 className="mt-3 flex items-center justify-center gap-4 text-center text-5xl font-bold tracking-[-0.06em] md:text-7xl">
+        <h1 className={`mt-3 flex items-center justify-center gap-4 text-center font-bold tracking-[-0.06em] ${isBackdrop ? "text-4xl md:text-6xl" : "text-5xl md:text-7xl"}`}>
           <Trophy
             aria-hidden
             className="hidden text-[#f6c945] md:block"
@@ -315,7 +356,7 @@ export function LiveRankingDisplay({ target }: { target: DisplayTarget }) {
           {title}
         </h1>
         {data ? (
-          <RankRows entries={entries} board={board} />
+          <RankRows entries={entries} board={board} format={format} />
         ) : (
           <p className="mt-12 text-center text-2xl text-white/60">
             Carregando placar ao vivo…

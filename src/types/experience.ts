@@ -35,6 +35,7 @@ export interface Participation {
 
 export interface Moment {
   id: string;
+  origin?: "free" | "challenge";
   participationId: string | null;
   imageUrl: string;
   thumbnailUrl: string;

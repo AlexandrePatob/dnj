@@ -42,7 +42,7 @@ describe("LiveStatusStack", () => {
     vi.useFakeTimers();
     render(<LiveStatusStack special={null} momentChallenge={{ id: "challenge-1", title: "Foto com a galera", description: "Registre seu grupo", endsAt: "2099-10-18T13:00:00Z", points: 30 }} />);
     expect(screen.getByRole("status")).toHaveTextContent("Desafio Momento DNJ");
-    expect(screen.getByRole("status")).toHaveTextContent("Vá ao DNJ Game e compartilhe seu momento.");
+    expect(screen.getByRole("status")).toHaveTextContent("Abra o DNJ Game para participar.");
     expect(screen.queryByRole("button", { name: "Tirar foto do desafio" })).not.toBeInTheDocument();
 
     act(() => vi.advanceTimersByTime(6_000));
@@ -57,7 +57,7 @@ describe("LiveStatusStack", () => {
 
   it("offers actions only for Moment and queue notifications", async () => {
     const user = userEvent.setup();
-    const onOpenMoment = vi.fn();
+    const onOpenGame = vi.fn();
     const onOpenQueue = vi.fn();
     const onReadAdmin = vi.fn();
     render(
@@ -66,16 +66,17 @@ describe("LiveStatusStack", () => {
         momentChallenge={{ id: "challenge-1", title: "Foto com a galera", description: null, endsAt: "2099-10-18T13:00:00Z", points: 30 }}
         queueNotification={{ title: "Atualização da fila", body: "Chegou sua vez." }}
         adminNotification={{ id: "admin-1", title: "Aviso", body: "O evento começa às 14h." }}
-        onOpenMoment={onOpenMoment}
+        onOpenGame={onOpenGame}
         onOpenQueue={onOpenQueue}
         onReadAdmin={onReadAdmin}
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Ir para foto" }));
+    await user.click(screen.getByRole("button", { name: "Ver desafio" }));
     await user.click(screen.getByRole("button", { name: /Ver fila/ }));
 
-    expect(onOpenMoment).toHaveBeenCalledOnce();
+    expect(onOpenGame).toHaveBeenCalledOnce();
+    expect(screen.queryByText("Desafio Momento DNJ")).not.toBeInTheDocument();
     expect(onOpenQueue).toHaveBeenCalledOnce();
     await user.click(screen.getByLabelText("Ler notificação: Aviso"));
     expect(onReadAdmin).toHaveBeenCalledWith("admin-1");

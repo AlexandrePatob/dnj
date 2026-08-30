@@ -10,6 +10,14 @@
 - **Date**: 2026-08-28
 - **Status**: temporary
 
+### AD-012
+- **Decision**: Um Momento de Desafio usa o endpoint dedicado `POST /moments/challenge`; ele não recebe nem cria `participationId` e o backend resolve, de forma autoritativa, o único desafio elegível no instante da publicação.
+- **Reason**: Desafio Momento não possui QR Code. `participationId` representa participação criada pela validação de QR e, portanto, não é a identidade de um desafio de foto.
+- **Trade-off**: A API e o schema passam a ter um caminho explícito adicional, mas o fluxo de Momento livre permanece simples e o contrato deixa de depender de estado artificial no frontend.
+- **Scope**: Participante, Momentos, DNJ Game, notificações de desafio, pontuação, API V2 e banco de dados.
+- **Date**: 2026-08-28
+- **Status**: active
+
 ### AD-001
 - **Decision**: A primeira versão PWA manterá Next.js 16 e usará um service worker próprio e enxuto, sem migrar para Vite e sem adotar Serwist.
 - **Reason**: O projeto já usa App Router e integrações da Vercel; o Next.js suporta manifest e service worker, e a abordagem reduz mudanças de stack e risco de regressão visual.

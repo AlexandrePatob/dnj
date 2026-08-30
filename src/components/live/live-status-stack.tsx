@@ -3,6 +3,7 @@
 import { ArrowRight, Bell, Camera, Radio, Timer, UsersRound, X } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import type { MomentChallenge } from "@/lib/api/moment-challenges";
 
 export type LiveSpecialEvent = {
   id?: string;
@@ -15,13 +16,7 @@ export type LiveSpecialEvent = {
   qrAvailableAt?: string | null;
 };
 
-export type LiveMomentChallenge = {
-  id: string;
-  title: string;
-  description: string | null;
-  endsAt?: string | null;
-  points: number;
-};
+export type LiveMomentChallenge = MomentChallenge;
 
 export type LiveQueueNotification = {
   title: string;
@@ -47,7 +42,7 @@ export function LiveStatusStack({
   momentChallenge,
   queueNotification,
   adminNotification,
-  onOpenMoment,
+  onOpenGame,
   onOpenQueue,
   onReadAdmin,
 }: {
@@ -55,7 +50,7 @@ export function LiveStatusStack({
   momentChallenge?: LiveMomentChallenge | null;
   queueNotification?: LiveQueueNotification | null;
   adminNotification?: LiveAdminNotification | null;
-  onOpenMoment?: () => void;
+  onOpenGame?: () => void;
   onOpenQueue?: () => void;
   onReadAdmin?: (notificationId: string) => void;
 }) {
@@ -65,7 +60,7 @@ export function LiveStatusStack({
   const announcedChallenge = useRef<string | null>(null);
   const specialKey = special ? special.id ?? `${special.title}-${special.startsAt}` : null;
   const visibleSpecial = special && dismissedSpecialKey !== specialKey && new Date(special.endsAt).getTime() > now ? special : null;
-  const activeMomentChallenge = momentChallenge && (!momentChallenge.endsAt || new Date(momentChallenge.endsAt).getTime() > now) ? momentChallenge : null;
+  const activeMomentChallenge = momentChallenge && (!momentChallenge.startsAt || new Date(momentChallenge.startsAt).getTime() <= now) && (!momentChallenge.endsAt || new Date(momentChallenge.endsAt).getTime() > now) ? momentChallenge : null;
 
   useEffect(() => {
     if (!visibleSpecial && !activeMomentChallenge) return;
@@ -139,8 +134,8 @@ export function LiveStatusStack({
               {activeMomentChallenge.points} pontos
             </span>
           </div>
-          <p className="mt-1 text-xs text-white/85">{activeMomentChallenge.title}. Vá ao DNJ Game e compartilhe seu momento.</p>
-          {onOpenMoment && <button type="button" className="mt-3 inline-flex items-center gap-1 rounded-lg bg-white/20 px-3 py-2 text-xs font-bold" onClick={() => { setShowMomentNotice(false); onOpenMoment(); }}>Ir para foto <ArrowRight size={14} /></button>}
+          <p className="mt-1 text-xs text-white/85">{activeMomentChallenge.title}. Abra o DNJ Game para participar.</p>
+          {onOpenGame && <button type="button" className="mt-3 inline-flex items-center gap-1 rounded-lg bg-white/20 px-3 py-2 text-xs font-bold" onClick={() => { setShowMomentNotice(false); onOpenGame(); }}>Ver desafio <ArrowRight size={14} /></button>}
         </motion.section>
       )}
       {queueNotification && (

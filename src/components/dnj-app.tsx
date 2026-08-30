@@ -5,6 +5,7 @@ import { authApi } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 import { mapIdentityUser } from "@/lib/api/mappers";
 import { profileApi } from "@/lib/api/profile";
+import { momentChallengesApi, type MomentChallenge } from "@/lib/api/moment-challenges";
 import type { AuthSession } from "@/types/domain";
 import { storage } from "@/lib/storage";
 import { ConnectivityStatus } from "@/components/pwa/connectivity-status";
@@ -67,10 +68,14 @@ import { EventMapScreen } from "@/features/map/map-screen";
 import { QueueScreen } from "@/features/queue/queue-screen";
 import { AppShell, BottomNav, TopBar } from "@/components/layout/dnj-layout";
 import { DnjOnboarding } from "@/components/onboarding/dnJ-onboarding";
-import { LiveStatusStack, type LiveAdminNotification, type LiveMomentChallenge, type LiveQueueNotification, type LiveSpecialEvent } from "@/components/live/live-status-stack";
+import { LiveStatusStack, type LiveAdminNotification, type LiveQueueNotification, type LiveSpecialEvent } from "@/components/live/live-status-stack";
 import { apiRequest } from "@/lib/api/client";
 import { notificationsApi } from "@/lib/api/notifications";
 const SPECIAL_EVENT_POLL_MS = 15_000;
+function completedMomentChallengesKey(userId?: string) {
+  return userId ? `dnj.completed-moment-challenges.${userId}` : null;
+}
+
 export function DnjApp() {
   const reduceMotion = useReducedMotion();
   const network = useNetworkStatus();
@@ -99,9 +104,11 @@ export function DnjApp() {
   const [offlineSnapshotCapturedAt, setOfflineSnapshotCapturedAt] = useState<string | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
-  const [momentOpenRequest, setMomentOpenRequest] = useState(0);
   const [specialEvent, setSpecialEvent] = useState<LiveSpecialEvent | null>(null);
-  const [momentChallenge, setMomentChallenge] = useState<LiveMomentChallenge | null>(null);
+  const [momentChallenge, setMomentChallenge] = useState<MomentChallenge | null>(null);
+  const [completedMomentChallengeIds, setCompletedMomentChallengeIds] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [queueNotification, setQueueNotification] = useState<LiveQueueNotification | null>(null);
   const [adminNotification, setAdminNotification] = useState<LiveAdminNotification | null>(null);
   const specialEventsUnavailable = useRef(false);
@@ -119,6 +126,16 @@ export function DnjApp() {
     void notificationsApi.markRead(notificationId).catch(() => undefined);
     setAdminNotification(null);
   }, []);
+  const completeMomentChallenge = useCallback((challengeId: string) => {
+    setCompletedMomentChallengeIds((current) => {
+      const next = new Set(current);
+      next.add(challengeId);
+      const key = completedMomentChallengesKey(user.id);
+      if (key) localStorage.setItem(key, JSON.stringify([...next]));
+      return next;
+    });
+    setMomentChallenge((current) => current?.id === challengeId ? null : current);
+  }, [user.id]);
 
   const handleLogin = useCallback(async (email: string) => {
     setEmailVal(email);
@@ -208,6 +225,17 @@ export function DnjApp() {
   }, []);
 
   useEffect(() => {
+    const key = completedMomentChallengesKey(user.id);
+    if (!key) return;
+    try {
+      const ids: unknown = JSON.parse(localStorage.getItem(key) ?? "[]");
+      setCompletedMomentChallengeIds(new Set(Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : []));
+    } catch {
+      setCompletedMomentChallengeIds(new Set());
+    }
+  }, [user.id]);
+
+  useEffect(() => {
     if (!sessionReady || !isMain) return;
     const timer = window.setTimeout(() => {
       try { if (!localStorage.getItem("dnj.onboarding.2k26")) setOnboardingOpen(true); } catch { setOnboardingOpen(true); }
@@ -289,15 +317,14 @@ export function DnjApp() {
     let active = true;
     const load = async () => {
       try {
-        const data = await apiRequest<{ data: Array<{ id: string; name: string; description: string | null; startsAt: string | null; endsAt: string | null; momentPoints: number; allowsMoment: boolean; state?: string | null }> }>("/activities?kind=challenge");
-        const challenge = data.data.find((item) => item.allowsMoment && (item.state === "live" || (item.endsAt === null && (!item.startsAt || new Date(item.startsAt).getTime() <= Date.now()))));
-        if (active) setMomentChallenge(challenge ? { id: challenge.id, title: challenge.name, description: challenge.description, endsAt: challenge.endsAt, points: challenge.momentPoints } : null);
+        const challenge = await momentChallengesApi.active();
+        if (active) setMomentChallenge(challenge && !completedMomentChallengeIds.has(challenge.id) ? challenge : null);
       } catch { if (active) setMomentChallenge(null); }
     };
     void load();
     const timer = window.setInterval(() => void load(), SPECIAL_EVENT_POLL_MS);
     return () => { active = false; window.clearInterval(timer); };
-  }, [isMain, network.isOnline, sessionReady]);
+  }, [completedMomentChallengeIds, isMain, network.isOnline, sessionReady]);
 
   if (!sessionReady) {
     return <div className="min-h-dvh" style={{ background: "var(--background)" }} aria-label="Carregando sessao" />;
@@ -322,7 +349,7 @@ export function DnjApp() {
             {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} onOpenSchedule={() => navigate("schedule")} onOpenMap={() => navigate("map")} />}
             {screen === "schedule" && <EventScheduleScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "map" && <EventMapScreen animDir={animDir} onBack={() => navigate("home")} />}
-            {screen === "game"    && <GameScreen key={`game-${momentOpenRequest}`} user={user} theme={theme} animDir={animDir} momentOpenRequest={momentOpenRequest} momentChallenge={momentChallenge} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
+            {screen === "game"    && <GameScreen user={user} theme={theme} animDir={animDir} momentChallenge={momentChallenge} onMomentCompleted={(challengeId) => completeMomentChallenge(challengeId)} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
             {screen === "queue"   && <QueueScreen user={{ id: user.mobilePhone || user.email, name: user.name }} animDir={animDir} onQueueNotification={handleQueueNotification} />}
             {screen === "gallery" && <GalleryScreen group={user.group}             animDir={animDir} />}
             {screen === "account" && <AccountScreen user={user} onAvatarChange={(avatarUrl) => { if (user.id) storage.setAvatar(user.id, avatarUrl); setUser((current) => ({ ...current, avatarUrl })); }} onLogout={() => { void authApi.logout().catch(() => undefined); storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
@@ -330,7 +357,7 @@ export function DnjApp() {
         </AnimatePresence>
 
         {isMain && <TopBar points={user.points} />}
-        {isMain && <LiveStatusStack special={specialEvent} momentChallenge={momentChallenge} queueNotification={queueNotification} adminNotification={adminNotification} onOpenMoment={() => { setMomentOpenRequest((value) => value + 1); navigate("game"); }} onOpenQueue={() => navigate("queue")} onReadAdmin={handleReadAdminNotification} />}
+        {isMain && <LiveStatusStack special={specialEvent} momentChallenge={momentChallenge} queueNotification={queueNotification} adminNotification={adminNotification} onOpenGame={() => navigate("game")} onOpenQueue={() => navigate("queue")} onReadAdmin={handleReadAdminNotification} />}
         {!network.isOnline && offlineSnapshotCapturedAt && (
           <p
             className="absolute left-3 right-3 z-40 rounded-xl border px-3 py-2 text-center text-xs font-medium"

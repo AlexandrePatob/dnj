@@ -539,25 +539,38 @@
   margin-top: 18px;
   max-width: 620px;
 }
-.moderationItem {
-  align-items: start !important;
-  grid-template-columns: 12px 104px minmax(0, 1fr) auto !important;
+.moderationGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  max-width: 1120px;
+}
+.activity .moderationItem {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid #dce8df;
+  border-radius: 14px;
+  background: #fff;
 }
 .moderationPhoto,
 .moderationPhotoUnavailable {
   display: grid;
-  height: 104px;
-  width: 104px;
+  height: min(31vw, 360px);
+  width: 100%;
   overflow: hidden;
-  border-radius: 10px;
-  background: #edf5ef;
+  border-radius: 0;
+  border: 0;
+  background: #152f25;
   color: #668278;
   font-size: 0.68rem;
   place-items: center;
   text-align: center;
 }
 .moderationPhoto {
-  box-shadow: 0 4px 12px rgba(21, 67, 49, 0.16);
+  box-shadow: none;
 }
 .moderationPhoto:focus-visible {
   outline: 3px solid #b2d64d;
@@ -566,10 +579,100 @@
 .moderationPhoto img {
   height: 100%;
   width: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
-.moderationItem .rowActions {
-  justify-content: flex-end;
+.moderationContent {
+  display: grid;
+  gap: 7px;
+  padding: 14px;
+}
+.moderationHeading {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.moderationKind {
+  border-radius: 999px;
+  padding: 4px 7px;
+  background: #e8f4ea;
+  color: #27634c;
+  font-size: 0.63rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.moderationActions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin-top: 5px;
+}
+.moderationActions button {
+  justify-content: center;
+  padding: 9px 6px;
+}
+.moderationDialogBackdrop {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background: rgb(10 26 19 / 78%);
+}
+.moderationDialog {
+  position: relative;
+  display: grid;
+  width: min(760px, 100%);
+  max-height: calc(100vh - 56px);
+  overflow: hidden;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 20px 50px rgb(0 0 0 / 32%);
+}
+.moderationDialog > img {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  max-height: min(66vh, 620px);
+  background: #152f25;
+  object-fit: contain;
+}
+.moderationDialogClose {
+  position: absolute;
+  z-index: 1;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  height: 38px;
+  width: 38px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 66%);
+  color: #fff;
+  cursor: pointer;
+}
+.moderationDialogFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px 16px;
+}
+.moderationDialogFooter > div {
+  display: grid;
+  gap: 3px;
+}
+.moderationDialogFooter p {
+  margin: 0;
+  color: #668278;
+  font-size: 0.78rem;
+}
+.moderationDialogFooter .moderationActions {
+  min-width: 300px;
+  margin: 0;
 }
 .help {
   margin: 12px 0 6px;
@@ -701,19 +804,25 @@
     grid-column: 2;
     justify-self: start;
   }
-  .moderationItem .rowActions {
-    justify-content: flex-start;
-  }
   .activity .moderationItem {
-    grid-template-columns: 9px 88px minmax(0, 1fr) !important;
+    grid-template-columns: 1fr !important;
   }
   .moderationPhoto,
   .moderationPhotoUnavailable {
-    height: 88px;
-    width: 88px;
+    height: min(54vw, 330px);
   }
-  .moderationItem .rowActions {
-    grid-column: 2 / -1;
+  .moderationGrid {
+    grid-template-columns: 1fr;
+  }
+  .moderationDialogBackdrop {
+    padding: 16px;
+  }
+  .moderationDialogFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .moderationDialogFooter .moderationActions {
+    min-width: 0;
   }
   .quickActions {
     gap: 8px;

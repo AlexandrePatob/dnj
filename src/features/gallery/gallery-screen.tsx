@@ -2,7 +2,7 @@
 
 import NextImage from "next/image";
 import { useEffect, useState } from "react";
-import { Heart, Plus, Send, X } from "lucide-react";
+import { Heart, Plus, Send, Trophy, X } from "lucide-react";
 import { BrandSticker } from "@/components/brand/brand-sticker";
 import stickerLogo from "../../../Logo_DNJ_semsombra.png";
 import { OperationFeedback } from "@/components/ui/operation-feedback";
@@ -170,6 +170,7 @@ function FeedCard({
   }
   return (
     <article
+      className="overflow-hidden rounded-2xl"
       style={{ background: "var(--card)", boxShadow: "var(--shadow-card)" }}
     >
       <header className="flex items-center gap-3 px-4 py-3">
@@ -201,6 +202,15 @@ function FeedCard({
           decorative
           className="absolute bottom-3 right-5 drop-shadow-md"
         />
+        {moment.origin === "challenge" && moment.pointsAwarded > 0 && (
+          <span
+            className="absolute left-5 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-black text-white"
+            style={{ background: "var(--game)", boxShadow: "0 4px 10px rgba(11, 35, 37, .22)" }}
+          >
+            <Trophy size={13} aria-hidden="true" />
+            Desafio pontuado
+          </span>
+        )}
       </button>
       <div className="p-4">
         <div className="flex items-center gap-5">
@@ -224,10 +234,6 @@ function FeedCard({
           </button>
           <ShareButton moment={moment} />
         </div>
-        <p className="mt-3 text-sm">
-          <strong>{moment.authorName}</strong> registrou este momento em{" "}
-          {moment.placeName}.
-        </p>
       </div>
     </article>
   );
@@ -257,7 +263,14 @@ function PassportGrid({
             boxShadow: "0 5px 10px rgba(11, 35, 37, .10)",
           }}
         >
-          <MomentImage moment={moment} compact />
+          <span className="relative block">
+            <MomentImage moment={moment} compact />
+            <BrandSticker
+              variant="watermark"
+              decorative
+              className="absolute bottom-1 right-1 scale-[.42] origin-bottom-right drop-shadow-sm"
+            />
+          </span>
           <span
             className="mt-1.5 block truncate px-0.5 text-[.58rem] font-bold uppercase tracking-[.04em]"
             style={{ color: "var(--muted-foreground)" }}
@@ -471,7 +484,14 @@ export function GalleryScreen({
             >
               <X size={18} />
             </button>
-            <MomentImage moment={selected} />
+            <div className="relative">
+              <MomentImage moment={selected} />
+              <BrandSticker
+                variant="watermark"
+                decorative
+                className="absolute bottom-3 right-3 drop-shadow-md"
+              />
+            </div>
             <div className="flex items-center justify-between px-2 pt-3">
               <strong>{selected.placeName}</strong>
               <ShareButton moment={selected} />

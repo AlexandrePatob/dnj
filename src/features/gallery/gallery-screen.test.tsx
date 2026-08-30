@@ -170,6 +170,32 @@ describe("GalleryScreen", () => {
     );
   });
 
+  it("marks photos that scored a Moment challenge without showing a caption", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        items: [{
+          id: "moment-challenge",
+          authorName: "Alex",
+          placeName: "Palco",
+          imageUrl: "/mock/moments/dnj-feed-01.png",
+          origin: "challenge",
+          pointsAwarded: 50,
+          publicationStatus: "public",
+          moderationStatus: "approved",
+          likesCount: 0,
+          likedByCurrentUser: false,
+        }],
+        nextCursor: null,
+      }),
+    } as Response);
+
+    render(<GalleryScreen animDir="up" />);
+
+    expect(await screen.findByText("Desafio pontuado")).toBeInTheDocument();
+    expect(screen.queryByText(/registrou este momento/i)).not.toBeInTheDocument();
+  });
+
   it("opens the camera for a free Moment when there is no current participation", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
