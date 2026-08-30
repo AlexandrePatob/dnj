@@ -396,7 +396,9 @@ export function GameScreen({
       return () => window.clearTimeout(timer);
     }
     const timer = window.setInterval(() => {
-      void loadLiveRun(liveRun.id).then((run) => run && setLiveRun(run));
+      void loadLiveRun(liveRun.id).then((nextRun) => {
+        setLiveRun(nextRun);
+      });
     }, LIVE_RUN_POLL_MS);
     return () => window.clearInterval(timer);
   }, [liveRun, loadLiveRun, overview, refreshOverview, user.points]);

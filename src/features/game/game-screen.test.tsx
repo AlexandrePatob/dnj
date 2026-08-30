@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GameScreen } from "./game-screen";
@@ -347,6 +347,74 @@ describe("GameScreen scanner entry", () => {
     expect(
       await screen.findByRole("dialog", { name: "Status da partida" }),
     ).toHaveTextContent("Aguarde o gestor iniciar a atividade");
+  });
+
+  it("closes an active Radicalidade panel when the run is no longer active", async () => {
+    vi.useFakeTimers();
+    try {
+      const fetchMock = vi.mocked(fetch);
+      fetchMock
+        .mockResolvedValueOnce(new Response(null, { status: 204 }))
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              individual: [],
+              groups: [],
+              pointEntries: [],
+              current: { groupId: null, rankPosition: 1 },
+            }),
+          ),
+        )
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              id: "run-1",
+              status: "active",
+              gameName: "Corrida do saco",
+            }),
+          ),
+        )
+        .mockResolvedValueOnce(new Response(null, { status: 204 }));
+
+      render(
+        <GameScreen
+          animDir="up"
+          theme="light"
+          onPointsChange={vi.fn()}
+          user={{
+            name: "Ana",
+            cpf: "",
+            email: "ana@example.com",
+            group: "Chama Viva",
+            points: 10,
+            rankPosition: 1,
+          }}
+        />,
+      );
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(screen.getByRole("dialog", { name: "Status da partida" })).toHaveTextContent("Partida em andamento");
+
+      await act(async () => {
+        await Promise.resolve();
+        await vi.advanceTimersByTimeAsync(15_000);
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500);
+      });
+
+      expect(fetchMock).toHaveBeenCalledTimes(4);
+      expect(fetchMock).toHaveBeenNthCalledWith(4, "/api/v2/activity-runs/current");
+      expect(screen.queryByRole("dialog", { name: "Status da partida" })).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("refreshes the participant total when a Radicalidade run is completed", async () => {

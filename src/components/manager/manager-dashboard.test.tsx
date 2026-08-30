@@ -110,6 +110,42 @@ describe("ManagerDashboard", () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/runs/run-1/start", expect.objectContaining({ method: "POST", body: undefined })));
   });
 
+  it("only closes a scored run by confirming all participant results", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce(new Response(JSON.stringify({ name: "Bia", scope: "actions" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        scope: "actions", actions: {
+          games: [],
+          run: {
+            id: "run-1",
+            status: "running",
+            participants: [{ id: "participant-1", name: "Ana" }],
+          },
+        },
+      })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: "run-1", status: "completed" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ scope: "actions", actions: { games: [] } })));
+
+    render(<ManagerDashboard />);
+    await user.click(await screen.findByRole("button", { name: "Encerrar e definir pontuação" }));
+
+    expect(screen.getByRole("button", { name: "Confirmar pontuação e encerrar" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Fechar partida" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Confirmar pontuação e encerrar" }));
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/v2/manager/runs/run-1/results",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ results: [{ participantId: "participant-1", result: "participation" }] }),
+        }),
+      ),
+    );
+  });
+
   it("edits games in a modal instead of a selector flow", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);

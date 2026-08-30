@@ -785,21 +785,7 @@ function RunConsole({
               onClick={() => void saveResults()}
             >
               <Trophy size={16} />
-              Confirmar pontuação
-            </button>
-            <button
-              className={styles.danger}
-              onClick={() =>
-                void call(
-                  `/manager/runs/${run.id}/cancel`,
-                  undefined,
-                  refresh,
-                  setError,
-                )
-              }
-            >
-              <Square size={16} />
-              Fechar partida
+              Confirmar pontuação e encerrar
             </button>
           </div>
         </>
