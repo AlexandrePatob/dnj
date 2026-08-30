@@ -46,7 +46,7 @@ type LiveRun = {
   points?: number;
 };
 type MomentCelebration = { points: number; label: string };
-const LIVE_RUN_POLL_MS = 15_000;
+const LIVE_RUN_POLL_MS = 5_000;
 
 const onboardingKey = (email: string) =>
   `dnj.game.onboarding.v1.${email || "anonymous"}`;

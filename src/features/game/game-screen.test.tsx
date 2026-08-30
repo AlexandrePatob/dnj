@@ -13,8 +13,10 @@ vi.mock("@/lib/api/game", () => ({
       const response = await fetch("/api/v2/game/overview");
       return response.json();
     },
-    currentRun: async () => {
-      const response = await fetch("/api/v2/activity-runs/current");
+    currentRun: async (runId?: string) => {
+      const response = await fetch(
+        `/api/v2/activity-runs/current${runId ? `?runId=${runId}` : ""}`,
+      );
       return response.status === 204 ? null : response.json();
     },
   },
@@ -399,7 +401,7 @@ describe("GameScreen scanner entry", () => {
 
       await act(async () => {
         await Promise.resolve();
-        await vi.advanceTimersByTimeAsync(15_000);
+        await vi.advanceTimersByTimeAsync(5_000);
       });
       await act(async () => {
         await Promise.resolve();
@@ -410,8 +412,74 @@ describe("GameScreen scanner entry", () => {
       });
 
       expect(fetchMock).toHaveBeenCalledTimes(4);
-      expect(fetchMock).toHaveBeenNthCalledWith(4, "/api/v2/activity-runs/current");
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        4,
+        "/api/v2/activity-runs/current?runId=run-1",
+      );
       expect(screen.queryByRole("dialog", { name: "Status da partida" })).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("shows a completed Radicalidade run before closing its panel", async () => {
+    vi.useFakeTimers();
+    try {
+      const overview = {
+        individual: [],
+        groups: [],
+        pointEntries: [],
+        current: { groupId: null, rankPosition: 1 },
+      };
+      vi.mocked(fetch)
+        .mockResolvedValueOnce(new Response(null, { status: 204 }))
+        .mockResolvedValueOnce(new Response(JSON.stringify(overview)))
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              id: "run-1",
+              status: "active",
+              gameName: "Corrida do saco",
+            }),
+          ),
+        )
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              id: "run-1",
+              status: "completed",
+              gameName: "Corrida do saco",
+            }),
+          ),
+        )
+        .mockResolvedValueOnce(new Response(JSON.stringify(overview)));
+
+      render(
+        <GameScreen
+          animDir="up"
+          theme="light"
+          onPointsChange={vi.fn()}
+          user={{
+            name: "Ana",
+            cpf: "",
+            email: "ana@example.com",
+            group: "Chama Viva",
+            points: 10,
+            rankPosition: 1,
+          }}
+        />,
+      );
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5_000);
+      });
+      expect(
+        screen.getByRole("dialog", { name: "Status da partida" }),
+      ).toHaveTextContent("Partida finalizada");
+
     } finally {
       vi.useRealTimers();
     }
