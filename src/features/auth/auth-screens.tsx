@@ -33,6 +33,18 @@ function requestErrorMessage(error: unknown) {
     ? error.message
     : "Não foi possível concluir a solicitação.";
 }
+function formatCpf(raw: string) {
+  const digits = raw.replace(/\D/g, "").slice(0, 11);
+  const body = [digits.slice(0, 3), digits.slice(3, 6), digits.slice(6, 9)].filter(Boolean).join(".");
+  return digits.length > 9 ? `${body}-${digits.slice(9)}` : body;
+}
+function formatWhatsApp(raw: string) {
+  const digits = raw.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits ? `(${digits}` : "";
+  const number = digits.slice(2);
+  const split = number.length > 8 ? 5 : 4;
+  return `(${digits.slice(0, 2)}) ${number.slice(0, split)}${number.length > split ? `-${number.slice(split)}` : ""}`;
+}
 export function LoginScreen({
   onNext,
   onRegister,
@@ -55,15 +67,17 @@ export function LoginScreen({
       if (!window.google || !googleButton.current) return;
       window.google.accounts.id.initialize({ client_id: env.googleClientId, callback: ({ credential }) => void onGoogleLogin(credential) });
       googleButton.current.replaceChildren();
-      window.google.accounts.id.renderButton(googleButton.current, { type: "standard", theme: "outline", size: "large", width: "360" });
+      window.google.accounts.id.renderButton(googleButton.current, { type: "standard", theme: "outline", size: "large", width: String(Math.min(360, Math.floor(googleButton.current.getBoundingClientRect().width) || 320)) });
     };
-    if (window.google) { render(); return; }
+    const resizeObserver = typeof ResizeObserver === "undefined" || !googleButton.current ? undefined : new ResizeObserver(render);
+    resizeObserver?.observe(googleButton.current);
+    if (window.google) { render(); return () => resizeObserver?.disconnect(); }
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
     script.onload = render;
     document.head.appendChild(script);
-    return () => script.remove();
+    return () => { resizeObserver?.disconnect(); script.remove(); };
   }, [onGoogleLogin]);
 
   const valid = email.includes("@");
@@ -141,6 +155,7 @@ export function LoginScreen({
             border: "1px solid var(--border)",
           }}
         >
+          {onGoogleLogin ? <><div ref={googleButton} className="flex min-h-11 w-full justify-center" aria-label="Entrar com Google" /><div className="my-1 flex items-center gap-3 text-xs" style={{ color: "var(--muted-foreground)" }}><span className="h-px flex-1" style={{ background: "var(--border)" }} />OU<span className="h-px flex-1" style={{ background: "var(--border)" }} /></div></> : null}
           <FieldInput
             label="E-mail"
             type="email"
@@ -159,9 +174,8 @@ export function LoginScreen({
             disabled={!valid || submitting}
             className="mt-1"
           >
-            {submitting ? "Enviando código..." : "Entrar com e-mail"}
+            {submitting ? "Enviando código..." : "Continuar com e-mail"}
           </PrimaryButton>
-          {onGoogleLogin ? <><div className="my-1 flex items-center gap-3 text-xs" style={{ color: "var(--muted-foreground)" }}><span className="h-px flex-1" style={{ background: "var(--border)" }} />ou<span className="h-px flex-1" style={{ background: "var(--border)" }} /></div><div ref={googleButton} className="flex justify-center" aria-label="Entrar com Google" /></> : null}
         </div>
 
         <p
@@ -175,32 +189,26 @@ export function LoginScreen({
           do evento.
         </p>
 
-        <p
-          className="text-center text-sm"
-          style={{ color: "var(--muted-foreground)" }}
-        >
-          Não conseguiu acessar?{" "}
-          <button
-            onClick={onRegister}
-            className="font-semibold underline underline-offset-2 transition-opacity hover:opacity-70"
-            style={{
-              color: "var(--primary)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "inherit",
-              fontSize: "inherit",
-            }}
-          >
-            Crie uma conta
-          </button>
-        </p>
+        <p className="text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Já tem um código? Use seu e-mail acima. É seu primeiro acesso? <button type="button" onClick={onRegister} className="inline-flex items-center gap-1 font-semibold underline underline-offset-2" style={{ color: "var(--primary)" }}><Plus size={15} />Criar conta</button></p>
       </div>
     </div>
   );
 }
 
 // ─── REGISTER SCREEN ─────────────────────────────────────────────────────────
+
+export function CreateAccountScreen({ onBack, onDone, animDir }: { onBack: () => void; onDone: (registration: RegistrationData) => void; animDir: AnimDir }) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const valid = name.trim().length >= 2 && email.includes("@");
+
+  return <div key="create-account" className="flex min-h-dvh flex-col px-6 pb-10" style={{ background: "var(--background)", paddingTop: "calc(48px + var(--safe-area-top))", ...animStyle(animDir) }}>
+    <BackButton onClick={onBack} />
+    <div className="mb-6 mt-6"><h2 className="mb-1 text-2xl font-bold" style={{ color: "var(--foreground)" }}>Criar conta</h2><p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Comece com seu nome e e-mail. Os demais dados serão pedidos após a validação.</p></div>
+    <div className="mb-5 flex flex-col gap-4 rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><FieldInput label="Nome completo" placeholder="Seu nome" value={name} onChange={(event) => setName(event.target.value)} error={name && name.trim().length < 2 ? "Informe seu nome completo." : ""} /><FieldInput label="E-mail" type="email" placeholder="seu@email.com" value={email} onChange={(event) => setEmail(event.target.value)} error={email && !email.includes("@") ? "Informe um e-mail válido." : ""} /></div>
+    <PrimaryButton onClick={() => onDone({ name: name.trim(), email, mobilePhone: "", group: "" })} disabled={!valid}>Enviar código</PrimaryButton>
+  </div>;
+}
 
 export function RegisterScreen({
   onBack,
@@ -578,14 +586,14 @@ export function VerifyScreen({
   onResend,
   onBack,
   animDir,
-  simulatedSmsCode = null,
+  homologationCode = null,
 }: {
   email: string;
   onNext: (code: string) => Promise<void>;
   onResend?: () => Promise<void>;
   onBack: () => void;
   animDir: AnimDir;
-  simulatedSmsCode?: string | null;
+  homologationCode?: string | null;
 }) {
   const masked = email.replace(
     /^(.)(.*)(@.*)$/,
@@ -662,50 +670,17 @@ export function VerifyScreen({
           className="text-2xl font-bold mb-2"
           style={{ color: "var(--foreground)" }}
         >
-          {simulatedSmsCode
-            ? "Código SMS de homologação"
-            : "Verifique seu e-mail"}
+          {homologationCode ? "Código de homologação" : "Verifique seu e-mail"}
         </h2>
         <p
           className="text-sm leading-relaxed"
           style={{ color: "var(--muted-foreground)" }}
         >
-          {simulatedSmsCode ? (
-            <>
-              O envio foi simulado localmente. Use o código de 6 dígitos abaixo
-              para entrar sem disparar SMS ou e-mail.
-            </>
-          ) : (
-            <>
-              Enviamos um código de 6 dígitos para{" "}
-              <span
-                className="font-semibold"
-                style={{ color: "var(--accent)" }}
-              >
-                {masked}
-              </span>
-              . Verifique também o spam.
-            </>
-          )}
+          {homologationCode ? "Use o código abaixo para homologar localmente." : <>Enviamos um código de 6 dígitos para{" "}<span className="font-semibold" style={{ color: "var(--accent)" }}>{masked}</span>. Verifique também o spam.</>}
         </p>
       </div>
 
-      {simulatedSmsCode ? (
-        <p
-          role="status"
-          className="mb-6 rounded-xl px-4 py-3 text-center text-sm font-bold"
-          style={{
-            background: "var(--accent-alpha-15)",
-            color: "var(--foreground)",
-            border: "1px solid var(--accent-alpha-30)",
-          }}
-        >
-          SMS simulado:{" "}
-          <span style={{ color: "var(--primary)", letterSpacing: ".16em" }}>
-            {simulatedSmsCode}
-          </span>
-        </p>
-      ) : null}
+      {homologationCode ? <p role="status" className="mb-6 rounded-xl px-4 py-3 text-center text-sm font-bold" style={{ background: "var(--accent-alpha-15)", color: "var(--foreground)", border: "1px solid var(--accent-alpha-30)" }}>Código local: <span style={{ color: "var(--primary)", letterSpacing: ".16em" }}>{homologationCode}</span></p> : null}
 
       <div
         className="flex gap-2.5 justify-center mb-5"
@@ -799,13 +774,22 @@ export function GroupScreen({
   onNext,
   onBack,
   animDir,
+  initialName = "",
   initialGroup = "",
+  initialDocument = "",
+  initialMobilePhone = "",
 }: {
-  onNext: (group: string, groupId?: string) => Promise<void>;
+  onNext: (name: string, document: string, mobilePhone: string, group: string, groupId?: string) => Promise<void>;
   onBack: () => void;
   animDir: AnimDir;
+  initialName?: string;
   initialGroup?: string;
+  initialDocument?: string;
+  initialMobilePhone?: string;
 }) {
+  const [name, setName] = useState(initialName);
+  const [document, setDocument] = useState(initialDocument);
+  const [mobilePhone, setMobilePhone] = useState(initialMobilePhone);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(initialGroup);
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(
@@ -849,7 +833,7 @@ export function GroupScreen({
   const filtered = apiGroups.map((group) => group.groupName);
 
   async function confirmGroup() {
-    if (!selected || confirming) return;
+    if (!selected || name.trim().length < 2 || document.replace(/\D/g, "").length !== 11 || mobilePhone.replace(/\D/g, "").length < 10 || confirming) return;
     setConfirming(true);
     setGroupsError("");
     try {
@@ -860,7 +844,27 @@ export function GroupScreen({
         setGroupsError("Escolha um dos grupos disponíveis para o DNJ 2K26.");
         return;
       }
-      await onNext(selected, groupId);
+      await onNext(name.trim(), document.replace(/\D/g, ""), mobilePhone.replace(/\D/g, ""), selected, groupId);
+    } catch (error) {
+      setGroupsError(requestErrorMessage(error));
+    } finally {
+      setConfirming(false);
+    }
+  }
+
+  async function createGroup() {
+    const name = newGroup.trim();
+    const session = storage.getSession();
+    if (!name || !session || confirming) return;
+    setConfirming(true);
+    setGroupsError("");
+    try {
+      const group = await groupsApi.create({ name }, session.identityToken);
+      setApiGroups((current) => [...current.filter((item) => item.id !== group.id), group].sort((left, right) => left.groupName.localeCompare(right.groupName, "pt-BR")));
+      setSelected(group.groupName);
+      setSelectedGroupId(group.id);
+      setNewGroup("");
+      setAdding(false);
     } catch (error) {
       setGroupsError(requestErrorMessage(error));
     } finally {
@@ -888,8 +892,30 @@ export function GroupScreen({
           Seu grupo jovem
         </h2>
         <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-          Confirme ou selecione seu grupo de juventude
+          Complete seus dados e confirme seu grupo de juventude
         </p>
+      </div>
+
+      <div className="mb-4 flex flex-col gap-3">
+        <FieldInput
+          label="Nome completo"
+          placeholder="Seu nome completo"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          error={name && name.trim().length < 2 ? "Informe seu nome completo." : ""}
+        />
+        <FieldInput
+          label="CPF"
+          placeholder="000.000.000-00"
+          value={document}
+          onChange={(event) => setDocument(formatCpf(event.target.value))}
+        />
+        <FieldInput
+          label="Telefone WhatsApp"
+          placeholder="(41) 99999-0000"
+          value={mobilePhone}
+          onChange={(event) => setMobilePhone(formatWhatsApp(event.target.value))}
+        />
       </div>
 
       <AnimatePresence>
@@ -1048,30 +1074,22 @@ export function GroupScreen({
               Cancelar
             </button>
             <button
-              onClick={() => {
-                if (newGroup) {
-                  setSelected(newGroup);
-                  setAdding(false);
-                }
-              }}
+              onClick={() => void createGroup()}
+              disabled={!newGroup.trim() || confirming}
               className="flex-1 py-3 rounded-xl text-sm font-semibold"
               style={{
                 background: "var(--accent)",
                 color: "var(--accent-foreground)",
               }}
             >
-              Adicionar
+              {confirming ? "Criando..." : "Criar grupo"}
             </button>
           </div>
         </div>
       ) : (
         <div className="flex flex-col gap-2 mb-4">
           <button
-            onClick={() =>
-              setGroupsError(
-                "Os seis grupos cadastrados para homologação aparecem na busca acima.",
-              )
-            }
+            onClick={() => { setGroupsError(""); setAdding(true); }}
             className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-medium"
             style={{
               border: "1px dashed var(--border)",
@@ -1108,7 +1126,7 @@ export function GroupScreen({
         </div>
       )}
 
-      <PrimaryButton onClick={confirmGroup} disabled={!selected || confirming}>
+      <PrimaryButton onClick={confirmGroup} disabled={!selected || document.replace(/\D/g, "").length !== 11 || mobilePhone.replace(/\D/g, "").length < 10 || confirming}>
         {confirming ? "Salvando..." : "Confirmar grupo"}
       </PrimaryButton>
     </div>

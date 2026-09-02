@@ -3,9 +3,9 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { authApi } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
-import { env } from "@/lib/env";
-import { groupsApi } from "@/lib/api/groups";
-import { mapApiUser, mapIdentityUser } from "@/lib/api/mappers";
+import { mapIdentityUser } from "@/lib/api/mappers";
+import { profileApi } from "@/lib/api/profile";
+import { momentChallengesApi, type MomentChallenge } from "@/lib/api/moment-challenges";
 import type { AuthSession } from "@/types/domain";
 import { storage } from "@/lib/storage";
 import { ConnectivityStatus } from "@/components/pwa/connectivity-status";
@@ -28,6 +28,7 @@ import {
 
 function sessionUserData(session: AuthSession): UserData {
   return {
+    id: session.user.id,
     name: session.user.name,
     cpf: session.user.document,
     email: session.user.email,
@@ -35,7 +36,17 @@ function sessionUserData(session: AuthSession): UserData {
     group: session.user.group?.groupName ?? "",
     points: session.user.points,
     rankPosition: session.user.rankPosition,
+    avatarUrl: storage.getAvatar(session.user.id) ?? undefined,
   };
+}
+
+function googleProfilePicture(idToken: string): string | undefined {
+  try {
+    const payload = idToken.split(".")[1];
+    if (!payload) return undefined;
+    const picture = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")))?.picture;
+    return typeof picture === "string" && picture.startsWith("https://") ? picture : undefined;
+  } catch { return undefined; }
 }
 
 // ─── Screen transition logic ──────────────────────────────────────────────────
@@ -48,7 +59,7 @@ function getAnimDir(from: Screen, to: Screen): AnimDir {
 }
 
 import { AccountScreen } from "@/features/account/account-screen";
-import { GroupScreen, LoginScreen, RegisterScreen, VerifyScreen } from "@/features/auth/auth-screens";
+import { CreateAccountScreen, GroupScreen, LoginScreen, VerifyScreen } from "@/features/auth/auth-screens";
 import { GameScreen } from "@/features/game/game-screen";
 import { GalleryScreen } from "@/features/gallery/gallery-screen";
 import { HomeScreen } from "@/features/home/home-screen";
@@ -57,7 +68,17 @@ import { EventMapScreen } from "@/features/map/map-screen";
 import { QueueScreen } from "@/features/queue/queue-screen";
 import { AppShell, BottomNav, TopBar } from "@/components/layout/dnj-layout";
 import { DnjOnboarding } from "@/components/onboarding/dnJ-onboarding";
-import { LiveStatusStack, type LiveMomentChallenge, type LiveSpecialEvent } from "@/components/live/live-status-stack";
+import { LiveStatusStack, type LiveAdminNotification, type LiveQueueNotification, type LiveSpecialEvent } from "@/components/live/live-status-stack";
+import { apiRequest } from "@/lib/api/client";
+import { notificationsApi } from "@/lib/api/notifications";
+import { PushNotificationSettings } from "@/components/pwa/push-notification-settings";
+const SPECIAL_EVENT_POLL_MS = 15_000;
+const pushScreens = new Set<Screen>(["home", "game", "queue", "gallery"]);
+const showEmailDebugCode = process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SHOW_EMAIL_DEBUG_CODE === "true";
+function completedMomentChallengesKey(userId?: string) {
+  return userId ? `dnj.completed-moment-challenges.${userId}` : null;
+}
+
 export function DnjApp() {
   const reduceMotion = useReducedMotion();
   const network = useNetworkStatus();
@@ -77,6 +98,7 @@ export function DnjApp() {
   const [screen, setScreen]         = useState<Screen>("login");
   const [prevScreen, setPrevScreen] = useState<Screen>("login");
   const [emailVal, setEmailVal]     = useState("");
+  const [emailVerificationCode, setEmailVerificationCode] = useState<string | null>(null);
   const [registration, setRegistration] = useState<RegistrationData | null>(null);
   const [user, setUser] = useState<UserData>({
     name: "João Paulo", cpf: "", email: "", mobilePhone: "", group: "",
@@ -85,8 +107,15 @@ export function DnjApp() {
   const [offlineSnapshotCapturedAt, setOfflineSnapshotCapturedAt] = useState<string | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
-  const [specialEvent] = useState<LiveSpecialEvent | null>(null);
-  const [momentChallenge] = useState<LiveMomentChallenge | null>(null);
+  const [pushPromptOpen, setPushPromptOpen] = useState(false);
+  const [specialEvent, setSpecialEvent] = useState<LiveSpecialEvent | null>(null);
+  const [momentChallenge, setMomentChallenge] = useState<MomentChallenge | null>(null);
+  const [completedMomentChallengeIds, setCompletedMomentChallengeIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [queueNotification, setQueueNotification] = useState<LiveQueueNotification | null>(null);
+  const [adminNotification, setAdminNotification] = useState<LiveAdminNotification | null>(null);
+  const specialEventsUnavailable = useRef(false);
   const restoredSession = useRef(false);
   const restoredSnapshot = useRef(false);
 
@@ -94,11 +123,29 @@ export function DnjApp() {
     setPrevScreen(screen);
     setScreen(next);
   }, [screen]);
+  const handleQueueNotification = useCallback((notification: LiveQueueNotification | null) => {
+    setQueueNotification(notification);
+  }, []);
+  const handleReadAdminNotification = useCallback((notificationId: string) => {
+    void notificationsApi.markRead(notificationId).catch(() => undefined);
+    setAdminNotification(null);
+  }, []);
+  const completeMomentChallenge = useCallback((challengeId: string) => {
+    setCompletedMomentChallengeIds((current) => {
+      const next = new Set(current);
+      next.add(challengeId);
+      const key = completedMomentChallengesKey(user.id);
+      if (key) localStorage.setItem(key, JSON.stringify([...next]));
+      return next;
+    });
+    setMomentChallenge((current) => current?.id === challengeId ? null : current);
+  }, [user.id]);
 
   const handleLogin = useCallback(async (email: string) => {
     setEmailVal(email);
     setUser((u) => ({ ...u, email }));
-    await authApi.requestCode(email);
+    const response = await authApi.requestCode(email);
+    setEmailVerificationCode(showEmailDebugCode ? response.debugCode ?? null : null);
     navigate("verify");
   }, [navigate]);
 
@@ -107,12 +154,15 @@ export function DnjApp() {
     const apiUser = mapIdentityUser(identity.user);
     const session = { user: apiUser, identityToken: identity.accessToken };
     storage.setSession(session);
-    setUser(sessionUserData(session));
+    const avatarUrl = storage.getAvatar(apiUser.id) ?? googleProfilePicture(idToken);
+    if (avatarUrl) storage.setAvatar(apiUser.id, avatarUrl);
+    setUser({ ...sessionUserData(session), avatarUrl });
     navigate(identity.onboardingRequired || !identity.user.onboardingComplete ? "group" : "home");
   }, [navigate]);
 
   const handleResendVerification = useCallback(async () => {
-    await authApi.requestCode(emailVal);
+    const response = await authApi.requestCode(emailVal);
+    setEmailVerificationCode(showEmailDebugCode ? response.debugCode ?? null : null);
   }, [emailVal]);
 
   const handleVerification = useCallback(async (code: string) => {
@@ -121,6 +171,7 @@ export function DnjApp() {
     const session = { user: apiUser, identityToken: response.accessToken };
     storage.setSession(session);
     setUser({
+      id: apiUser.id,
       name: apiUser.name,
       cpf: apiUser.document,
       email: apiUser.email,
@@ -128,30 +179,31 @@ export function DnjApp() {
       group: apiUser.group?.groupName ?? "",
       points: apiUser.points,
       rankPosition: apiUser.rankPosition,
+      avatarUrl: storage.getAvatar(apiUser.id) ?? undefined,
     });
     navigate(response.onboardingRequired || !response.user.onboardingComplete ? "group" : "home");
   }, [emailVal, navigate]);
 
-  const handleRegistrationVerification = useCallback(async () => {
+  const handleRegistrationVerification = useCallback(async (code: string) => {
     if (!registration) throw new ApiError("Dados do cadastro não encontrados. Tente novamente.", 400);
-    const response = await authApi.register(registration);
-    const apiUser = mapApiUser(response);
-    const session = { user: apiUser, identityToken: response.identityToken };
+    const response = await authApi.verifyCode(registration.email, code);
+    const apiUser = mapIdentityUser(response.user);
+    const session = { user: apiUser, identityToken: response.accessToken };
     storage.setSession(session);
-    setUser({ name: apiUser.name, cpf: apiUser.document, email: apiUser.email, mobilePhone: apiUser.mobilePhone, group: apiUser.group?.groupName ?? "", points: apiUser.points, rankPosition: apiUser.rankPosition });
-    navigate("home");
+    setUser(sessionUserData(session));
+    navigate("group");
   }, [navigate, registration]);
 
-  const handleGroupConfirm = useCallback(async (group: string, groupId?: string) => {
-    let confirmedGroup = group;
+  const handleGroupConfirm = useCallback(async (name: string, document: string, mobilePhone: string, group: string, groupId?: string) => {
     const session = storage.getSession();
     if (!session) throw new ApiError("Sessão não encontrada. Entre novamente.", 401);
-    const updatedUser = await groupsApi.updateUserGroup({ groupId: group === "Sem grupo de jovens" ? null : groupId ?? null }, session.identityToken);
-    confirmedGroup = updatedUser.group?.groupName ?? "";
-    storage.setSession({ identityToken: session.identityToken, user: { ...session.user, group: updatedUser.group, points: updatedUser.points, rankPosition: updatedUser.rankPosition } });
-    setUser((current) => ({ ...current, group: confirmedGroup }));
+    const identity = await authApi.completeOnboarding({ document, mobilePhone, groupId: group === "Sem grupo de jovens" ? null : groupId ?? null });
+    let apiUser = mapIdentityUser(identity.user);
+    if (name !== apiUser.name) apiUser = mapIdentityUser(await profileApi.update({ name }, session.identityToken));
+    storage.setSession({ identityToken: session.identityToken, user: apiUser });
+    setUser(sessionUserData({ identityToken: session.identityToken, user: apiUser }));
     navigate("home");
-  }, [navigate, user]);
+  }, [navigate]);
 
   const animDir = getAnimDir(prevScreen, screen);
   const isMain  = ["home", "schedule", "map", "game", "queue", "gallery", "account"].includes(screen);
@@ -160,13 +212,6 @@ export function DnjApp() {
   useEffect(() => {
     if (restoredSession.current) return;
     restoredSession.current = true;
-    if (env.localHomologation) {
-      setUser({ name: "Participante local", cpf: "", email: "participante.local@dnj.test", mobilePhone: "+5511999990000", group: "", points: 0, rankPosition: 0 });
-      setPrevScreen("login");
-      setScreen("home");
-      setSessionReady(true);
-      return;
-    }
     let disposed = false;
     void authApi.getSession().then((identity) => {
       if (disposed) return;
@@ -182,6 +227,26 @@ export function DnjApp() {
       disposed = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!sessionReady || screen === "login" || screen === "group") return;
+    const target = new URLSearchParams(window.location.search).get("screen") as Screen | null;
+    if (!target || !pushScreens.has(target)) return;
+    setPrevScreen(screen);
+    setScreen(target);
+    window.history.replaceState(null, "", window.location.pathname);
+  }, [screen, sessionReady]);
+
+  useEffect(() => {
+    const key = completedMomentChallengesKey(user.id);
+    if (!key) return;
+    try {
+      const ids: unknown = JSON.parse(localStorage.getItem(key) ?? "[]");
+      setCompletedMomentChallengeIds(new Set(Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : []));
+    } catch {
+      setCompletedMomentChallengeIds(new Set());
+    }
+  }, [user.id]);
 
   useEffect(() => {
     if (!sessionReady || !isMain) return;
@@ -224,6 +289,56 @@ export function DnjApp() {
     });
   }, [isMain, network.isOnline, screen, user.group, user.name, user.points, user.rankPosition]);
 
+  useEffect(() => {
+    if (!sessionReady || !isMain) return;
+    if (specialEventsUnavailable.current) return;
+    let active = true;
+    const load = async () => {
+      try {
+        const data = await apiRequest<{ event?: LiveSpecialEvent | null }>("/special-events/active?target=app");
+        if (active) setSpecialEvent(data.event ?? null);
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+          specialEventsUnavailable.current = true;
+          window.clearInterval(timer);
+        }
+        if (active) setSpecialEvent(null);
+      }
+    };
+    void load();
+    const timer = window.setInterval(() => void load(), SPECIAL_EVENT_POLL_MS);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [isMain, sessionReady]);
+
+  useEffect(() => {
+    if (!sessionReady || !isMain || !network.isOnline) return;
+    let active = true;
+    const load = async () => {
+      try {
+        const data = await notificationsApi.list();
+        const unread = data.data.find((item) => item.state.toLowerCase() === "unread");
+        if (active) setAdminNotification(unread ?? null);
+      } catch { /* Notifications are additive; the app remains usable if unavailable. */ }
+    };
+    void load();
+    const timer = window.setInterval(() => void load(), SPECIAL_EVENT_POLL_MS);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [isMain, network.isOnline, sessionReady]);
+
+  useEffect(() => {
+    if (!sessionReady || !isMain || !network.isOnline) return;
+    let active = true;
+    const load = async () => {
+      try {
+        const challenge = await momentChallengesApi.active();
+        if (active) setMomentChallenge(challenge && !completedMomentChallengeIds.has(challenge.id) ? challenge : null);
+      } catch { if (active) setMomentChallenge(null); }
+    };
+    void load();
+    const timer = window.setInterval(() => void load(), SPECIAL_EVENT_POLL_MS);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [completedMomentChallengeIds, isMain, network.isOnline, sessionReady]);
+
   if (!sessionReady) {
     return <div className="min-h-dvh" style={{ background: "var(--background)" }} aria-label="Carregando sessao" />;
   }
@@ -240,22 +355,22 @@ export function DnjApp() {
             transition={{ duration: reduceMotion ? 0.01 : 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
             {screen === "login"           && <LoginScreen    onNext={handleLogin} onGoogleLogin={handleGoogleLogin} onRegister={() => navigate("register")} animDir={animDir} />}
-            {screen === "register"        && <RegisterScreen onBack={() => navigate("login")} onDone={(data) => { setRegistration(data); navigate("register-verify"); }} animDir={animDir} />}
-            {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} />}
-            {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onResend={handleResendVerification} onBack={() => navigate("login")}  animDir={animDir} />}
-            {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("verify")} animDir={animDir} initialGroup={user.group} />}
+            {screen === "register"        && <CreateAccountScreen onBack={() => navigate("login")} onDone={async (data) => { setRegistration(data); setEmailVal(data.email); const response = await authApi.requestCode(data.email); setEmailVerificationCode(showEmailDebugCode ? response.debugCode ?? null : null); navigate("register-verify"); }} animDir={animDir} />}
+            {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} homologationCode={emailVerificationCode} />}
+            {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onResend={handleResendVerification} onBack={() => navigate("login")}  animDir={animDir} homologationCode={emailVerificationCode} />}
+            {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("login")} animDir={animDir} initialName={registration?.name ?? ""} initialGroup={user.group} initialDocument={user.cpf} initialMobilePhone={user.mobilePhone || registration?.mobilePhone} />}
             {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} onOpenSchedule={() => navigate("schedule")} onOpenMap={() => navigate("map")} />}
             {screen === "schedule" && <EventScheduleScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "map" && <EventMapScreen animDir={animDir} onBack={() => navigate("home")} />}
-            {screen === "game"    && <GameScreen    user={user} theme={theme} animDir={animDir} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
-            {screen === "queue"   && <QueueScreen user={{ id: user.mobilePhone || user.email, name: user.name }} animDir={animDir} />}
+            {screen === "game"    && <GameScreen user={user} theme={theme} animDir={animDir} momentChallenge={momentChallenge} onMomentCompleted={(challengeId) => completeMomentChallenge(challengeId)} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
+            {screen === "queue"   && <QueueScreen user={{ id: user.mobilePhone || user.email, name: user.name }} animDir={animDir} onQueueNotification={handleQueueNotification} />}
             {screen === "gallery" && <GalleryScreen group={user.group}             animDir={animDir} />}
-            {screen === "account" && <AccountScreen user={user} onLogout={() => { void authApi.logout().catch(() => undefined); storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
+            {screen === "account" && <AccountScreen user={user} onAvatarChange={(avatarUrl) => { if (user.id) storage.setAvatar(user.id, avatarUrl); setUser((current) => ({ ...current, avatarUrl })); }} onLogout={() => { void authApi.logout().catch(() => undefined); storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
           </motion.div>
         </AnimatePresence>
 
-        {isMain && <TopBar />}
-        {isMain && <LiveStatusStack special={specialEvent} momentChallenge={momentChallenge} queueSummary={specialEvent ? "Fila Radicalidade: acompanhamento no app" : undefined} />}
+        {isMain && <TopBar points={user.points} />}
+        {isMain && <LiveStatusStack special={specialEvent} momentChallenge={momentChallenge} queueNotification={queueNotification} adminNotification={adminNotification} onOpenGame={() => navigate("game")} onOpenQueue={() => navigate("queue")} onReadAdmin={handleReadAdminNotification} />}
         {!network.isOnline && offlineSnapshotCapturedAt && (
           <p
             className="absolute left-3 right-3 z-40 rounded-xl border px-3 py-2 text-center text-xs font-medium"
@@ -265,7 +380,8 @@ export function DnjApp() {
           </p>
         )}
         {isMain && <BottomNav active={activeNavScreen} onNavigate={navigate} />}
-        {isMain && onboardingOpen && <DnjOnboarding onClose={() => { try { localStorage.setItem("dnj.onboarding.2k26", "1"); } catch {} setOnboardingOpen(false); }} />}
+        {isMain && onboardingOpen && <DnjOnboarding onClose={() => { try { localStorage.setItem("dnj.onboarding.2k26", "1"); } catch {} setOnboardingOpen(false); setPushPromptOpen(true); }} />}
+        {isMain && !onboardingOpen && pushPromptOpen && <div className="absolute inset-0 z-[66] flex items-end bg-black/40 pb-6"><div className="w-full"><PushNotificationSettings prompt onDone={() => setPushPromptOpen(false)} /><button type="button" className="mx-5 mt-3 w-[calc(100%-2.5rem)] py-2 text-sm font-semibold" style={{ color: "white" }} onClick={() => setPushPromptOpen(false)}>Agora não</button></div></div>}
         <ConnectivityStatus
           idleContent={(
             <InstallPromotion

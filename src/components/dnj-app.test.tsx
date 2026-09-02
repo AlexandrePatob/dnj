@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { storage } from "@/lib/storage";
 import type { AuthSession } from "@/types/domain";
-import { AppShell, BottomNav } from "./layout/dnj-layout";
+import { AppShell, BottomNav, TopBar } from "./layout/dnj-layout";
 import { DnjApp } from "./dnj-app";
 
 const session: AuthSession = {
@@ -58,7 +58,7 @@ describe("DnjApp session restoration", () => {
     render(<DnjApp />);
 
     expect(await screen.findByText(/Ana!/)).toBeInTheDocument();
-    expect(screen.getByText("Dia Nacional da Juventude")).toBeInTheDocument();
+    expect(screen.queryByText("Dia Nacional da Juventude")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Entrar" })).not.toBeInTheDocument();
   });
 
@@ -90,6 +90,21 @@ describe("DnjApp session restoration", () => {
     expect(fetch).toHaveBeenCalledWith("/api/v2/auth/session", expect.anything());
     expect(localStorage.getItem("dnj.identity-token.v1")).toBeNull();
   });
+
+  it("resumes incomplete onboarding from the V2 session instead of opening verification", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = input instanceof Request ? input.url : String(input);
+      const headers = new Headers({ "content-type": "application/json" });
+      if (url.includes("/auth/session")) return { ok: true, headers, json: async () => ({ user: { id: "user-1", email: "ana@example.com", name: "Ana Souza", mobilePhone: "", documentMasked: "", role: "DEFAULT", group: null, onboardingComplete: false }, onboardingRequired: true }) } as Response;
+      if (url.includes("/groups")) return { ok: true, headers, json: async () => [] } as Response;
+      return { ok: true, status: 204, headers, json: async () => null } as Response;
+    }));
+
+    render(<DnjApp />);
+
+    expect(await screen.findByRole("heading", { name: "Seu grupo jovem" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Verificar código" })).not.toBeInTheDocument();
+  });
 });
 
 describe("BottomNav", () => {
@@ -109,6 +124,16 @@ describe("BottomNav", () => {
 
     await user.click(screen.getByRole("button", { name: "Momentos" }));
     expect(onNavigate).toHaveBeenCalledWith("gallery");
+  });
+});
+
+describe("TopBar", () => {
+  it("centers the logo, shows unified points, and removes the former slogan", () => {
+    render(<TopBar points={230} />);
+
+    expect(screen.getByAltText("DNJ 2K26")).toBeInTheDocument();
+    expect(screen.getByText("230 pontos")).toBeInTheDocument();
+    expect(screen.queryByText("Vai, jovem, e reconstrói a minha igreja!")).not.toBeInTheDocument();
   });
 });
 

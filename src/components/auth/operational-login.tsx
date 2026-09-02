@@ -14,6 +14,7 @@ declare global {
 }
 
 type Props = { area: string; role: ApiUserRole; sessionPath: string; destination: string };
+const showEmailDebugCode = process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SHOW_EMAIL_DEBUG_CODE === "true";
 
 export function OperationalLogin({ area, role, sessionPath, destination }: Props) {
   const router = useRouter();
@@ -21,6 +22,7 @@ export function OperationalLogin({ area, role, sessionPath, destination }: Props
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [codeSent, setCodeSent] = useState(false);
+  const [homologationCode, setHomologationCode] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
@@ -54,7 +56,12 @@ export function OperationalLogin({ area, role, sessionPath, destination }: Props
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setPending(true); setError("");
     try {
-      if (!codeSent) { await authApi.requestCode(email); setCodeSent(true); return; }
+      if (!codeSent) {
+        const response = await authApi.requestCode(email);
+        setHomologationCode(showEmailDebugCode ? response.debugCode ?? "" : "");
+        setCodeSent(true);
+        return;
+      }
       const identity = await authApi.verifyCode(email, code); await finish(identity.accessToken, identity.user.role);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível entrar."); }
     finally { setPending(false); }
@@ -67,6 +74,7 @@ export function OperationalLogin({ area, role, sessionPath, destination }: Props
       <p className={styles.description}>Entre com e-mail ou Google. O acesso é liberado pelas permissões da sua conta.</p>
       <label className={styles.field}>E-mail<input className={styles.input} value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="email" required disabled={codeSent} /></label>
       {codeSent && <label className={styles.field}>Código de 6 dígitos<input className={styles.input} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" required /></label>}
+      {homologationCode && <p role="status" className={styles.hint}>Código local: <strong>{homologationCode}</strong></p>}
       {error && <p role="alert" className={styles.error}>{error}</p>}
       <button className={styles.button} disabled={pending || !email || (codeSent && code.length !== 6)} type="submit">{pending ? "Entrando…" : codeSent ? "Confirmar código" : "Enviar código"}</button>
       <div ref={googleButton} className={styles.google} aria-label="Entrar com Google" />

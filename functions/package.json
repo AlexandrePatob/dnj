@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "node --test test/rules.test.mjs",
+    "test": "npm run build && node --test test/rules.test.mjs test/queue-notification-bridge.test.mjs",
     "test:emulator": "firebase emulators:exec --only firestore --project demo-pastoral-queue \"node --test test/emulator-rules.test.mjs\""
   },
   "dependencies": {

@@ -2,7 +2,7 @@
 
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { useId, useState } from "react";
-import { ArrowLeft, Heart, QrCode, Star, Users, Zap } from "lucide-react";
+import { ArrowLeft, Camera, Gamepad2, Heart, Medal, QrCode, ShieldCheck, Star, Trophy, Users, Zap } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { TOP3_MEDAL } from "@/features/app/constants";
@@ -33,6 +33,12 @@ export function PointIcon({ type }: { type: string }) {
     heart: <Heart size={16} />,
     zap: <Zap size={16} />,
     users: <Users size={16} />,
+    trophy: <Trophy size={16} />,
+    medal: <Medal size={16} />,
+    game: <Gamepad2 size={16} />,
+    camera: <Camera size={16} />,
+    shield: <ShieldCheck size={16} />,
+    points: <Star size={16} />,
   };
   return <GameIcon>{map[type] ?? <Star size={16} />}</GameIcon>;
 }

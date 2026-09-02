@@ -89,20 +89,20 @@ Use `firebase deploy --only firestore,functions` a partir da raiz, com o projeto
 explicitamente selecionado. Nunca inclua arquivos `.env`, service accounts ou
 tokens no repositório.
 
-## Push: dependência bloqueada
+## Aviso de chamada pelo V2
 
-O Firestore cria intenções para os marcos 10, 5 e chamada; o modal realtime do
-app continua independente do push. Porém T12/T13 estão bloqueadas: não foi
-encontrado em `dnj-game-api` um contrato oficial para envio individual por
-`externalKey`, incluindo endpoint, autenticação, chave de idempotência e shape
-de resposta/erro.
+O modal realtime do app continua independente de push. Ao criar ou alterar um
+documento em `calledPeople` para `status: "called"`, a Function
+`notifyQueueCalled` encaminha o evento ao V2 autenticado. O V2 cria o aviso
+in-app, aplica a política de alerta essencial da fila e, se aplicável, entrega
+Web Push. A Function não armazena assinatura VAPID, não envia push diretamente
+e não usa endpoint de broadcast.
 
-Até esse contrato ser publicado e revisado:
-
-- não implante uma Function de entrega;
-- não use o endpoint de campanha broadcast;
-- não armazene tokens de push em Firestore;
-- trate `pushEnabled` como configuração preparada, não como garantia de entrega.
+Antes do deploy, configure `QUEUE_NOTIFICATION_BRIDGE_URL` e
+`DNJ_QUEUE_BRIDGE_TOKEN` no Firebase Secret Manager conforme
+[`functions/README.md`](../functions/README.md). Um erro do V2 faz apenas a
+Function tentar novamente com a mesma chave de idempotência; não desfaz nem
+interrompe o estado realtime da fila.
 
 ## Risco conhecido
 

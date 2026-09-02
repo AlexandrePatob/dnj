@@ -37,6 +37,7 @@
   ],
   "exclude": [
     "node_modules",
-    "functions"
+    "functions",
+    "functions.pre-main-update-20260827"
   ]
 }

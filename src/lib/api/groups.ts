@@ -6,6 +6,7 @@ export const groupsApi = {
     const query = search ? `?search=${encodeURIComponent(search)}` : "";
     return apiRequest<ApiGroup[]>(`/groups${query}`, { token });
   },
+  create: (input: { name: string }, token?: string) => apiMutation<ApiGroup>("/groups", { method: "POST", token, body: input }),
   current: (token?: string) => apiRequest<{ group: ApiGroup | null; membership: unknown | null }>("/groups/me", { token }),
   members: (token?: string) => apiRequest<{ data: ApiUser[]; pagination: { currentPage: number; hasNextPage: boolean; limit: number } }>("/groups/me/members", { token }),
 

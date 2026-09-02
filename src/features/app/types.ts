@@ -6,6 +6,7 @@ export type AnimDir = "right" | "left" | "up";
 export type Theme = "light" | "dark";
 
 export interface UserData {
+  id?: string;
   name: string;
   cpf: string;
   email: string;
@@ -13,6 +14,7 @@ export interface UserData {
   group: string;
   points: number;
   rankPosition: number;
+  avatarUrl?: string;
 }
 
 export interface RegistrationData {

@@ -10,6 +10,7 @@ import { gameApi } from "@/lib/api/game";
 type ScannerStatus = "starting" | "reading" | "error" | "success";
 type CameraFacing = "environment" | "user";
 type ZoomRange = { min: number; max: number; step: number } | null;
+export type QrValidation = Participation & { qrAction: "joined" | "scored"; qrPoints: number };
 const cameraStartTimeout = "CAMERA_START_TIMEOUT";
 type ZoomCapableTrack = MediaStreamTrack & {
   getCapabilities?: () => {
@@ -35,7 +36,7 @@ export function QrScannerModal({
   onValidated,
 }: {
   onClose: () => void;
-  onValidated: (participation: Participation) => void | Promise<void>;
+  onValidated: (validation: QrValidation) => void | Promise<void>;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
@@ -87,9 +88,10 @@ export function QrScannerModal({
       try {
         const body = await gameApi.validateQr(qrToken);
         setStatus("success");
-        setMessage("Participação confirmada. Preparando a celebração.");
+        const qrAction = body.action === "scored" ? "scored" : "joined";
+        setMessage(qrAction === "scored" ? "Pontos creditados. Preparando a celebração." : "Entrada na partida confirmada.");
         window.setTimeout(() => {
-          void onValidated(body.participation as unknown as Participation);
+          void onValidated({ ...(body.participation as unknown as Participation), qrAction, qrPoints: body.pointsAwarded ?? 0 });
         }, 450);
       } catch (error) {
         setStatus("error");

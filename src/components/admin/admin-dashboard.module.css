@@ -105,6 +105,24 @@
   display: grid;
   gap: 4px;
 }
+.specialEventForm { display: grid; grid-template-columns: 2fr 2fr .7fr .9fr; gap: 12px; margin-top: 22px; align-items: end; }
+.specialEventForm label { display: grid; gap: 6px; color: #385b4c; font-size: .78rem; font-weight: 800; }
+.specialEventForm input, .specialEventForm select { width: 100%; border: 1px solid #cbdcd1; border-radius: 8px; padding: 10px; background: #fff; color: #17271f; font: inherit; }
+.specialEventForm .targetFields { grid-column: 1 / -1; }
+.specialEventList { display: grid; gap: 10px; margin-top: 24px; }
+.specialEventCard { display: flex; align-items: center; justify-content: space-between; gap: 18px; border: 1px solid #dce8df; border-radius: 12px; padding: 15px; background: #fbfdfb; }
+.specialEventCard h3, .specialEventCard p, .specialEventCard small { display: block; margin: 6px 0 0; }
+.specialEventCard h3 { font-size: .95rem; }
+.specialEventCard p, .specialEventCard small { color: #668278; font-size: .74rem; }
+.navGroup { display: grid; gap: 3px; }
+.navGroup > .navItem,
+.navGroup > .activeNav { justify-content: flex-start; }
+.navGroup > button svg:last-child { margin-left: auto; }
+.chevronOpen { transform: rotate(180deg); }
+.subNavigation { display: grid; gap: 2px; padding: 2px 0 5px 15px; border-left: 1px solid rgba(185, 223, 74, .28); margin-left: 20px; }
+.subNavItem, .activeSubNav { display: flex; align-items: center; gap: 8px; border: 0; border-radius: 8px; padding: 8px 9px; background: transparent; color: #89afa0; text-align: left; cursor: pointer; font-size: .74rem; }
+.subNavItem:hover { background: #1a4a3c; color: #fff; }
+.activeSubNav { background: rgba(217, 239, 124, .16); color: #e5f6a7; font-weight: 800; }
 .navItem,
 .activeNav,
 .exit {
@@ -454,6 +472,29 @@
 .activityToolbar .help {
   margin: 0;
 }
+.workspaceIntro { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 20px; border-bottom: 1px solid #edf2ee; }
+.workspaceIntro h2 { margin: 0; font-size: 1.65rem; letter-spacing: -.045em; }
+.workspaceIntro .help { margin-top: 5px; }
+.workspaceIntro button, .rowActions button { display: inline-flex; align-items: center; gap: 6px; }
+.activityCards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding-top: 18px; }
+.activityCard { display: grid; gap: 12px; border: 1px solid #dce8df; border-radius: 14px; padding: 17px; background: linear-gradient(145deg, #fff, #f8fbf8); }
+.activityCardTop { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.typeBadge, .statusBadge { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 5px 8px; font-size: .65rem; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+.typeBadge { color: #27634c; background: #e8f4ea; }
+.statusBadge { color: #7b8d83; background: #eef2ef; }
+.statusActive { color: #227148; background: #dff3e4; }
+.activityCard h3, .activityCard p { margin: 0; }
+.activityCard h3 { font-size: 1.05rem; }
+.activityCard > p { color: #668278; font-size: .78rem; line-height: 1.5; min-height: 36px; }
+.activityMeta { display: flex; flex-wrap: wrap; gap: 7px; color: #5e7d70; font-size: .7rem; font-weight: 800; }
+.activityMeta span { display: inline-flex; align-items: center; gap: 4px; border-radius: 6px; background: #eef5ef; padding: 6px 7px; }
+.qrPanel { display: flex; align-items: center; gap: 15px; border-radius: 10px; padding: 11px; background: #edf7df; }
+.qrPanel > svg, .qrPanel img { width: 86px; height: 86px; flex: 0 0 86px; }
+.qrPanel img { border-radius: 8px; background: white; padding: 5px; }
+.qrPanel strong, .qrPanel small { display: block; }
+.qrPanel small { margin: 4px 0 8px; color: #5e7868; font-size: .7rem; }
+.readOnlyNote { display: flex; align-items: center; gap: 7px; border-radius: 8px; padding: 9px 10px; background: #f1f4f2; color: #60786c; font-size: .7rem; font-weight: 800; }
+.activityCard > .help { border-top: 1px solid #edf2ee; padding-top: 9px; }
 .operationError,
 .operationMessage {
   margin: 14px 0 0;
@@ -498,25 +539,38 @@
   margin-top: 18px;
   max-width: 620px;
 }
-.moderationItem {
-  align-items: start !important;
-  grid-template-columns: 12px 104px minmax(0, 1fr) auto !important;
+.moderationGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  max-width: 1120px;
+}
+.activity .moderationItem {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid #dce8df;
+  border-radius: 14px;
+  background: #fff;
 }
 .moderationPhoto,
 .moderationPhotoUnavailable {
   display: grid;
-  height: 104px;
-  width: 104px;
+  height: min(31vw, 360px);
+  width: 100%;
   overflow: hidden;
-  border-radius: 10px;
-  background: #edf5ef;
+  border-radius: 0;
+  border: 0;
+  background: #152f25;
   color: #668278;
   font-size: 0.68rem;
   place-items: center;
   text-align: center;
 }
 .moderationPhoto {
-  box-shadow: 0 4px 12px rgba(21, 67, 49, 0.16);
+  box-shadow: none;
 }
 .moderationPhoto:focus-visible {
   outline: 3px solid #b2d64d;
@@ -525,10 +579,100 @@
 .moderationPhoto img {
   height: 100%;
   width: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
-.moderationItem .rowActions {
-  justify-content: flex-end;
+.moderationContent {
+  display: grid;
+  gap: 7px;
+  padding: 14px;
+}
+.moderationHeading {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.moderationKind {
+  border-radius: 999px;
+  padding: 4px 7px;
+  background: #e8f4ea;
+  color: #27634c;
+  font-size: 0.63rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.moderationActions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin-top: 5px;
+}
+.moderationActions button {
+  justify-content: center;
+  padding: 9px 6px;
+}
+.moderationDialogBackdrop {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background: rgb(10 26 19 / 78%);
+}
+.moderationDialog {
+  position: relative;
+  display: grid;
+  width: min(760px, 100%);
+  max-height: calc(100vh - 56px);
+  overflow: hidden;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 20px 50px rgb(0 0 0 / 32%);
+}
+.moderationDialog > img {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  max-height: min(66vh, 620px);
+  background: #152f25;
+  object-fit: contain;
+}
+.moderationDialogClose {
+  position: absolute;
+  z-index: 1;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  height: 38px;
+  width: 38px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 66%);
+  color: #fff;
+  cursor: pointer;
+}
+.moderationDialogFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px 16px;
+}
+.moderationDialogFooter > div {
+  display: grid;
+  gap: 3px;
+}
+.moderationDialogFooter p {
+  margin: 0;
+  color: #668278;
+  font-size: 0.78rem;
+}
+.moderationDialogFooter .moderationActions {
+  min-width: 300px;
+  margin: 0;
 }
 .help {
   margin: 12px 0 6px;
@@ -583,7 +727,9 @@
     border-bottom: 1px solid #e2ece5;
   }
   .columns,
-  .quickActions {
+  .quickActions,
+  .activityCards,
+  .specialEventForm {
     grid-template-columns: 1fr;
   }
 }
@@ -658,19 +804,25 @@
     grid-column: 2;
     justify-self: start;
   }
-  .moderationItem .rowActions {
-    justify-content: flex-start;
-  }
   .activity .moderationItem {
-    grid-template-columns: 9px 88px minmax(0, 1fr) !important;
+    grid-template-columns: 1fr !important;
   }
   .moderationPhoto,
   .moderationPhotoUnavailable {
-    height: 88px;
-    width: 88px;
+    height: min(54vw, 330px);
   }
-  .moderationItem .rowActions {
-    grid-column: 2 / -1;
+  .moderationGrid {
+    grid-template-columns: 1fr;
+  }
+  .moderationDialogBackdrop {
+    padding: 16px;
+  }
+  .moderationDialogFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .moderationDialogFooter .moderationActions {
+    min-width: 0;
   }
   .quickActions {
     gap: 8px;
@@ -679,6 +831,8 @@
     align-items: flex-start;
     flex-direction: column;
   }
+  .workspaceIntro { align-items: flex-start; flex-direction: column; }
+  .specialEventCard { align-items: flex-start; flex-direction: column; }
   .dialogBackdrop {
     align-items: start;
     padding: 12px;

@@ -31,6 +31,8 @@ import { apiMutation, apiRequest } from "@/lib/api/client";
 import styles from "./manager-dashboard.module.css";
 import { PastoralQueueConsole } from "./pastoral-queue-console";
 
+const MANAGER_RUN_POLL_MS = 15_000;
+
 type Scope = "space" | "actions" | "special_events" | "pastoral_queue";
 type Session = {
   name?: string;
@@ -125,11 +127,11 @@ function time(value?: string) {
 }
 function call(
   path: string,
-  body: object,
+  body: object | undefined,
   refresh: () => Promise<void>,
   setError: (value: string) => void,
 ) {
-  return api(path, { method: "POST", body: JSON.stringify(body) })
+  return api(path, { method: "POST", body: body === undefined ? undefined : JSON.stringify(body) })
     .then(() => refresh())
     .catch((error: Error) => setError(error.message));
 }
@@ -146,7 +148,9 @@ export function ManagerDashboard() {
       const scope = sessionData.manager?.scope ?? sessionData.scope;
       const overviewData = scope === "pastoral_queue"
         ? { scope }
-        : await api("/manager/game-overview");
+        : scope === "special_events"
+          ? { scope, specialEvents: await api("/manager/special-events") }
+          : await api("/manager/game-overview");
       setSession(sessionData);
       setOverview(overviewData as Overview);
       setError("");
@@ -180,7 +184,7 @@ export function ManagerDashboard() {
         overviewPollInFlight.current = false;
       }
     };
-    const timer = window.setInterval(refreshRun, 2_000);
+    const timer = window.setInterval(refreshRun, MANAGER_RUN_POLL_MS);
     return () => {
       active = false;
       window.clearInterval(timer);
@@ -225,7 +229,7 @@ export function ManagerDashboard() {
           <div>
             <h1>
               {scope === "space"
-                ? "Seu cronograma"
+                ? "Sua programação"
                 : scope === "actions"
                   ? "Radicalidade"
                 : scope === "pastoral_queue"
@@ -336,7 +340,7 @@ function SpaceConsole({
               className={styles.button}
               onClick={() =>
                 void call(
-                  "/api/manager/space/start",
+                  "/manager/space/start",
                   { itemId: current.id },
                   refresh,
                   setError,
@@ -351,7 +355,7 @@ function SpaceConsole({
               className={styles.secondary}
               onClick={() =>
                 void call(
-                  "/api/manager/space/flex",
+                  "/manager/space/flex",
                   { itemId: current.id },
                   refresh,
                   setError,
@@ -366,7 +370,7 @@ function SpaceConsole({
             className={styles.button}
             onClick={() =>
               void call(
-                "/api/manager/space/advance",
+                "/manager/space/advance",
                 { itemId: current.id },
                 refresh,
                 setError,
@@ -374,7 +378,7 @@ function SpaceConsole({
             }
           >
             <Clock3 size={16} />
-            Avançar cronograma
+            Avançar programação
           </button>
         </div>
       </section>
@@ -420,10 +424,12 @@ function ActionConsole({
   data,
   refresh,
   setError,
+  mode = "actions",
 }: {
   data?: Overview["actions"];
   refresh: () => Promise<void>;
   setError: (value: string) => void;
+  mode?: "actions" | "special_events";
 }) {
   const [editor, setEditor] = useState<{ id?: string; name: string } | null>(
     null,
@@ -434,12 +440,10 @@ function ActionConsole({
     event.preventDefault();
     if (!editor?.name.trim()) return;
     try {
-      await api("/api/manager/actions/games", {
+      await api(editor.id ? `/manager/games/${editor.id}` : "/manager/games", {
         method: editor.id ? "PATCH" : "POST",
         body: JSON.stringify(
-          editor.id
-            ? { gameId: editor.id, name: editor.name.trim() }
-            : { name: editor.name.trim() },
+          { name: editor.name.trim() },
         ),
       });
       setEditor(null);
@@ -454,7 +458,12 @@ function ActionConsole({
         method: "POST",
         body: JSON.stringify({ gameId }),
       })) as { id: string };
-      setQrImageUrl(undefined);
+      // A newly opened run must be immediately usable: provision its QR in
+      // the same flow instead of requiring a second manual action.
+      const qr = (await api(`/manager/runs/${created.id}/qr`, {
+        method: "POST",
+      })) as { qrToken: string };
+      setQrImageUrl(await toDataURL(qr.qrToken));
       await refresh();
     } catch (error) {
       setError((error as Error).message);
@@ -462,11 +471,11 @@ function ActionConsole({
   }
   if (run)
     return (
-      <RunConsole
-        run={{ ...run, qrImageUrl: qrImageUrl ?? run.qrImageUrl }}
-        refresh={refresh}
-        setError={setError}
-      />
+      mode === "special_events" ? (
+        <SpecialEventRunConsole run={{ ...run, qrImageUrl: qrImageUrl ?? run.qrImageUrl }} refresh={refresh} setError={setError} />
+      ) : (
+        <RunConsole run={{ ...run, qrImageUrl: qrImageUrl ?? run.qrImageUrl }} refresh={refresh} setError={setError} />
+      )
     );
   const games = data?.games ?? [];
   return (
@@ -474,8 +483,8 @@ function ActionConsole({
       <section className={styles.panel}>
         <header className={styles.panelHeader}>
           <div>
-            <p className={styles.kicker}>Nova partida</p>
-            <h2>Abrir Radicalidade</h2>
+            <p className={styles.kicker}>{mode === "special_events" ? "Evento pronto" : "Nova partida"}</p>
+            <h2>{mode === "special_events" ? "Eventos especiais" : "Abrir Radicalidade"}</h2>
           </div>
           <Gamepad2 size={21} />
         </header>
@@ -490,7 +499,7 @@ function ActionConsole({
                     onClick={() => void openRun(game.id)}
                   >
                     <QrCode size={16} />
-                    Abrir partida
+                    {mode === "special_events" ? "Liberar QR" : "Abrir partida"}
                   </button>
                   <button
                     className={styles.iconButton}
@@ -499,6 +508,15 @@ function ActionConsole({
                   >
                     <Pencil size={16} />
                   </button>
+                  {mode === "actions" ? (
+                    <button
+                      className={styles.iconButton}
+                      aria-label={`Concluir ${game.name}`}
+                      onClick={() => void call(`/manager/activities/${game.id}/conclude`, undefined, refresh, setError)}
+                    >
+                      <Square size={16} />
+                    </button>
+                  ) : null}
                 </div>
               </article>
             ))}
@@ -506,14 +524,14 @@ function ActionConsole({
         ) : (
           <Empty
             icon={<Gamepad2 size={28} />}
-            title="Nenhum jogo disponível"
-            text="Crie o primeiro jogo abaixo para iniciar uma partida."
+            title={mode === "special_events" ? "Nenhum evento preparado" : "Nenhum jogo disponível"}
+            text={mode === "special_events" ? "Crie um evento e libere o QR quando estiver pronto." : "Crie o primeiro jogo abaixo para iniciar uma partida."}
           />
         )}
       </section>
       <button className={styles.button} onClick={() => setEditor({ name: "" })}>
         <Plus size={16} />
-        Novo jogo
+        {mode === "special_events" ? "Novo evento" : "Novo jogo"}
       </button>
       {editor ? (
         <div className={styles.dialogBackdrop} role="presentation">
@@ -524,9 +542,9 @@ function ActionConsole({
             aria-label={editor.id ? "Editar jogo" : "Novo jogo"}
             onSubmit={(event) => void saveGame(event)}
           >
-            <h2>{editor.id ? "Editar jogo" : "Novo jogo"}</h2>
+            <h2>{editor.id ? (mode === "special_events" ? "Editar evento" : "Editar jogo") : (mode === "special_events" ? "Novo evento" : "Novo jogo")}</h2>
             <label>
-              Nome do jogo
+              {mode === "special_events" ? "Nome do evento" : "Nome do jogo"}
               <input
                 autoFocus
                 value={editor.name}
@@ -534,7 +552,7 @@ function ActionConsole({
                   setEditor({ ...editor, name: event.target.value })
                 }
                 maxLength={80}
-                placeholder="Ex.: Corrida do saco"
+                placeholder={mode === "special_events" ? "Ex.: Caça ao tesouro" : "Ex.: Corrida do saco"}
                 required
               />
             </label>
@@ -547,7 +565,7 @@ function ActionConsole({
                 Cancelar
               </button>
               <button className={styles.button} type="submit">
-                Salvar jogo
+                {mode === "special_events" ? "Salvar evento" : "Salvar jogo"}
               </button>
             </div>
           </form>
@@ -555,6 +573,23 @@ function ActionConsole({
       ) : null}
     </div>
   );
+}
+
+function SpecialEventRunConsole({ run, refresh, setError }: { run: Run; refresh: () => Promise<void>; setError: (value: string) => void }) {
+  const [qrImageUrl, setQrImageUrl] = useState(run.qrImageUrl);
+  const people = run.participants ?? [];
+  async function renewQr() {
+    try {
+      const qr = await api(`/manager/runs/${run.id}/qr`, { method: "POST" }) as { qrToken: string };
+      setQrImageUrl(await toDataURL(qr.qrToken));
+    } catch (error) { setError((error as Error).message); }
+  }
+  return <section className={styles.panel}>
+    <header className={styles.panelHeader}><div><p className={styles.kicker}>QR liberado</p><h2>{run.gameName ?? "Evento especial"}</h2></div><span className={styles.scope}>{people.length} participantes</span></header>
+    <div className={styles.qr}>{qrImageUrl ? <img src={qrImageUrl} alt="QR Code do evento especial" style={{ width: 178, height: 178, borderRadius: 12, background: "white", padding: 10 }} /> : <div className={styles.qrCanvas}><QrCode size={66} /></div>}<strong>{qrImageUrl ? "QR ativo" : "Gere um QR para o evento"}</strong><p>Os participantes usam este QR para entrar no evento.</p></div>
+    <ParticipantList people={people} results={{}} onResult={() => undefined} readonly />
+    <div className={styles.actions}><button className={styles.secondary} onClick={() => void renewQr()}><TimerReset size={16} />Gerar novo QR</button><button className={styles.danger} onClick={() => void call(`/manager/runs/${run.id}/cancel`, undefined, refresh, setError)}><Square size={16} />Encerrar evento</button></div>
+  </section>;
 }
 
 function RunConsole({
@@ -569,8 +604,14 @@ function RunConsole({
   const [results, setResults] = useState<Record<string, Participant["result"]>>(
     {},
   );
+  const [reviewingResults, setReviewingResults] = useState(false);
   const [qrImageUrl, setQrImageUrl] = useState(run.qrImageUrl);
   const people = run.participants ?? [];
+  useEffect(() => {
+    if (["checkin", "completed", "cancelled"].includes(run.status ?? "")) {
+      setReviewingResults(false);
+    }
+  }, [run.status]);
   const saveResults = () =>
     call(
       `/manager/runs/${run.id}/results`,
@@ -646,27 +687,20 @@ function RunConsole({
             readonly
           />
           <div className={styles.actions}>
-            {qrImageUrl ? (
-              <button
-                className={styles.button}
-                onClick={() =>
-                  void call(
-                    `/manager/runs/${run.id}/start`,
-                    {},
-                    refresh,
-                    setError,
-                  )
-                }
-              >
-                <Play size={16} />
-                Iniciar jogo
-              </button>
-            ) : (
-              <button className={styles.button} onClick={() => void renewQr()}>
-                <QrCode size={16} />
-                Gerar novo QR
-              </button>
-            )}
+            <button
+              className={styles.button}
+              onClick={() =>
+                void call(
+                  `/manager/runs/${run.id}/start`,
+                  undefined,
+                  refresh,
+                  setError,
+                )
+              }
+            >
+              <Play size={16} />
+              Iniciar jogo
+            </button>
             <button className={styles.secondary} onClick={() => void renewQr()}>
               <TimerReset size={16} />
               Novo QR
@@ -676,7 +710,7 @@ function RunConsole({
               onClick={() =>
                 void call(
                   `/manager/runs/${run.id}/cancel`,
-                  {},
+                  undefined,
                   refresh,
                   setError,
                 )
@@ -687,7 +721,7 @@ function RunConsole({
             </button>
           </div>
         </>
-      ) : run.status === "running" || run.status === "paused" ? (
+      ) : (run.status === "running" || run.status === "paused") && !reviewingResults ? (
         <>
           <ParticipantList
             people={people}
@@ -702,7 +736,7 @@ function RunConsole({
                 onClick={() =>
                   void call(
                     `/manager/runs/${run.id}/pause`,
-                    {},
+                    undefined,
                     refresh,
                     setError,
                   )
@@ -717,7 +751,7 @@ function RunConsole({
                 onClick={() =>
                   void call(
                     `/manager/runs/${run.id}/resume`,
-                    {},
+                    undefined,
                     refresh,
                     setError,
                   )
@@ -730,16 +764,11 @@ function RunConsole({
             <button
               className={styles.danger}
               onClick={() =>
-                void call(
-                  `/manager/runs/${run.id}/results`,
-                  { results: people.map((person) => ({ participantId: person.id, result: results[person.id] ?? person.result ?? "participation" })) },
-                  refresh,
-                  setError,
-                )
+                setReviewingResults(true)
               }
             >
               <Trophy size={16} />
-              Encerrar e pontuar
+              Encerrar e definir pontuação
             </button>
           </div>
         </>
@@ -756,21 +785,7 @@ function RunConsole({
               onClick={() => void saveResults()}
             >
               <Trophy size={16} />
-              Confirmar pontuação
-            </button>
-            <button
-              className={styles.danger}
-              onClick={() =>
-                void call(
-                  `/manager/runs/${run.id}/cancel`,
-                  {},
-                  refresh,
-                  setError,
-                )
-              }
-            >
-              <Square size={16} />
-              Fechar partida
+              Confirmar pontuação e encerrar
             </button>
           </div>
         </>
@@ -872,7 +887,7 @@ function SpecialConsole({
     try {
       const durationMinutes =
         duration === "custom" ? Number(customDuration) : Number(duration);
-      await api("/api/manager/special-events", {
+      await api("/manager/special-events", {
         method: "POST",
         body: JSON.stringify({
           title,
@@ -895,20 +910,20 @@ function SpecialConsole({
   async function operate(event: SpecialEvent) {
     const path =
       event.status === "draft"
-        ? "/api/manager/special-events/teaser"
+        ? "/manager/special-events/teaser"
         : event.status === "teaser"
-          ? "/api/manager/special-events/qr"
-          : "/api/manager/special-events/close";
+          ? "/manager/special-events/qr"
+          : "/manager/special-events/close";
     try {
       const result = (await api(path, {
         method: "POST",
         body: JSON.stringify({ eventId: event.id }),
-      })) as { qrImageUrl?: string; expiresAt?: string };
-      if (result?.qrImageUrl)
+      })) as { qrToken?: string; expiresAt?: string };
+      if (result?.qrToken)
         setActiveQr({
           eventId: event.id,
           title: event.title,
-          imageUrl: result.qrImageUrl,
+          imageUrl: await toDataURL(result.qrToken, { width: 360, margin: 1 }),
           expiresAt: result.expiresAt ?? event.expiresAt,
         });
       if (event.status === "active")
@@ -922,14 +937,14 @@ function SpecialConsole({
   }
   async function renewQr(event: SpecialEvent) {
     try {
-      const result = (await api("/api/manager/special-events/qr", {
+      const result = (await api("/manager/special-events/qr", {
         method: "POST",
         body: JSON.stringify({ eventId: event.id }),
-      })) as { qrImageUrl: string; expiresAt?: string };
+      })) as { qrToken: string; expiresAt?: string };
       setActiveQr({
         eventId: event.id,
         title: event.title,
-        imageUrl: result.qrImageUrl,
+        imageUrl: await toDataURL(result.qrToken, { width: 360, margin: 1 }),
         expiresAt: result.expiresAt ?? event.expiresAt,
       });
       await refresh();

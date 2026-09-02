@@ -38,7 +38,7 @@ beforeEach(() => {
   fetchMock.mockReset();
   fetchMock.mockImplementation((input: string, init?: RequestInit) => {
     if (input === "/api/v2/admin/moments/moderation?queue=challenge&page=1" || input === "/api/v2/admin/moments/moderation?queue=general&page=1")
-      return Promise.resolve(jsonResponse({ data: [{ momentId: "moment-1", imageUrl: "https://image.test/moment-1.jpg", capturedAt: "2026-10-18T17:35:00.000Z", participantName: "Alex", activity: { id: "activity-1", name: "Gincana" }, pointsAwarded: 30, photoStatus: "available", availableActions: ["deny_points"] }] }));
+      return Promise.resolve(jsonResponse({ data: [{ momentId: "moment-1", imageUrl: "https://image.test/moment-1.jpg", capturedAt: "2026-10-18T17:35:00.000Z", participantName: "Alex", activity: { id: "activity-1", name: "Gincana" }, pointsAwarded: 30, photoStatus: "available", availableActions: ["approve", "deny_points", "delete_photo"] }] }));
     if (input === "/api/v2/admin/moments/moment-1/moderation")
       return Promise.resolve(jsonResponse({ ok: true }));
     if (input === "/api/v2/admin/notifications" && init?.method === "POST")
@@ -47,7 +47,7 @@ beforeEach(() => {
       return Promise.resolve(jsonResponse({ data: [{ id: "activity-1", name: "Gincana", slug: "gincana", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 10, momentPoints: 20, cooldownSeconds: 60, allowsMoment: true }] }));
     if (input === "/api/v2/admin/spaces")
       return Promise.resolve(jsonResponse({ data: [{ id: "space-1", name: "Capela", slug: "capela", mapReference: null }] }));
-    return Promise.resolve(jsonResponse({ data: [{ id: "staff-1", name: "Ana Gestora", role: "EVENT_MANAGER", onboardingComplete: true }] }));
+    return Promise.resolve(jsonResponse({ data: [{ id: "staff-1", name: "Ana Gestora", email: "ana.gestora@example.com", role: "EVENT_MANAGER", onboardingComplete: true }] }));
   });
   vi.stubGlobal("fetch", fetchMock);
 });
@@ -56,6 +56,7 @@ describe("AdminDashboard V2", () => {
   it("loads the documented staff endpoint by default", async () => {
     render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
     expect(await screen.findByText("Ana Gestora")).toBeInTheDocument();
+    expect(screen.getByText("ana.gestora@example.com")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/staff?role=EVENT_MANAGER", expect.anything());
   });
 
@@ -123,13 +124,11 @@ describe("AdminDashboard V2", () => {
     fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Corrida" } });
     fireEvent.change(screen.getByLabelText("Slug"), { target: { value: "corrida" } });
     fireEvent.change(screen.getByLabelText("Descrição"), { target: { value: "Registre um momento no local." } });
-    fireEvent.change(screen.getByLabelText("Espaço"), { target: { value: "space-1" } });
-    fireEvent.change(screen.getByLabelText("Pontos no check-in"), { target: { value: "10" } });
     fireEvent.change(screen.getByLabelText("Pontos por momento"), { target: { value: "20" } });
-    fireEvent.change(screen.getByLabelText("Intervalo entre check-ins (segundos)"), { target: { value: "60" } });
-    fireEvent.change(screen.getByLabelText("Início (opcional)"), { target: { value: "2026-08-24T18:00" } });
+    fireEvent.change(screen.getByLabelText("Início"), { target: { value: "2026-08-24T18:00" } });
+    fireEvent.change(screen.getByLabelText("Duração (minutos)"), { target: { value: "60" } });
     fireEvent.click(screen.getByRole("button", { name: "Criar atividade" }));
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.objectContaining({ method: "POST", headers: expect.objectContaining({ "Idempotency-Key": expect.stringMatching(/^[0-9a-f-]{36}$/i) }), body: JSON.stringify({ name: "Corrida", slug: "corrida", description: "Registre um momento no local.", kind: "challenge", spaceId: "space-1", checkInPoints: 10, momentPoints: 20, cooldownSeconds: 60, allowsMoment: true, startsAt: new Date("2026-08-24T18:00").toISOString(), endsAt: null }) }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.objectContaining({ method: "POST", headers: expect.objectContaining({ "Idempotency-Key": expect.stringMatching(/^[0-9a-f-]{36}$/i) }), body: JSON.stringify({ name: "Corrida", slug: "corrida", description: "Registre um momento no local.", kind: "challenge", spaceId: null, checkInPoints: 0, momentPoints: 20, cooldownSeconds: 0, allowsMoment: true, startsAt: new Date("2026-08-24T18:00").toISOString(), endsAt: new Date("2026-08-24T19:00").toISOString() }) }));
   });
 
   it("activates, pauses, edits and archives an activity through its operation endpoint", async () => {
@@ -155,12 +154,22 @@ describe("AdminDashboard V2", () => {
     expect(screen.queryByText("Gincana")).not.toBeInTheDocument();
   });
 
-  it("uses the documented moderation action endpoint", async () => {
+  it("opens a full moderation view with the three decisions", async () => {
     render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
     fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Moderação" }));
     expect(await screen.findByText("Alex")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Retirar pontos" }));
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/moments/moment-1/moderation", expect.objectContaining({ method: "POST", body: JSON.stringify({ action: "deny_points" }) }));
+    expect(screen.getByRole("img", { name: "Foto enviada por Alex" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Aceitar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retirar pontos" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Excluir foto" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Ampliar foto enviada por Alex" }));
+    const dialog = screen.getByRole("dialog", { name: "Moderar foto de Alex" });
+    expect(within(dialog).getByRole("img", { name: "Foto enviada por Alex" })).toHaveAttribute("src", "https://image.test/moment-1.jpg");
+    expect(within(dialog).getByRole("button", { name: "Aceitar" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Excluir foto" })).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Aceitar" }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/moments/moment-1/moderation", expect.objectContaining({ method: "POST", body: JSON.stringify({ action: "approve" }) }));
+    expect(within(dialog).getByRole("button", { name: "Retirar pontos" })).toBeInTheDocument();
   });
 
   it("sends the required moderation queue and reloads it when changed", async () => {

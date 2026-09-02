@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { env } from "@/lib/env";
 
-export type OperationalIdentity = { user?: { id?: string; email?: string; name?: string; role?: string } };
+export type OperationalIdentity = { user?: { id?: string; email?: string; name?: string; role?: string; scope?: string } };
 
 export function hasOperationalRole(identity: OperationalIdentity | null, role: string) {
   return identity?.user?.role?.trim().toUpperCase() === role;

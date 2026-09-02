@@ -2,6 +2,30 @@
 
 ## Decisions
 
+### AD-013
+- **Decision**: O V2 é a autoridade única das regras, preferências, persistência e despacho de notificações; o frontend controla apenas consentimento do navegador, inscrição do dispositivo e apresentação local, enquanto polling permanece sincronização de estado sem implicar push.
+- **Reason**: Evita políticas divergentes entre telas, preserva atualização operacional de participantes e gestores e permite entrega confiável em segundo plano.
+- **Trade-off**: Exige contrato V2 de inscrições, outbox/worker de entrega e uma ponte autenticada para eventos de fila do Firestore.
+- **Scope**: Notificações participantes, Admin, gestores, PWA, VAPID, filas pastorais e futuros eventos do DNJ.
+- **Date**: 2026-08-30
+- **Status**: active
+
+### AD-011
+- **Decision**: Durante a homologação, o código de e-mail retornado como `debugCode` pela API pode ser exibido somente no ambiente de desenvolvimento; produção nunca o mostra nem o gera no frontend.
+- **Reason**: Permite validar localmente o fluxo completo de e-mail sem enfraquecer o fluxo de produção.
+- **Trade-off**: O contrato de homologação possui um campo temporário adicional que deve ser removido ao término da homologação total, sob segunda ordem do usuário.
+- **Scope**: Login de participante e operacional, resposta de `POST /auth/signup` e telas de verificação.
+- **Date**: 2026-08-28
+- **Status**: temporary
+
+### AD-012
+- **Decision**: Um Momento de Desafio usa o endpoint dedicado `POST /moments/challenge`; ele não recebe nem cria `participationId` e o backend resolve, de forma autoritativa, o único desafio elegível no instante da publicação.
+- **Reason**: Desafio Momento não possui QR Code. `participationId` representa participação criada pela validação de QR e, portanto, não é a identidade de um desafio de foto.
+- **Trade-off**: A API e o schema passam a ter um caminho explícito adicional, mas o fluxo de Momento livre permanece simples e o contrato deixa de depender de estado artificial no frontend.
+- **Scope**: Participante, Momentos, DNJ Game, notificações de desafio, pontuação, API V2 e banco de dados.
+- **Date**: 2026-08-28
+- **Status**: active
+
 ### AD-001
 - **Decision**: A primeira versão PWA manterá Next.js 16 e usará um service worker próprio e enxuto, sem migrar para Vite e sem adotar Serwist.
 - **Reason**: O projeto já usa App Router e integrações da Vercel; o Next.js suporta manifest e service worker, e a abordagem reduz mudanças de stack e risco de regressão visual.
@@ -84,13 +108,13 @@
 
 ## Handoff
 
-- **Feature**: Modularização DNJ / `.specs/features/dnj-modularization/`
-- **Phase / Task**: Fase 3; M3-08 é próxima.
-- **Completed**: Fase 1 modularizada; Fase 2 aplicou viewport-fit, variáveis únicas de safe area, BottomNav segura, padding de telas e avisos PWA, Conta hierárquica com saída confirmada e CTA grande para scanner. Typecheck, lint e 113 testes unitários aprovados.
+- **Feature**: Onda 1A — Login e Onboarding / `.specs/features/wave-1-auth-onboarding/`
+- **Phase / Task**: Onda 1A concluída — validada manualmente e verificada de forma independente.
+- **Completed**: Google antes do e-mail, separador OU, mensagem de primeiro acesso, largura responsiva do botão GIS, conta nova via código, nome/CPF/WhatsApp/grupo no onboarding, criação real de grupo e remoção de todas as simulações de runtime. Testes relevantes: 20 aprovados; typecheck e lint aprovados.
 - **In-progress** (file:line): none
-- **Next step**: M3-08, criar Route Handlers de galeria geral e pessoal.
-- **Blockers**: validação visual automatizada falha 6/8 contra snapshots existentes; usuário assumirá validação manual e orientará eventuais correções.
-- **Uncommitted files**: `.gitignore`, `graphify-out/` e `test-results/`; preservar e não incluir em commits desta feature sem revisão separada.
+- **Next step**: iniciar a Onda 2 após direcionamento do usuário; P10 registra o ajuste pendente do avatar em Momentos.
+- **Blockers**: nenhum conhecido.
+- **Uncommitted files**: alterações prévias de Home/Mapa, specs e Onda 1A; `functions.pre-main-update-20260827/` e `test-results/` devem ser preservados e excluídos de commits.
 - **Branch**: dev
 
 ## Handoff update — 2026-07-23

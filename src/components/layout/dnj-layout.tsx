@@ -1,11 +1,10 @@
 "use client";
-/* eslint-disable @next/next/no-img-element */
 import type { ReactNode } from "react";
 import { motion } from "motion/react";
 import { Home, Images, Trophy, User, Users } from "lucide-react";
 import { BrandSticker } from "@/components/brand/brand-sticker";
 import type { Screen, Theme } from "@/features/app/types";
-export function TopBar() {
+export function TopBar({ points }: { points: number }) {
   return (
     <motion.div
       style={{
@@ -18,7 +17,7 @@ export function TopBar() {
         background:   "var(--primary)",
         display:      "flex",
         alignItems:   "center",
-        justifyContent: "space-between",
+        justifyContent: "center",
         paddingTop:   "var(--safe-area-top)",
         paddingLeft:  "16px",
         paddingRight: "16px",
@@ -31,17 +30,15 @@ export function TopBar() {
       <BrandSticker className="h-8 w-auto shrink-0" />
       <p
         style={{
-          fontSize:   "0.7rem",
+          position: "absolute",
+          right: "16px",
+          fontSize: "0.72rem",
           fontWeight: "var(--font-weight-bold)" as React.CSSProperties["fontWeight"],
-          fontStyle:  "italic",
-          color:      "rgba(255,255,255,0.85)",
-          textAlign:  "center",
-          lineHeight: 1.3,
-          flex:       1,
-          minWidth:   0,
+          color: "white",
+          whiteSpace: "nowrap",
         }}
       >
-        Vai, jovem, e reconstrói a minha igreja!
+        {points} pontos
       </p>
     </motion.div>
   );
