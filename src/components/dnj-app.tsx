@@ -71,7 +71,10 @@ import { DnjOnboarding } from "@/components/onboarding/dnJ-onboarding";
 import { LiveStatusStack, type LiveAdminNotification, type LiveQueueNotification, type LiveSpecialEvent } from "@/components/live/live-status-stack";
 import { apiRequest } from "@/lib/api/client";
 import { notificationsApi } from "@/lib/api/notifications";
+import { PushNotificationSettings } from "@/components/pwa/push-notification-settings";
 const SPECIAL_EVENT_POLL_MS = 15_000;
+const pushScreens = new Set<Screen>(["home", "game", "queue", "gallery"]);
+const showEmailDebugCode = process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SHOW_EMAIL_DEBUG_CODE === "true";
 function completedMomentChallengesKey(userId?: string) {
   return userId ? `dnj.completed-moment-challenges.${userId}` : null;
 }
@@ -104,6 +107,7 @@ export function DnjApp() {
   const [offlineSnapshotCapturedAt, setOfflineSnapshotCapturedAt] = useState<string | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [pushPromptOpen, setPushPromptOpen] = useState(false);
   const [specialEvent, setSpecialEvent] = useState<LiveSpecialEvent | null>(null);
   const [momentChallenge, setMomentChallenge] = useState<MomentChallenge | null>(null);
   const [completedMomentChallengeIds, setCompletedMomentChallengeIds] = useState<Set<string>>(
@@ -141,7 +145,7 @@ export function DnjApp() {
     setEmailVal(email);
     setUser((u) => ({ ...u, email }));
     const response = await authApi.requestCode(email);
-    setEmailVerificationCode(process.env.NODE_ENV !== "production" ? response.debugCode ?? null : null);
+    setEmailVerificationCode(showEmailDebugCode ? response.debugCode ?? null : null);
     navigate("verify");
   }, [navigate]);
 
@@ -158,7 +162,7 @@ export function DnjApp() {
 
   const handleResendVerification = useCallback(async () => {
     const response = await authApi.requestCode(emailVal);
-    setEmailVerificationCode(process.env.NODE_ENV !== "production" ? response.debugCode ?? null : null);
+    setEmailVerificationCode(showEmailDebugCode ? response.debugCode ?? null : null);
   }, [emailVal]);
 
   const handleVerification = useCallback(async (code: string) => {
@@ -223,6 +227,15 @@ export function DnjApp() {
       disposed = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!sessionReady || screen === "login" || screen === "group") return;
+    const target = new URLSearchParams(window.location.search).get("screen") as Screen | null;
+    if (!target || !pushScreens.has(target)) return;
+    setPrevScreen(screen);
+    setScreen(target);
+    window.history.replaceState(null, "", window.location.pathname);
+  }, [screen, sessionReady]);
 
   useEffect(() => {
     const key = completedMomentChallengesKey(user.id);
@@ -342,7 +355,7 @@ export function DnjApp() {
             transition={{ duration: reduceMotion ? 0.01 : 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
             {screen === "login"           && <LoginScreen    onNext={handleLogin} onGoogleLogin={handleGoogleLogin} onRegister={() => navigate("register")} animDir={animDir} />}
-            {screen === "register"        && <CreateAccountScreen onBack={() => navigate("login")} onDone={async (data) => { setRegistration(data); setEmailVal(data.email); const response = await authApi.requestCode(data.email); setEmailVerificationCode(process.env.NODE_ENV !== "production" ? response.debugCode ?? null : null); navigate("register-verify"); }} animDir={animDir} />}
+            {screen === "register"        && <CreateAccountScreen onBack={() => navigate("login")} onDone={async (data) => { setRegistration(data); setEmailVal(data.email); const response = await authApi.requestCode(data.email); setEmailVerificationCode(showEmailDebugCode ? response.debugCode ?? null : null); navigate("register-verify"); }} animDir={animDir} />}
             {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} homologationCode={emailVerificationCode} />}
             {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onResend={handleResendVerification} onBack={() => navigate("login")}  animDir={animDir} homologationCode={emailVerificationCode} />}
             {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("login")} animDir={animDir} initialName={registration?.name ?? ""} initialGroup={user.group} initialDocument={user.cpf} initialMobilePhone={user.mobilePhone || registration?.mobilePhone} />}
@@ -367,7 +380,8 @@ export function DnjApp() {
           </p>
         )}
         {isMain && <BottomNav active={activeNavScreen} onNavigate={navigate} />}
-        {isMain && onboardingOpen && <DnjOnboarding onClose={() => { try { localStorage.setItem("dnj.onboarding.2k26", "1"); } catch {} setOnboardingOpen(false); }} />}
+        {isMain && onboardingOpen && <DnjOnboarding onClose={() => { try { localStorage.setItem("dnj.onboarding.2k26", "1"); } catch {} setOnboardingOpen(false); setPushPromptOpen(true); }} />}
+        {isMain && !onboardingOpen && pushPromptOpen && <div className="absolute inset-0 z-[66] flex items-end bg-black/40 pb-6"><div className="w-full"><PushNotificationSettings prompt onDone={() => setPushPromptOpen(false)} /><button type="button" className="mx-5 mt-3 w-[calc(100%-2.5rem)] py-2 text-sm font-semibold" style={{ color: "white" }} onClick={() => setPushPromptOpen(false)}>Agora não</button></div></div>}
         <ConnectivityStatus
           idleContent={(
             <InstallPromotion

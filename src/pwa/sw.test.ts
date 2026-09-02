@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
-import { createServiceWorkerRuntime, type WorkerEnvironment } from "./sw";
+import { createServiceWorkerRuntime, openPushTarget, parsePushPayload, type WorkerEnvironment } from "./sw";
 
 class MemoryCache {
   entries = new Map<string, Response>();
@@ -233,5 +233,20 @@ describe("versioned service worker runtime", () => {
 
     await runtime.message({ type: "SKIP_WAITING" }, undefined);
     expect(skipWaiting).toHaveBeenCalledOnce();
+  });
+});
+
+describe("push payloads", () => {
+  it("accepts only bounded approved deep-link payloads", () => {
+    expect(parsePushPayload({ notificationId: "n-1", title: "Sua vez", body: "Vá para a fila", url: "/?screen=queue", tag: "queue-n-1", vibrate: [100, 50, 100] })).toEqual(expect.objectContaining({ url: "/?screen=queue", vibrate: [100, 50, 100] }));
+    expect(parsePushPayload({ notificationId: "n-1", title: "x", body: "x", url: "https://bad.example", tag: "n-1" })).toBeNull();
+  });
+
+  it("focuses the matching app client before opening a new window", async () => {
+    const focus = vi.fn(async () => undefined);
+    const openWindow = vi.fn(async () => undefined);
+    await openPushTarget({ claim: async () => undefined, matchAll: async () => [{ url: "https://dnj.example/?screen=queue", focus }], openWindow }, "/?screen=queue");
+    expect(focus).toHaveBeenCalledOnce();
+    expect(openWindow).not.toHaveBeenCalled();
   });
 });

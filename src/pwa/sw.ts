@@ -171,11 +171,39 @@ export function createServiceWorkerRuntime(environment: WorkerEnvironment, revis
 
 interface WorkerScopeLike {
   caches: CacheStorage;
-  clients: { claim(): Promise<void> };
+  clients: { claim(): Promise<void>; matchAll?(options?: { type?: "window"; includeUncontrolled?: boolean }): Promise<Array<{ url: string; focus(): Promise<unknown> }>>; openWindow?(url: string): Promise<unknown> };
   location: Location;
   skipWaiting(): Promise<void>;
   addEventListener(type: string, listener: (event: never) => void): void;
   registration: { showNotification(title: string, options?: NotificationOptions): Promise<void> };
+}
+
+export interface PushPayload {
+  notificationId: string;
+  title: string;
+  body: string;
+  url: "/?screen=queue" | "/?screen=game" | "/?screen=gallery" | "/?screen=home";
+  tag: string;
+  vibrate?: number[];
+}
+
+const pushRoutes = new Set<PushPayload["url"]>(["/?screen=queue", "/?screen=game", "/?screen=gallery", "/?screen=home"]);
+const isBoundedText = (value: unknown, max: number): value is string => typeof value === "string" && value.trim().length > 0 && value.length <= max;
+
+export function parsePushPayload(value: unknown): PushPayload | null {
+  if (!value || typeof value !== "object") return null;
+  const payload = value as Record<string, unknown>;
+  if (!isBoundedText(payload.notificationId, 128) || !isBoundedText(payload.title, 120) || !isBoundedText(payload.body, 500) || !isBoundedText(payload.tag, 160) || !pushRoutes.has(payload.url as PushPayload["url"])) return null;
+  const vibrate = Array.isArray(payload.vibrate) && payload.vibrate.length <= 10 && payload.vibrate.every((item) => Number.isInteger(item) && item >= 0 && item <= 10_000) ? payload.vibrate as number[] : undefined;
+  return { notificationId: payload.notificationId, title: payload.title, body: payload.body, url: payload.url as PushPayload["url"], tag: payload.tag, ...(vibrate ? { vibrate } : {}) };
+}
+
+export async function openPushTarget(clients: WorkerScopeLike["clients"], url: PushPayload["url"]): Promise<void> {
+  const target = new URL(url, "https://dnj.local");
+  const windows = await clients.matchAll?.({ type: "window", includeUncontrolled: true }) ?? [];
+  const existing = windows.find((client) => { const candidate = new URL(client.url); return candidate.pathname === target.pathname && candidate.search === target.search; });
+  if (existing) { await existing.focus(); return; }
+  await clients.openWindow?.(url);
 }
 
 const scope = globalThis as unknown as WorkerScopeLike;
@@ -209,8 +237,16 @@ if (typeof scope.addEventListener === "function" && typeof scope.skipWaiting ===
       event.waitUntil?.(operation);
     }) as never,
   );
-  scope.addEventListener("push", ((event: { data?: { json(): { title?: string; body?: string; url?: string } }; waitUntil(promise: Promise<void>): void }) => {
-    const payload = event.data?.json() ?? {};
-    event.waitUntil(scope.registration.showNotification(payload.title ?? "DNJ Game", { body: payload.body ?? "Você tem uma novidade.", data: { url: payload.url ?? "/" }, icon: "/icons/icon-192x192.png" }));
+  scope.addEventListener("push", ((event: { data?: { json(): unknown }; waitUntil(promise: Promise<void>): void }) => {
+    let raw: unknown = null;
+    try { raw = event.data?.json() ?? null; } catch { /* Invalid push payloads are ignored. */ }
+    const payload = parsePushPayload(raw);
+    if (!payload) return;
+    event.waitUntil(scope.registration.showNotification(payload.title, { body: payload.body, tag: payload.tag, data: { notificationId: payload.notificationId, url: payload.url }, icon: "/icons/icon-192x192.png", badge: "/icons/icon-192x192.png", ...(payload.vibrate ? { vibrate: payload.vibrate } : {}) }));
+  }) as never);
+  scope.addEventListener("notificationclick", ((event: { notification: { data?: { url?: unknown }; close(): void }; waitUntil(promise: Promise<void>): void }) => {
+    event.notification.close();
+    const url = event.notification.data?.url;
+    if (pushRoutes.has(url as PushPayload["url"])) event.waitUntil(openPushTarget(scope.clients, url as PushPayload["url"]));
   }) as never);
 }

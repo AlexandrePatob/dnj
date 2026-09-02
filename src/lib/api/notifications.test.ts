@@ -21,4 +21,11 @@ describe("notificationsApi", () => {
     notificationsApi.updatePreferences({ announcementEnabled: false, pointsEnabled: true }, "session", "key-2");
     expect(apiMutation).toHaveBeenCalledWith("/notifications/preferences", { method: "PUT", body: { announcementEnabled: false, pointsEnabled: true }, token: "session", idempotencyKey: "key-2" });
   });
+
+  it("uses the authenticated V2 subscription contract", () => {
+    notificationsApi.pushConfig("session");
+    notificationsApi.subscribePush({ endpoint: "https://push.example/device", keys: { p256dh: "key", auth: "auth" } }, "session", "key-3");
+    expect(apiRequest).toHaveBeenCalledWith("/push/config", { token: "session" });
+    expect(apiMutation).toHaveBeenCalledWith("/push/subscriptions", { method: "PUT", body: { endpoint: "https://push.example/device", p256dh: "key", auth: "auth" }, token: "session", idempotencyKey: "key-3" });
+  });
 });

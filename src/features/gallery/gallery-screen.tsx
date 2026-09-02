@@ -10,7 +10,6 @@ import { MomentComposer } from "@/features/moments/moment-composer";
 import type { AnimDir } from "@/features/app/types";
 import type { GalleryPage, Moment, Participation } from "@/types/experience";
 import { momentsApi, type MomentScope } from "@/lib/api/moments";
-import { apiRequest } from "@/lib/api/client";
 
 const motion = (dir: AnimDir) => ({
   animation:
@@ -147,15 +146,11 @@ function ShareButton({ moment }: { moment: Moment }) {
   );
 }
 
-function FeedCard({
+function LikeButton({
   moment,
-  index,
-  onOpen,
   onChanged,
 }: {
   moment: Moment;
-  index: number;
-  onOpen: (value: Moment) => void;
   onChanged: () => void;
 }) {
   const [sending, setSending] = useState(false);
@@ -168,6 +163,38 @@ function FeedCard({
       setSending(false);
     }
   }
+  return (
+    <button
+      type="button"
+      onClick={() => void toggleLike()}
+      disabled={sending}
+      aria-label="Curtir momento"
+      aria-pressed={moment.likedByCurrentUser}
+      className="flex items-center gap-2 text-sm font-bold disabled:opacity-50"
+      style={{
+        color: moment.likedByCurrentUser
+          ? "var(--secondary)"
+          : "var(--foreground)",
+      }}
+    >
+      <Heart
+        size={20}
+        fill={moment.likedByCurrentUser ? "currentColor" : "none"}
+      />
+      {moment.likesCount ?? 0}
+    </button>
+  );
+}
+
+function FeedCard({
+  moment,
+  onOpen,
+  onChanged,
+}: {
+  moment: Moment;
+  onOpen: (value: Moment) => void;
+  onChanged: () => void;
+}) {
   return (
     <article
       className="overflow-hidden rounded-2xl"
@@ -214,25 +241,7 @@ function FeedCard({
       </button>
       <div className="p-4">
         <div className="flex items-center gap-5">
-          <button
-            type="button"
-            onClick={() => void toggleLike()}
-            disabled={sending}
-            aria-pressed={moment.likedByCurrentUser}
-            className="flex items-center gap-2 text-sm font-bold disabled:opacity-50"
-            style={{
-              color: moment.likedByCurrentUser
-                ? "var(--secondary)"
-                : "var(--foreground)",
-            }}
-          >
-            <Heart
-              size={20}
-              fill={moment.likedByCurrentUser ? "currentColor" : "none"}
-            />
-            {moment.likesCount ?? 0}
-          </button>
-          <ShareButton moment={moment} />
+          <LikeButton moment={moment} onChanged={onChanged} />
         </div>
       </div>
     </article>
@@ -312,7 +321,6 @@ export function GalleryScreen({
     Participation | null | undefined
   >(undefined);
   const [composerMessage, setComposerMessage] = useState("");
-  const [openingComposer, setOpeningComposer] = useState(false);
   const hasGroup = Boolean(group.trim());
   useEffect(() => {
     let active = true;
@@ -424,11 +432,10 @@ export function GalleryScreen({
               />
             ) : tab === "public" ? (
               <div className="mx-auto flex max-w-sm flex-col gap-4">
-                {page.items.map((item, index) => (
+                {page.items.map((item) => (
                   <FeedCard
                     key={item.id}
                     moment={item}
-                    index={index}
                     onOpen={setSelected}
                     onChanged={() => setAttempt((value) => value + 1)}
                   />
@@ -443,9 +450,8 @@ export function GalleryScreen({
       <button
         type="button"
         aria-label="Adicionar momento"
-        disabled={openingComposer}
         onClick={() => void openComposer()}
-        className="fixed bottom-24 right-5 grid h-14 w-14 place-items-center rounded-full text-white disabled:opacity-60"
+        className="fixed bottom-24 right-5 grid h-14 w-14 place-items-center rounded-full text-white"
         style={{
           background: "var(--primary)",
           boxShadow: "var(--shadow-card)",
@@ -492,9 +498,15 @@ export function GalleryScreen({
                 className="absolute bottom-3 right-3 drop-shadow-md"
               />
             </div>
-            <div className="flex items-center justify-between px-2 pt-3">
+            <div className="flex items-center justify-between gap-4 px-2 pt-3">
               <strong>{selected.placeName}</strong>
-              <ShareButton moment={selected} />
+              <div className="flex items-center gap-5">
+                <LikeButton
+                  moment={selected}
+                  onChanged={() => setAttempt((value) => value + 1)}
+                />
+                {tab !== "public" && <ShareButton moment={selected} />}
+              </div>
             </div>
           </div>
         </section>

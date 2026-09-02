@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -91,6 +91,12 @@ describe("GalleryScreen", () => {
       "aspect-[3/4]",
     );
     expect(document.querySelector(".passport-grid")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Abrir momento em Capela" }),
+    );
+    expect(
+      await screen.findByRole("button", { name: "Compartilhar momento" }),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Grupo" }));
     expect(
       await screen.findByRole("heading", {
@@ -99,13 +105,8 @@ describe("GalleryScreen", () => {
     ).toBeInTheDocument();
   });
 
-  it("keeps the public feed focused on likes and sharing", async () => {
+  it("allows only likes for moments from the public feed", async () => {
     const user = userEvent.setup();
-    const share = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, "share", {
-      configurable: true,
-      value: share,
-    });
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
@@ -123,51 +124,24 @@ describe("GalleryScreen", () => {
         nextCursor: null,
       }),
     } as Response);
-    vi.mocked(fetch).mockResolvedValueOnce({
-      ok: true,
-      blob: async () => new Blob(["photo"], { type: "image/png" }),
-    } as Response);
-    const createElement = document.createElement.bind(document);
-    vi.spyOn(document, "createElement").mockImplementation(((
-      tagName: string,
-      options?: ElementCreationOptions,
-    ) => {
-      const element = createElement(tagName, options);
-      if (tagName === "img") {
-        Object.defineProperties(element, {
-          naturalWidth: { value: 100 },
-          naturalHeight: { value: 140 },
-        });
-        window.setTimeout(() => element.dispatchEvent(new Event("load")), 0);
-      }
-      return element;
-    }) as typeof document.createElement);
-    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
-      drawImage: vi.fn(),
-    } as unknown as CanvasRenderingContext2D);
-    vi.spyOn(HTMLCanvasElement.prototype, "toBlob").mockImplementation(
-      (callback) => callback(new Blob(["watermarked"], { type: "image/png" })),
-    );
-
     render(<GalleryScreen animDir="up" />);
 
-    expect(
-      await screen.findByRole("button", { name: "Compartilhar momento" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Curtir momento" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Compartilhar momento" })).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /coment/i }),
     ).not.toBeInTheDocument();
     await user.click(
-      screen.getByRole("button", { name: "Compartilhar momento" }),
+      screen.getByRole("button", { name: "Abrir momento em Palco" }),
     );
-    await waitFor(() =>
-      expect(share).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: "DNJ 2K26",
-          files: expect.any(Array),
-        }),
-      ),
-    );
+    expect(await screen.findByRole("dialog", { name: "Detalhe do momento" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Curtir momento" })).toHaveLength(2);
+    expect(screen.queryByRole("button", { name: "Compartilhar momento" })).not.toBeInTheDocument();
+    const detailLike = screen.getAllByRole("button", {
+      name: "Curtir momento",
+    })[1];
+    await user.click(detailLike);
+    expect(detailLike).not.toBeDisabled();
   });
 
   it("marks photos that scored a Moment challenge without showing a caption", async () => {

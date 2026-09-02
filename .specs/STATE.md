@@ -2,6 +2,14 @@
 
 ## Decisions
 
+### AD-013
+- **Decision**: O V2 é a autoridade única das regras, preferências, persistência e despacho de notificações; o frontend controla apenas consentimento do navegador, inscrição do dispositivo e apresentação local, enquanto polling permanece sincronização de estado sem implicar push.
+- **Reason**: Evita políticas divergentes entre telas, preserva atualização operacional de participantes e gestores e permite entrega confiável em segundo plano.
+- **Trade-off**: Exige contrato V2 de inscrições, outbox/worker de entrega e uma ponte autenticada para eventos de fila do Firestore.
+- **Scope**: Notificações participantes, Admin, gestores, PWA, VAPID, filas pastorais e futuros eventos do DNJ.
+- **Date**: 2026-08-30
+- **Status**: active
+
 ### AD-011
 - **Decision**: Durante a homologação, o código de e-mail retornado como `debugCode` pela API pode ser exibido somente no ambiente de desenvolvimento; produção nunca o mostra nem o gera no frontend.
 - **Reason**: Permite validar localmente o fluxo completo de e-mail sem enfraquecer o fluxo de produção.

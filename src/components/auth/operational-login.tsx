@@ -14,6 +14,7 @@ declare global {
 }
 
 type Props = { area: string; role: ApiUserRole; sessionPath: string; destination: string };
+const showEmailDebugCode = process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SHOW_EMAIL_DEBUG_CODE === "true";
 
 export function OperationalLogin({ area, role, sessionPath, destination }: Props) {
   const router = useRouter();
@@ -57,7 +58,7 @@ export function OperationalLogin({ area, role, sessionPath, destination }: Props
     try {
       if (!codeSent) {
         const response = await authApi.requestCode(email);
-        setHomologationCode(process.env.NODE_ENV !== "production" ? response.debugCode ?? "" : "");
+        setHomologationCode(showEmailDebugCode ? response.debugCode ?? "" : "");
         setCodeSent(true);
         return;
       }
