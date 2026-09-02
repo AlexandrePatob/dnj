@@ -588,6 +588,7 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
   const [endsAt, setEndsAt] = useState("");
   const [durationMinutes, setDurationMinutes] = useState("");
   const [qrByActivity, setQrByActivity] = useState<Record<string, string>>({});
+  const [runByActivity, setRunByActivity] = useState<Record<string, string>>({});
   const [creatingQr, setCreatingQr] = useState("");
   const load = useCallback(async () => {
     try {
@@ -755,11 +756,19 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
   async function generateQr(activity: Activity) {
     setCreatingQr(activity.id);
     try {
+      const runId =
+        runByActivity[activity.id] ??
+        (
+          await api<{ id: string }>("/manager/runs", {
+            method: "POST",
+            body: { gameId: activity.id },
+          })
+        ).id;
+      setRunByActivity((current) => ({ ...current, [activity.id]: runId }));
       const run = await api<{
-        id: string;
         qrToken?: string;
         qrImageUrl?: string;
-      }>("/manager/runs", { method: "POST", body: { gameId: activity.id } });
+      }>(`/manager/runs/${runId}/qr`, { method: "POST" });
       const qr =
         run.qrImageUrl ??
         (run.qrToken
@@ -863,7 +872,7 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
                     </span>
                   )}
                 </div>
-                {kind === "checkpoint" && (
+                {(kind === "checkpoint" || kind === "challenge") && (
                   <div className={styles.qrPanel}>
                     {qrByActivity[activity.id] ? (
                       <img

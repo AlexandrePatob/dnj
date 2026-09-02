@@ -44,7 +44,14 @@ beforeEach(() => {
     if (input === "/api/v2/admin/notifications" && init?.method === "POST")
       return Promise.resolve(jsonResponse({ recipientCount: "3" }, 201));
     if (input === "/api/v2/admin/activities")
-      return Promise.resolve(jsonResponse({ data: [{ id: "activity-1", name: "Gincana", slug: "gincana", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 10, momentPoints: 20, cooldownSeconds: 60, allowsMoment: true }] }));
+      return Promise.resolve(jsonResponse({ data: [
+        { id: "activity-1", name: "Gincana", slug: "gincana", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 10, momentPoints: 20, cooldownSeconds: 60, allowsMoment: true },
+        { id: "checkpoint-1", name: "Ponto de presença", slug: "ponto-de-presenca", kind: "checkpoint", status: "active", description: null, spaceId: "space-1", startsAt: null, endsAt: null, checkInPoints: 15, momentPoints: 0, cooldownSeconds: 60, allowsMoment: false },
+      ] }));
+    if (input === "/api/v2/manager/runs" && init?.method === "POST")
+      return Promise.resolve(jsonResponse({ id: "run-checkpoint" }, 201));
+    if (input === "/api/v2/manager/runs/run-checkpoint/qr" && init?.method === "POST")
+      return Promise.resolve(jsonResponse({ qrToken: "checkpoint-token" }, 201));
     if (input === "/api/v2/admin/spaces")
       return Promise.resolve(jsonResponse({ data: [{ id: "space-1", name: "Capela", slug: "capela", mapReference: null }] }));
     return Promise.resolve(jsonResponse({ data: [{ id: "staff-1", name: "Ana Gestora", email: "ana.gestora@example.com", role: "EVENT_MANAGER", onboardingComplete: true }] }));
@@ -69,6 +76,18 @@ describe("AdminDashboard V2", () => {
     expect(await screen.findByText("Capela")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.anything());
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/spaces", expect.anything());
+  });
+
+  it("creates a run and requests its QR for a checkpoint activity", async () => {
+    render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    const navigation = within(screen.getByRole("navigation", { name: "Navegação administrativa" }));
+    fireEvent.click(navigation.getByRole("button", { name: "Estáticos" }));
+    expect(await screen.findByText("Ponto de presença")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Gerar QR Code" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/runs", expect.objectContaining({ method: "POST", body: JSON.stringify({ gameId: "checkpoint-1" }) })));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/runs/run-checkpoint/qr", expect.objectContaining({ method: "POST" })));
+    expect(await screen.findByRole("img", { name: "QR Code de Ponto de presença" })).toBeInTheDocument();
   });
 
   it("shows both pastoral queues as a read-only live overview", async () => {
