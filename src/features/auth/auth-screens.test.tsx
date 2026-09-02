@@ -10,8 +10,11 @@ import {
   VerifyScreen,
 } from "./auth-screens";
 
+vi.mock("@/lib/env", () => ({ env: { googleClientId: "test-google-client-id" } }));
+
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   storage.clearSession();
 });
 
@@ -65,6 +68,40 @@ describe("CreateAccountScreen", () => {
 });
 
 describe("entry feedback", () => {
+  it("does not re-render the Google button for the same width", () => {
+    let notifyResize: (() => void) | undefined;
+    class ResizeObserverMock {
+      constructor(callback: ResizeObserverCallback) {
+        notifyResize = () => callback([], this as unknown as ResizeObserver);
+      }
+
+      observe() {}
+      disconnect() {}
+    }
+    const initialize = vi.fn();
+    const renderButton = vi.fn((parent: HTMLElement) => {
+      parent.appendChild(document.createElement("iframe"));
+    });
+    vi.stubGlobal("ResizeObserver", ResizeObserverMock);
+    vi.stubGlobal("google", { accounts: { id: { initialize, renderButton } } });
+
+    render(<LoginScreen animDir="up" onNext={vi.fn()} onGoogleLogin={vi.fn()} onRegister={vi.fn()} />);
+
+    const google = screen.getByLabelText("Entrar com Google");
+    vi.spyOn(google, "getBoundingClientRect").mockReturnValue({ width: 320 } as DOMRect);
+    notifyResize?.();
+    expect(initialize).toHaveBeenCalledTimes(1);
+    expect(renderButton).toHaveBeenCalledTimes(1);
+
+    notifyResize?.();
+    expect(renderButton).toHaveBeenCalledTimes(1);
+
+    vi.mocked(google.getBoundingClientRect).mockReturnValue({ width: 360 } as DOMRect);
+    notifyResize?.();
+    expect(renderButton).toHaveBeenCalledTimes(2);
+    expect(initialize).toHaveBeenCalledTimes(1);
+  });
+
   it("puts Google before the email flow with a visible separator", () => {
     render(<LoginScreen animDir="up" onNext={vi.fn()} onGoogleLogin={vi.fn()} onRegister={vi.fn()} />);
 

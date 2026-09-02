@@ -63,21 +63,31 @@ export function LoginScreen({
 
   useEffect(() => {
     if (!onGoogleLogin || !env.googleClientId || !googleButton.current) return;
+    let lastRenderedWidth: number | undefined;
+    let disposed = false;
     const render = () => {
-      if (!window.google || !googleButton.current) return;
-      window.google.accounts.id.initialize({ client_id: env.googleClientId, callback: ({ credential }) => void onGoogleLogin(credential) });
-      googleButton.current.replaceChildren();
-      window.google.accounts.id.renderButton(googleButton.current, { type: "standard", theme: "outline", size: "large", width: String(Math.min(360, Math.floor(googleButton.current.getBoundingClientRect().width) || 320)) });
+      const button = googleButton.current;
+      if (disposed || !window.google || !button) return;
+      const width = Math.min(360, Math.floor(button.getBoundingClientRect().width) || 320);
+      if (width === lastRenderedWidth) return;
+      lastRenderedWidth = width;
+      button.replaceChildren();
+      window.google.accounts.id.renderButton(button, { type: "standard", theme: "outline", size: "large", width: String(width) });
     };
     const resizeObserver = typeof ResizeObserver === "undefined" || !googleButton.current ? undefined : new ResizeObserver(render);
     resizeObserver?.observe(googleButton.current);
-    if (window.google) { render(); return () => resizeObserver?.disconnect(); }
+    const initialize = () => {
+      if (disposed || !window.google) return;
+      window.google.accounts.id.initialize({ client_id: env.googleClientId, callback: ({ credential }) => void onGoogleLogin(credential) });
+      render();
+    };
+    if (window.google) { initialize(); return () => { disposed = true; resizeObserver?.disconnect(); }; }
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
-    script.onload = render;
+    script.onload = initialize;
     document.head.appendChild(script);
-    return () => { resizeObserver?.disconnect(); script.remove(); };
+    return () => { disposed = true; resizeObserver?.disconnect(); script.remove(); };
   }, [onGoogleLogin]);
 
   const valid = email.includes("@");
