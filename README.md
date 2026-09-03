@@ -21,6 +21,10 @@ npm run dev
 
 Abra `http://localhost:3000`.
 
+Para subir também a API, PostgreSQL, MinIO e túneis Cloudflare temporários em
+um único comando, consulte [docs/local-development.md](docs/local-development.md)
+e execute `npm run dev:local`.
+
 Os scripts `predev` e `prebuild` geram `public/sw.js` automaticamente. Para testar instalação, cache e atualização como em produção, use uma build local (`npm run build` e `npm run start`) ou uma URL HTTPS da Vercel; o modo de desenvolvimento não substitui esse teste.
 
 ## Integração com a API externa

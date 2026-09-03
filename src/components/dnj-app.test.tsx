@@ -44,7 +44,7 @@ describe("DnjApp session restoration", () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = input instanceof Request ? input.url : String(input);
       const headers = new Headers({ "content-type": "application/json" });
-      if (url.includes("/auth/session")) return { ok: true, headers, json: async () => ({ user: { id: "user-1", email: "ana@example.com", name: "Ana Souza", mobilePhone: "", documentMasked: "***", role: "DEFAULT", group: { id: "group-1", name: "Grupo Esperanca" }, onboardingComplete: true }, onboardingRequired: false }) } as Response;
+      if (url.includes("/auth/session")) return { ok: true, headers, json: async () => ({ user: { id: "user-1", email: "ana@example.com", name: "Ana Souza", mobilePhone: "", documentMasked: "***", role: "DEFAULT", group: { id: "group-1", name: "Grupo Esperanca" }, onboardingComplete: true, avatarUrl: "https://images.example/ana.jpg" }, onboardingRequired: false }) } as Response;
       if (url.includes("/groups")) return { ok: true, headers, json: async () => [{ id: "group-1", groupName: "Grupo Chama Viva — Bairro Alto" }] } as Response;
       if (url.includes("/auth/register")) return { ok: true, headers, json: async () => ({ id: "user-maria", email: "maria@example.com", name: "Maria Lima", mobilePhone: "41999990000", document: "", role: "DEFAULT", group: { id: "group-1", groupName: "Grupo Chama Viva — Bairro Alto" }, points: 0, rankPosition: 0, createdAt: "2026-10-01T00:00:00.000Z", updatedAt: "2026-10-01T00:00:00.000Z", identityToken: "session-maria" }) } as Response;
       if (url.includes("/schedule")) return { ok: true, headers, json: async () => ({ items: [], generatedAt: "2026-10-01T00:00:00.000Z" }) } as Response;
@@ -88,6 +88,7 @@ describe("DnjApp session restoration", () => {
     render(<DnjApp />);
     expect(await screen.findByText(/Ana!/)).toBeInTheDocument();
     expect(fetch).toHaveBeenCalledWith("/api/v2/auth/session", expect.anything());
+    expect(storage.getSession()?.user.avatarUrl).toBe("https://images.example/ana.jpg");
     expect(localStorage.getItem("dnj.identity-token.v1")).toBeNull();
   });
 

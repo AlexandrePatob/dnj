@@ -519,6 +519,8 @@ components:
         thumbnailUrl: { type: string, format: uri-reference }
         shareImageUrl: { type: string, format: uri-reference }
         placeName: { type: string }
+        authorName: { type: string }
+        authorAvatarUrl: { type: string, format: uri-reference, nullable: true }
         capturedAt: { type: string, format: date-time }
         moderationStatus: { type: string, enum: [pending, approved, rejected] }
         publicationStatus: { type: string, enum: [private, public] }

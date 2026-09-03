@@ -36,7 +36,7 @@ function sessionUserData(session: AuthSession): UserData {
     group: session.user.group?.groupName ?? "",
     points: session.user.points,
     rankPosition: session.user.rankPosition,
-    avatarUrl: storage.getAvatar(session.user.id) ?? undefined,
+    avatarUrl: session.user.avatarUrl ?? storage.getAvatar(session.user.id) ?? undefined,
   };
 }
 
@@ -154,7 +154,7 @@ export function DnjApp() {
     const apiUser = mapIdentityUser(identity.user);
     const session = { user: apiUser, identityToken: identity.accessToken };
     storage.setSession(session);
-    const avatarUrl = storage.getAvatar(apiUser.id) ?? googleProfilePicture(idToken);
+    const avatarUrl = apiUser.avatarUrl ?? storage.getAvatar(apiUser.id) ?? googleProfilePicture(idToken);
     if (avatarUrl) storage.setAvatar(apiUser.id, avatarUrl);
     setUser({ ...sessionUserData(session), avatarUrl });
     navigate(identity.onboardingRequired || !identity.user.onboardingComplete ? "group" : "home");
@@ -364,8 +364,19 @@ export function DnjApp() {
             {screen === "map" && <EventMapScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "game"    && <GameScreen user={user} theme={theme} animDir={animDir} momentChallenge={momentChallenge} onMomentCompleted={(challengeId) => completeMomentChallenge(challengeId)} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
             {screen === "queue"   && <QueueScreen user={{ id: user.mobilePhone || user.email, name: user.name }} animDir={animDir} onQueueNotification={handleQueueNotification} />}
-            {screen === "gallery" && <GalleryScreen group={user.group}             animDir={animDir} />}
-            {screen === "account" && <AccountScreen user={user} onAvatarChange={(avatarUrl) => { if (user.id) storage.setAvatar(user.id, avatarUrl); setUser((current) => ({ ...current, avatarUrl })); }} onLogout={() => { void authApi.logout().catch(() => undefined); storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
+            {screen === "gallery" && <GalleryScreen group={user.group} currentUserName={user.name} currentGroupId={storage.getSession()?.user.group?.id} animDir={animDir} />}
+            {screen === "account" && <AccountScreen user={user} onAvatarChange={(avatarUrl) => {
+              if (!user.id) return;
+              storage.setAvatar(user.id, avatarUrl);
+              setUser((current) => ({ ...current, avatarUrl }));
+              const session = storage.getSession();
+              if (!session) return;
+              void profileApi.update({ avatarUrl }, session.identityToken).then((profile) => {
+                const updatedUser = { ...session.user, avatarUrl: profile.avatarUrl ?? avatarUrl };
+                storage.setSession({ ...session, user: updatedUser });
+                setUser((current) => ({ ...current, avatarUrl: updatedUser.avatarUrl }));
+              }).catch(() => undefined);
+            }} onLogout={() => { void authApi.logout().catch(() => undefined); storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
           </motion.div>
         </AnimatePresence>
 
