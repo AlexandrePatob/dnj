@@ -73,10 +73,26 @@ describe("AdminDashboard V2", () => {
           data: [{ id: "staff-2", name: "Bia Gestora", email: "bia.gestora@example.com", role: "EVENT_MANAGER", onboardingComplete: true }],
           pagination: { currentPage: "2", hasNextPage: false, limit: 20 },
         }));
-      return Promise.resolve(jsonResponse({
-        data: [{ id: "staff-1", name: "Ana Gestora", email: "ana.gestora@example.com", role: "EVENT_MANAGER", onboardingComplete: true }],
-        pagination: { currentPage: "1", hasNextPage: true, limit: 20 },
-      }));
+      if (input === "/api/v2/admin/staff?role=EVENT_MANAGER")
+        return Promise.resolve(jsonResponse({
+          data: [{ id: "staff-1", name: "Ana Gestora", email: "ana.gestora@example.com", role: "EVENT_MANAGER", onboardingComplete: true }],
+          pagination: { currentPage: "1", hasNextPage: true, limit: 20 },
+        }));
+      if (input === "/api/v2/admin/spaces?page=2")
+        return Promise.resolve(jsonResponse({ data: [{ id: "space-2", name: "Pátio", slug: "patio", mapReference: null }], pagination: { currentPage: "2", hasNextPage: false, limit: 20 } }));
+      if (input === "/api/v2/admin/spaces")
+        return Promise.resolve(jsonResponse({ data: [{ id: "space-1", name: "Capela", slug: "capela", mapReference: null }], pagination: { currentPage: "1", hasNextPage: true, limit: 20 } }));
+      if (input === "/api/v2/admin/activities?page=2")
+        return Promise.resolve(jsonResponse({ data: [{ id: "activity-2", name: "Gincana 2", slug: "gincana-2", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 0, momentPoints: 20, cooldownSeconds: 0, allowsMoment: true }], pagination: { currentPage: "2", hasNextPage: false, limit: 20 } }));
+      if (input === "/api/v2/admin/activities")
+        return Promise.resolve(jsonResponse({ data: [{ id: "activity-1", name: "Gincana", slug: "gincana", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 0, momentPoints: 20, cooldownSeconds: 0, allowsMoment: true }], pagination: { currentPage: "1", hasNextPage: true, limit: 20 } }));
+      if (input === "/api/v2/admin/moments/moderation?queue=challenge&page=2")
+        return Promise.resolve(jsonResponse({ data: [{ momentId: "moment-2", imageUrl: "", capturedAt: "2026-10-18T17:35:00.000Z", participantName: "Beto", activity: null, pointsAwarded: 0, photoStatus: "unavailable", availableActions: ["approve"] }], pagination: { currentPage: "2", hasNextPage: false, limit: 20 } }));
+      if (input === "/api/v2/admin/moments/moderation?queue=challenge&page=1")
+        return Promise.resolve(jsonResponse({ data: [{ momentId: "moment-1", imageUrl: "", capturedAt: "2026-10-18T17:35:00.000Z", participantName: "Alex", activity: null, pointsAwarded: 0, photoStatus: "unavailable", availableActions: ["approve"] }], pagination: { currentPage: "1", hasNextPage: true, limit: 20 } }));
+      if (input.includes("/managers"))
+        return Promise.resolve(jsonResponse({ data: [], pagination: { currentPage: "1", hasNextPage: false, limit: 20 } }));
+      return Promise.resolve(jsonResponse({ data: [] }));
     });
 
     render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
@@ -86,7 +102,28 @@ describe("AdminDashboard V2", () => {
     expect(await screen.findByText("Bia Gestora")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/staff?role=EVENT_MANAGER&page=2", expect.anything());
     expect(screen.getByText("Página 2")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Página anterior" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Página anterior" }));
+    expect(await screen.findByText("Ana Gestora")).toBeInTheDocument();
+
+    const navigation = within(screen.getByRole("navigation", { name: "Navegação administrativa" }));
+    fireEvent.click(navigation.getByRole("button", { name: "Atividades" }));
+    expect(await screen.findByText("Gincana")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
+    expect(await screen.findByText("Gincana 2")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/spaces?page=2", expect.anything());
+      expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/staff?role=EVENT_MANAGER&page=2", expect.anything());
+    });
+
+    fireEvent.click(navigation.getByRole("button", { name: "Espaços" }));
+    expect(await screen.findByText("Capela")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
+    expect(await screen.findByText("Pátio")).toBeInTheDocument();
+
+    fireEvent.click(navigation.getByRole("button", { name: "Moderação" }));
+    expect(await screen.findByText("Alex")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
+    expect(await screen.findByText("Beto")).toBeInTheDocument();
   });
 
   it("starts the teaser and releases the special-event QR automatically", async () => {
@@ -118,8 +155,30 @@ describe("AdminDashboard V2", () => {
     await act(async () => vi.advanceTimersByTimeAsync(15_000));
 
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/special-events/qr", expect.objectContaining({ method: "POST", body: JSON.stringify({ eventId: "special-1" }) }));
-    expect(screen.getByRole("img", { name: "QR Code do evento Desafio surpresa" })).toBeInTheDocument();
     vi.useRealTimers();
+    expect(await screen.findByRole("img", { name: "QR Code do evento Desafio surpresa" })).toBeInTheDocument();
+  });
+
+  it("renews and closes an active special event", async () => {
+    fetchMock.mockImplementation((input: string, init?: RequestInit) => {
+      if (input === "/api/v2/manager/special-events" && !init?.method)
+        return Promise.resolve(jsonResponse({ events: [{ id: "special-1", title: "Desafio surpresa", status: "active" }] }));
+      if (input === "/api/v2/manager/special-events/qr")
+        return Promise.resolve(jsonResponse({ qrToken: "renewed-token" }));
+      if (input === "/api/v2/manager/special-events/close")
+        return Promise.resolve(jsonResponse({ ok: true }));
+      return Promise.resolve(jsonResponse({ data: [] }));
+    });
+
+    render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Abrir Eventos especiais" }));
+    expect(await screen.findByRole("button", { name: "Gerar novo QR" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Gerar novo QR" }));
+    expect(await screen.findByRole("img", { name: "QR Code do evento Desafio surpresa" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Encerrar" }));
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/special-events/qr", expect.objectContaining({ method: "POST" }));
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/special-events/close", expect.objectContaining({ method: "POST", body: JSON.stringify({ eventId: "special-1" }) }));
   });
 
   it("loads the documented staff endpoint by default", async () => {
