@@ -17,7 +17,39 @@ export function QueueScreen({animDir,user={id:"anonymous",name:"Participante"},o
  const [type,setType]=useState<QueueType>(null),[stage,setStage]=useState<QueueStage>(pastoralFirestore?"checking":"select"),[position,setPosition]=useState<number|null>(null),[confirmingExit,setConfirmingExit]=useState(false),[ready,setReady]=useState(false),[error,setError]=useState(""); const noticeRef=useRef(""),exitingRef=useRef(false);
  useEffect(() => () => onQueueNotification?.(null), [onQueueNotification]);
  useEffect(()=>{if(!pastoralFirestore)return;let mounted=true;void getActiveQueue(pastoralFirestore,user.id).then((entry)=>{if(!mounted)return;if(entry){setType(entry.type);setStage("tracking")}else setStage("select")}).catch((cause)=>{if(mounted){setError(cause instanceof Error?cause.message:"Não foi possível consultar sua fila.");setStage("select")}});return()=>{mounted=false}},[user.id]);
- useEffect(()=>{if(!type||!pastoralFirestore)return;return subscribeQueue(type,(s)=>{const mine=[...s.queued,...s.calledEntries].find(e=>e.participantId===user.id);if(!mine){if(!exitingRef.current){setPosition(null);onQueueNotification?.(null);setStage("completed")}return}const p=mine.status==="called"?0:s.queued.findIndex(e=>e.id===mine.id)+1;setPosition(p);setStage("tracking");const m=mine.status==="called"?`Chegou sua hora na fila de ${label(type)}. Dirija-se ao Espaço Esperança — estamos lhe aguardando!`:p===10?"Você está entre os 10 primeiros.":p===5?"Você está entre os 5 primeiros.":"";if(m&&noticeRef.current!==m){noticeRef.current=m;onQueueNotification?.({title:"Atualização da fila",body:m});}},e=>setError(e.message))},[onQueueNotification,type,user.id]);
+ const tracking = stage === "confirmed" || stage === "tracking";
+ useEffect(() => {
+  const db = pastoralFirestore;
+  if (!tracking || !type || !db) return;
+  let revision = 0;
+  let disposed = false;
+  const unsubscribe = subscribeQueue(type, (s) => {
+   const currentRevision = ++revision;
+   if (exitingRef.current) return;
+   const mine = [...s.queued, ...s.calledEntries].find(e => e.participantId === user.id);
+   if (!mine) {
+    // The waiting and called lists update independently; confirm absence before ending tracking.
+    void getActiveQueue(db, user.id).then((active) => {
+     if (disposed || currentRevision !== revision || exitingRef.current || active) return;
+     setPosition(null);
+     onQueueNotification?.(null);
+     setStage("completed");
+    }).catch((cause) => {
+     if (!disposed && currentRevision === revision) setError(cause instanceof Error ? cause.message : "Não foi possível consultar sua fila.");
+    });
+    return;
+   }
+   const p = mine.status === "called" ? 0 : s.queued.findIndex(e => e.id === mine.id) + 1;
+   setPosition(p);
+   setStage("tracking");
+   const m = mine.status === "called" ? `Chegou sua hora na fila de ${label(type)}. Dirija-se ao Espaço Esperança — estamos lhe aguardando!` : p === 10 ? "Você está entre os 10 primeiros." : p === 5 ? "Você está entre os 5 primeiros." : "";
+   if (m && noticeRef.current !== m) {
+    noticeRef.current = m;
+    onQueueNotification?.({ title: "Atualização da fila", body: m });
+   }
+  }, e => setError(e.message));
+  return () => { disposed = true; unsubscribe(); };
+ }, [onQueueNotification, tracking, type, user.id]);
  const faq=type==="confession"?CONFESSION_FAQ:SPIRITUAL_FAQ; const state=position===0?"Dirija-se ao Espaço Esperança — estamos lhe aguardando!":position!==null&&position<=3?"Sua vez está próxima. Permaneça por perto.":"A fila atualiza automaticamente.";
  async function enter(next:"confession"|"spiritual"){if(!pastoralFirestore){setError("Fila indisponível neste ambiente.");return}try{setError("");await joinQueue(pastoralFirestore,user,next);setType(next);setStage("confirmed")}catch(e){setError(e instanceof Error?e.message:"Não foi possível entrar na fila.")}}
  async function exit(){exitingRef.current=true;try{if(pastoralFirestore)await leaveQueue(pastoralFirestore,user.id);setType(null);setPosition(null);onQueueNotification?.(null);setStage("select")}finally{exitingRef.current=false;setConfirmingExit(false)}}
