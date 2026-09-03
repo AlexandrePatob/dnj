@@ -186,12 +186,37 @@ function LikeButton({
   );
 }
 
+function AuthorAvatar({ moment }: { moment: Moment }) {
+  const [failed, setFailed] = useState(false);
+  if (!moment.authorAvatarUrl || failed) {
+    return (
+      <span
+        className="grid h-9 w-9 place-items-center rounded-full text-xs font-black"
+        style={{ background: "var(--primary-alpha-15)", color: "var(--primary)" }}
+      >
+        DNJ
+      </span>
+    );
+  }
+  return (
+    <img
+      src={moment.authorAvatarUrl}
+      alt={`Foto de perfil de ${moment.authorName}`}
+      className="h-9 w-9 rounded-full object-cover"
+      decoding="async"
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 function FeedCard({
   moment,
+  canShare,
   onOpen,
   onChanged,
 }: {
   moment: Moment;
+  canShare: boolean;
   onOpen: (value: Moment) => void;
   onChanged: () => void;
 }) {
@@ -201,15 +226,7 @@ function FeedCard({
       style={{ background: "var(--card)", boxShadow: "var(--shadow-card)" }}
     >
       <header className="flex items-center gap-3 px-4 py-3">
-        <span
-          className="grid h-9 w-9 place-items-center rounded-full text-xs font-black"
-          style={{
-            background: "var(--primary-alpha-15)",
-            color: "var(--primary)",
-          }}
-        >
-          DNJ
-        </span>
+        <AuthorAvatar moment={moment} />
         <span className="flex-1">
           <strong className="block text-sm">{moment.authorName}</strong>
           <small style={{ color: "var(--muted-foreground)" }}>
@@ -242,6 +259,7 @@ function FeedCard({
       <div className="p-4">
         <div className="flex items-center gap-5">
           <LikeButton moment={moment} onChanged={onChanged} />
+          {canShare && <ShareButton moment={moment} />}
         </div>
       </div>
     </article>
@@ -300,12 +318,27 @@ function PassportGrid({
   );
 }
 
+function canShareFeedMoment(
+  moment: Moment,
+  currentUserName: string,
+  currentGroupId: string,
+) {
+  return Boolean(
+    (currentUserName && moment.authorName === currentUserName) ||
+      (currentGroupId && moment.groupId === currentGroupId),
+  );
+}
+
 export function GalleryScreen({
   animDir,
   group = "",
+  currentUserName = "",
+  currentGroupId = "",
 }: {
   animDir: AnimDir;
   group?: string;
+  currentUserName?: string;
+  currentGroupId?: string;
 }) {
   const [tab, setTab] = useState<"public" | "mine" | "group">("public");
   const [page, setPage] = useState<GalleryPage>({
@@ -436,6 +469,11 @@ export function GalleryScreen({
                   <FeedCard
                     key={item.id}
                     moment={item}
+                    canShare={canShareFeedMoment(
+                      item,
+                      currentUserName,
+                      currentGroupId,
+                    )}
                     onOpen={setSelected}
                     onChanged={() => setAttempt((value) => value + 1)}
                   />
@@ -505,7 +543,14 @@ export function GalleryScreen({
                   moment={selected}
                   onChanged={() => setAttempt((value) => value + 1)}
                 />
-                {tab !== "public" && <ShareButton moment={selected} />}
+                {(tab !== "public" ||
+                  canShareFeedMoment(
+                    selected,
+                    currentUserName,
+                    currentGroupId,
+                  )) && (
+                  <ShareButton moment={selected} />
+                )}
               </div>
             </div>
           </div>

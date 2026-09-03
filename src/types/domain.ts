@@ -21,6 +21,7 @@ export interface Group {
 export interface User {
   id: string;
   name: string;
+  avatarUrl?: string;
   email: string;
   document: string;
   mobilePhone?: string;

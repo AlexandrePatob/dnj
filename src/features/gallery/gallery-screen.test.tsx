@@ -94,9 +94,7 @@ describe("GalleryScreen", () => {
     await user.click(
       screen.getByRole("button", { name: "Abrir momento em Capela" }),
     );
-    expect(
-      await screen.findByRole("button", { name: "Compartilhar momento" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Compartilhar momento" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Grupo" }));
     expect(
       await screen.findByRole("heading", {
@@ -142,6 +140,54 @@ describe("GalleryScreen", () => {
     })[1];
     await user.click(detailLike);
     expect(detailLike).not.toBeDisabled();
+  });
+
+  it("shows feed sharing only for personal and group moments", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        items: [
+          { id: "mine", authorName: "Alex", groupId: "other", placeName: "Capela", imageUrl: "/mock/moments/dnj-feed-01.png" },
+          { id: "group", authorName: "Outra pessoa", groupId: "group-1", placeName: "Palco", imageUrl: "/mock/moments/dnj-feed-01.png" },
+          { id: "other", authorName: "Outra pessoa", groupId: "group-2", placeName: "Quadra", imageUrl: "/mock/moments/dnj-feed-01.png" },
+        ],
+        nextCursor: null,
+      }),
+    } as Response);
+
+    render(
+      <GalleryScreen
+        animDir="up"
+        currentUserName="Alex"
+        currentGroupId="group-1"
+      />,
+    );
+
+    expect(
+      await screen.findAllByRole("button", { name: "Compartilhar momento" }),
+    ).toHaveLength(2);
+    expect(screen.getAllByText("DNJ")).toHaveLength(3);
+  });
+
+  it("shows the author's profile photo when the feed provides one", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        items: [{
+          id: "moment-avatar",
+          authorName: "Alex",
+          authorAvatarUrl: "https://images.example/avatar.jpg",
+          placeName: "Capela",
+          imageUrl: "/mock/moments/dnj-feed-01.png",
+        }],
+        nextCursor: null,
+      }),
+    } as Response);
+
+    render(<GalleryScreen animDir="up" />);
+
+    expect(await screen.findByRole("img", { name: "Foto de perfil de Alex" }))
+      .toHaveAttribute("src", "https://images.example/avatar.jpg");
   });
 
   it("marks photos that scored a Moment challenge without showing a caption", async () => {

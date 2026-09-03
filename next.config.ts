@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "dramatically-permit-experiment-shares.trycloudflare.com",
+        hostname: "**.trycloudflare.com",
       },
     ],
   },

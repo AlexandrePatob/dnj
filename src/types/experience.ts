@@ -42,6 +42,7 @@ export interface Moment {
   shareImageUrl: string;
   placeName: string;
   authorName: string;
+  authorAvatarUrl?: string | null;
   capturedAt: IsoDateTime;
   moderationStatus: ModerationStatus;
   publicationStatus: PublicationStatus;

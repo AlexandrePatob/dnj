@@ -8,6 +8,8 @@
   "scripts": {
     "predev": "node scripts/build-service-worker.mjs",
     "dev": "next dev",
+    "dev:local": "powershell -ExecutionPolicy Bypass -File scripts/local-stack.ps1",
+    "dev:local:stop": "powershell -ExecutionPolicy Bypass -File scripts/stop-local-stack.ps1",
     "prebuild": "node scripts/build-service-worker.mjs",
     "build": "next build",
     "start": "next start",

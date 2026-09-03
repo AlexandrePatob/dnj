@@ -6,6 +6,7 @@ export function mapApiUser(user: VerificationResponse): User {
   return {
     id: user.id,
     name: user.name,
+    avatarUrl: user.avatarUrl ?? undefined,
     email: user.email,
     document: user.document,
     mobilePhone: user.mobilePhone,
@@ -17,5 +18,5 @@ export function mapApiUser(user: VerificationResponse): User {
 }
 
 export function mapIdentityUser(user: IdentityUser): User {
-  return { id: user.id, name: user.name, email: user.email, document: user.documentMasked, mobilePhone: user.mobilePhone, role: user.role, group: user.group ? { id: user.group.id, groupName: user.group.name } : null, points: 0, rankPosition: 0 };
+  return { id: user.id, name: user.name, avatarUrl: user.avatarUrl ?? undefined, email: user.email, document: user.documentMasked, mobilePhone: user.mobilePhone, role: user.role, group: user.group ? { id: user.group.id, groupName: user.group.name } : null, points: 0, rankPosition: 0 };
 }
