@@ -114,6 +114,9 @@
 .specialEventCard h3, .specialEventCard p, .specialEventCard small { display: block; margin: 6px 0 0; }
 .specialEventCard h3 { font-size: .95rem; }
 .specialEventCard p, .specialEventCard small { color: #668278; font-size: .74rem; }
+.teaserStatus { display: flex; align-items: center; gap: 9px; margin-top: 12px; border-radius: 9px; padding: 10px 11px; background: #f2f8dc; color: #365c36; font-size: .74rem; }
+.teaserStatus span, .teaserStatus strong { display: block; }
+.teaserStatus strong { margin-bottom: 2px; }
 .navGroup { display: grid; gap: 3px; }
 .navGroup > .navItem,
 .navGroup > .activeNav { justify-content: flex-start; }
@@ -377,6 +380,22 @@
 }
 .dangerButton:hover {
   background: #ffe2d8;
+}
+.primaryButton:disabled,
+.ghostButton:disabled,
+.dangerButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  color: #526f63;
+  font-size: 0.75rem;
+  font-weight: 800;
 }
 .quickActions {
   display: grid;
