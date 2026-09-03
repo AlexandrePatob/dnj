@@ -33,8 +33,10 @@ vi.mock("@/lib/pastoral-queue/config-service", () => queueConfig);
 
 const fetchMock = vi.fn();
 const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+let persistedCheckpointQr: { runId: string; qrToken: string } | null;
 
 beforeEach(() => {
+  persistedCheckpointQr = null;
   fetchMock.mockReset();
   fetchMock.mockImplementation((input: string, init?: RequestInit) => {
     if (input === "/api/v2/admin/moments/moderation?queue=challenge&page=1" || input === "/api/v2/admin/moments/moderation?queue=general&page=1")
@@ -48,6 +50,8 @@ beforeEach(() => {
         { id: "activity-1", name: "Gincana", slug: "gincana", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 10, momentPoints: 20, cooldownSeconds: 60, allowsMoment: true },
         { id: "checkpoint-1", name: "Ponto de presença", slug: "ponto-de-presenca", kind: "checkpoint", status: "active", description: null, spaceId: "space-1", startsAt: null, endsAt: null, checkInPoints: 15, momentPoints: 0, cooldownSeconds: 60, allowsMoment: false },
       ] }));
+    if (input === "/api/v2/admin/activities/checkpoint-1/qr")
+      return Promise.resolve(persistedCheckpointQr ? jsonResponse(persistedCheckpointQr) : new Response(null, { status: 204 }));
     if (input === "/api/v2/manager/runs" && init?.method === "POST")
       return Promise.resolve(jsonResponse({ id: "run-checkpoint" }, 201));
     if (input === "/api/v2/manager/runs/run-checkpoint/qr" && init?.method === "POST")
@@ -88,6 +92,16 @@ describe("AdminDashboard V2", () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/runs", expect.objectContaining({ method: "POST", body: JSON.stringify({ gameId: "checkpoint-1" }) })));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/runs/run-checkpoint/qr", expect.objectContaining({ method: "POST" })));
     expect(await screen.findByRole("img", { name: "QR Code de Ponto de presença" })).toBeInTheDocument();
+  });
+
+  it("restores a persisted checkpoint QR after reopening the admin", async () => {
+    persistedCheckpointQr = { runId: "run-checkpoint", qrToken: "checkpoint-token" };
+    render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Estáticos" }));
+
+    expect(await screen.findByRole("img", { name: "QR Code de Ponto de presença" })).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities/checkpoint-1/qr", expect.anything());
+    expect(screen.getByRole("button", { name: "Baixar PNG" })).toBeInTheDocument();
   });
 
   it("shows both pastoral queues as a read-only live overview", async () => {
@@ -148,6 +162,25 @@ describe("AdminDashboard V2", () => {
     fireEvent.change(screen.getByLabelText("Duração (minutos)"), { target: { value: "60" } });
     fireEvent.click(screen.getByRole("button", { name: "Criar atividade" }));
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.objectContaining({ method: "POST", headers: expect.objectContaining({ "Idempotency-Key": expect.stringMatching(/^[0-9a-f-]{36}$/i) }), body: JSON.stringify({ name: "Corrida", slug: "corrida", description: "Registre um momento no local.", kind: "challenge", spaceId: null, checkInPoints: 0, momentPoints: 20, cooldownSeconds: 0, allowsMoment: true, startsAt: new Date("2026-08-24T18:00").toISOString(), endsAt: new Date("2026-08-24T19:00").toISOString() }) }));
+  });
+
+  it("disables moments when creating a schedule activity", async () => {
+    render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    const navigation = within(screen.getByRole("navigation", { name: "Navegação administrativa" }));
+    fireEvent.click(navigation.getByRole("button", { name: "Programação" }));
+    await screen.findByRole("heading", { name: "Programação", level: 2 });
+    fireEvent.click(screen.getByRole("button", { name: "Nova" }));
+    fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Agenda 3/09" } });
+    fireEvent.change(screen.getByLabelText("Descrição"), { target: { value: "Agenda teste" } });
+    fireEvent.change(screen.getByLabelText("Espaço"), { target: { value: "space-1" } });
+    fireEvent.change(screen.getByLabelText("Início"), { target: { value: "2026-09-03T11:43" } });
+    fireEvent.change(screen.getByLabelText("Fim / duração"), { target: { value: "2026-09-03T12:43" } });
+    fireEvent.click(screen.getByRole("button", { name: "Criar atividade" }));
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({ name: "Agenda 3/09", slug: "agenda-3-09", description: "Agenda teste", kind: "schedule", spaceId: "space-1", checkInPoints: 10, momentPoints: 0, cooldownSeconds: 60, allowsMoment: false, startsAt: new Date("2026-09-03T11:43").toISOString(), endsAt: new Date("2026-09-03T12:43").toISOString() }),
+    }));
   });
 
   it("activates, pauses, edits and archives an activity through its operation endpoint", async () => {
