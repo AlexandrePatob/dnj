@@ -628,6 +628,41 @@ describe("GameScreen scanner entry", () => {
     expect(screen.queryByRole("dialog", { name: "Status da partida" })).not.toBeInTheDocument();
   });
 
+  it("does not show points when the static QR was already registered", async () => {
+    const user = userEvent.setup();
+    const onPointsChange = vi.fn();
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 1 } })))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+    scannedValidation.current = {
+      id: "participation-1",
+      activity: { id: "checkpoint-1", name: "Ponto de presença" },
+      place: { id: "space-1", name: "Capela" },
+      activityKind: "checkpoint",
+      qrAction: "joined",
+      qrPoints: 0,
+      checkInPoints: 15,
+      newTotalPoints: 25,
+    };
+
+    render(
+      <GameScreen
+        animDir="up"
+        theme="light"
+        onPointsChange={onPointsChange}
+        user={{ name: "Ana", cpf: "", email: "ana@example.com", group: "Chama Viva", points: 25, rankPosition: 1 }}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Escanear QR Code" }));
+    await user.click(screen.getByRole("button", { name: "Simular leitura" }));
+
+    await waitFor(() => expect(onPointsChange).toHaveBeenCalledWith(25));
+    expect(screen.queryByLabelText("Pontos creditados")).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Status da partida" })).not.toBeInTheDocument();
+  });
+
   it("opens the challenge flow instead of the match status", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
