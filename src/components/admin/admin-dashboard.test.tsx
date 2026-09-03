@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AdminDashboard } from "./admin-dashboard";
 
 vi.mock("@/lib/pastoral-queue/firebase", () => ({ pastoralFirestore: {} }));
@@ -59,7 +59,65 @@ beforeEach(() => {
   vi.stubGlobal("fetch", fetchMock);
 });
 
+afterEach(() => vi.useRealTimers());
+
 describe("AdminDashboard V2", () => {
+  it("navigates through paginated admin results", async () => {
+    fetchMock.mockImplementation((input: string) => {
+      if (input === "/api/v2/admin/staff?role=EVENT_MANAGER&page=2")
+        return Promise.resolve(jsonResponse({
+          data: [{ id: "staff-2", name: "Bia Gestora", email: "bia.gestora@example.com", role: "EVENT_MANAGER", onboardingComplete: true }],
+          pagination: { currentPage: "2", hasNextPage: false, limit: 20 },
+        }));
+      return Promise.resolve(jsonResponse({
+        data: [{ id: "staff-1", name: "Ana Gestora", email: "ana.gestora@example.com", role: "EVENT_MANAGER", onboardingComplete: true }],
+        pagination: { currentPage: "1", hasNextPage: true, limit: 20 },
+      }));
+    });
+
+    render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    expect(await screen.findByText("Ana Gestora")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
+
+    expect(await screen.findByText("Bia Gestora")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/staff?role=EVENT_MANAGER&page=2", expect.anything());
+    expect(screen.getByText("Página 2")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Página anterior" })).toBeEnabled();
+  });
+
+  it("starts the teaser and releases the special-event QR automatically", async () => {
+    let status: "draft" | "teaser" | "active" = "draft";
+    fetchMock.mockImplementation((input: string, init?: RequestInit) => {
+      if (input === "/api/v2/manager/special-events" && !init?.method)
+        return Promise.resolve(jsonResponse({ events: [{ id: "special-1", title: "Desafio surpresa", points: 100, status, qrAvailableAt: "2026-09-03T15:00:00.000Z" }] }));
+      if (input === "/api/v2/manager/special-events/teaser") {
+        status = "teaser";
+        return Promise.resolve(jsonResponse({ id: "special-1", status, qrAvailableAt: "2026-09-03T15:00:00.000Z" }));
+      }
+      if (input === "/api/v2/manager/special-events/qr") {
+        status = "active";
+        return Promise.resolve(jsonResponse({ qrToken: "special-token", expiresAt: "2026-09-03T15:05:00.000Z" }));
+      }
+      return Promise.resolve(jsonResponse({ data: [] }));
+    });
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-03T15:00:00.000Z"));
+
+    render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Abrir Eventos especiais" }));
+    await act(async () => vi.advanceTimersByTimeAsync(0));
+    fireEvent.click(screen.getByRole("button", { name: "Iniciar" }));
+    await act(async () => vi.advanceTimersByTimeAsync(0));
+
+    expect(screen.getByRole("status")).toHaveTextContent("Teaser em exibição");
+    expect(screen.queryByRole("button", { name: "Liberar QR" })).not.toBeInTheDocument();
+    await act(async () => vi.advanceTimersByTimeAsync(15_000));
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/special-events/qr", expect.objectContaining({ method: "POST", body: JSON.stringify({ eventId: "special-1" }) }));
+    expect(screen.getByRole("img", { name: "QR Code do evento Desafio surpresa" })).toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
   it("loads the documented staff endpoint by default", async () => {
     render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
     expect(await screen.findByText("Ana Gestora")).toBeInTheDocument();
