@@ -47,4 +47,31 @@ test.describe("V2 participant migration journeys", () => {
     await page.getByRole("button", { name: "Momentos", exact: true }).click({ force: true });
     await expect(page.getByText("Ainda não há momentos")).toBeVisible();
   });
+
+  test("keeps onboarding action visible and searches groups on demand on mobile", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.route("**/api/v2/auth/session", (route) => route.fulfill({
+      json: {
+        user: { ...identity.user, mobilePhone: "", documentMasked: "", group: null, onboardingComplete: false },
+        onboardingRequired: true,
+      },
+    }));
+    let groupSearches = 0;
+    await page.route("**/api/v2/groups?search=*", (route) => {
+      groupSearches += 1;
+      return route.fulfill({ json: [{ id: "group-1", groupName: "Jovens da Luz" }] });
+    });
+
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+
+    await expect(page.getByRole("heading", { name: "Seu grupo jovem" })).toBeVisible();
+    await expect(page.getByText("Digite parte do nome para encontrar seu grupo.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Continuar" })).toBeInViewport();
+    expect(groupSearches).toBe(0);
+
+    await page.getByPlaceholder("Buscar grupo...").fill("Luz");
+    await expect(page.getByRole("button", { name: "Jovens da Luz" })).toBeVisible();
+    expect(groupSearches).toBe(1);
+    await expect(page.getByRole("button", { name: "Continuar" })).toBeInViewport();
+  });
 });

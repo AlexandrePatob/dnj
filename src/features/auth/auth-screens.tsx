@@ -803,16 +803,19 @@ export function GroupScreen({
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(initialGroup);
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(
-    undefined,
+    () => storage.getSession()?.user.group?.id,
   );
   const [adding, setAdding] = useState(false);
   const [newGroup, setNewGroup] = useState("");
   const [apiGroups, setApiGroups] = useState<ApiGroup[]>([]);
   const [groupsError, setGroupsError] = useState("");
+  const [searchingGroups, setSearchingGroups] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     const search = query.trim();
+    if (!search) return;
+
     const session = storage.getSession();
     if (!session) return;
 
@@ -829,9 +832,12 @@ export function GroupScreen({
           })
           .catch((error) => {
             if (active) setGroupsError(requestErrorMessage(error));
+          })
+          .finally(() => {
+            if (active) setSearchingGroups(false);
           });
       },
-      search ? 400 : 0,
+      400,
     );
 
     return () => {
@@ -885,14 +891,17 @@ export function GroupScreen({
   return (
     <div
       key="group"
-      className="flex flex-col min-h-dvh px-6 pb-10"
+      className="flex h-dvh min-h-0 flex-col overflow-hidden"
       style={{
         background: "var(--background)",
-        paddingTop: "calc(48px + var(--safe-area-top))",
         ...animStyle(animDir),
       }}
     >
-      <BackButton onClick={onBack} />
+      <div
+        className="min-h-0 flex-1 overflow-y-auto px-6"
+        style={{ paddingTop: "calc(48px + var(--safe-area-top))" }}
+      >
+        <BackButton onClick={onBack} />
 
       <div className="mt-6 mb-5">
         <h2
@@ -973,9 +982,11 @@ export function GroupScreen({
           placeholder="Buscar grupo..."
           value={query}
           onChange={(e) => {
-            setQuery(e.target.value);
+            const nextQuery = e.target.value;
+            setQuery(nextQuery);
             setApiGroups([]);
             setGroupsError("");
+            setSearchingGroups(Boolean(nextQuery.trim()));
             setAdding(false);
           }}
           className="w-full rounded-xl py-3 pr-4 text-sm outline-none"
@@ -995,65 +1006,65 @@ export function GroupScreen({
         />
       </div>
 
-      <div
-        className="rounded-2xl overflow-hidden mb-4"
-        style={{
-          background: "var(--card)",
-          border: "1px solid var(--border)",
-          maxHeight: "240px",
-          overflowY: "auto",
-        }}
-      >
-        {groupsError ? (
-          <p
-            className="px-4 py-3 text-sm"
-            style={{ color: "var(--secondary)" }}
-          >
-            {groupsError}
-          </p>
-        ) : null}
-        {filtered.map((group, i) => (
-          <button
-            key={group}
-            onClick={() => {
-              setSelected(group);
-              setSelectedGroupId(
-                apiGroups.find((item) => item.groupName === group)?.id,
-              );
-              setQuery("");
-              setAdding(false);
-            }}
-            className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
-            style={{
-              borderBottom:
-                i < filtered.length - 1 ? "1px solid var(--border)" : "none",
-              background:
-                selected === group ? "var(--primary-alpha-10)" : "transparent",
-            }}
-          >
-            <MapPin
-              size={13}
-              style={{ color: "var(--muted-foreground)", flexShrink: 0 }}
-            />
-            <span
-              className="text-sm flex-1"
-              style={{ color: "var(--foreground)" }}
-            >
-              {group}
-            </span>
-            {selected === group && (
-              <Check size={13} style={{ color: "var(--primary)" }} />
-            )}
-          </button>
-        ))}
-        {filtered.length === 0 && (
-          <div className="px-4 py-8 text-center">
-            <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+      {query.trim() ? (
+        <div
+          className="mb-4 max-h-60 overflow-y-auto rounded-2xl"
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--border)",
+          }}
+        >
+          {groupsError ? (
+            <p role="alert" className="px-4 py-3 text-sm" style={{ color: "var(--secondary)" }}>
+              {groupsError}
+            </p>
+          ) : searchingGroups ? (
+            <p className="px-4 py-6 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>
+              Buscando grupos...
+            </p>
+          ) : filtered.length ? (
+            filtered.map((group, i) => (
+              <button
+                key={group}
+                type="button"
+                onClick={() => {
+                  setSelected(group);
+                  setSelectedGroupId(
+                    apiGroups.find((item) => item.groupName === group)?.id,
+                  );
+                  setQuery("");
+                  setApiGroups([]);
+                  setSearchingGroups(false);
+                  setAdding(false);
+                }}
+                className="flex w-full items-center gap-3 px-4 py-3.5 text-left"
+                style={{
+                  borderBottom: i < filtered.length - 1 ? "1px solid var(--border)" : "none",
+                  background: selected === group ? "var(--primary-alpha-10)" : "transparent",
+                }}
+              >
+                <MapPin size={13} style={{ color: "var(--muted-foreground)", flexShrink: 0 }} />
+                <span className="flex-1 text-sm" style={{ color: "var(--foreground)" }}>
+                  {group}
+                </span>
+                {selected === group && <Check size={13} style={{ color: "var(--primary)" }} />}
+              </button>
+            ))
+          ) : (
+            <p className="px-4 py-6 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>
               Nenhum grupo encontrado
             </p>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      ) : groupsError ? (
+        <p role="alert" className="mb-4 px-1 text-sm" style={{ color: "var(--secondary)" }}>
+          {groupsError}
+        </p>
+      ) : (
+        <p className="mb-4 px-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
+          Digite parte do nome para encontrar seu grupo.
+        </p>
+      )}
 
       {adding ? (
         <div className="mb-4 flex flex-col gap-2">
@@ -1114,6 +1125,8 @@ export function GroupScreen({
               setSelected("Sem grupo de jovens");
               setSelectedGroupId(undefined);
               setQuery("");
+              setApiGroups([]);
+              setSearchingGroups(false);
             }}
             className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-medium transition-opacity hover:opacity-70"
             style={{
@@ -1136,9 +1149,20 @@ export function GroupScreen({
         </div>
       )}
 
-      <PrimaryButton onClick={confirmGroup} disabled={!selected || document.replace(/\D/g, "").length !== 11 || mobilePhone.replace(/\D/g, "").length < 10 || confirming}>
-        {confirming ? "Salvando..." : "Confirmar grupo"}
-      </PrimaryButton>
+      </div>
+
+      <div
+        className="shrink-0 border-t px-6 pt-3"
+        style={{
+          background: "var(--background)",
+          borderColor: "var(--border)",
+          paddingBottom: "calc(16px + var(--safe-area-bottom))",
+        }}
+      >
+        <PrimaryButton onClick={confirmGroup} disabled={!selected || document.replace(/\D/g, "").length !== 11 || mobilePhone.replace(/\D/g, "").length < 10 || confirming}>
+          {confirming ? "Salvando..." : "Continuar"}
+        </PrimaryButton>
+      </div>
     </div>
   );
 }

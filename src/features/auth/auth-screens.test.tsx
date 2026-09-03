@@ -192,12 +192,13 @@ describe("GroupScreen", () => {
     expect(screen.getByLabelText("CPF")).toHaveValue("086.212.319-48");
     expect(screen.getByLabelText("Telefone WhatsApp")).toHaveValue("(41) 99978-6268");
 
+    fireEvent.change(screen.getByPlaceholderText("Buscar grupo..."), { target: { value: "Jovens" } });
     fireEvent.click(await screen.findByRole("button", { name: "Jovens da Luz" }));
-    fireEvent.click(screen.getByRole("button", { name: "Confirmar grupo" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
     expect(onNext).toHaveBeenCalledWith("Ana Silva", "08621231948", "41999786268", "Jovens da Luz", "group-1");
   });
 
-  it("lists persisted groups immediately after verification", async () => {
+  it("searches groups only after the participant types a name", async () => {
     storage.setSession({
       identityToken: "participant-token",
       user: {
@@ -217,9 +218,13 @@ describe("GroupScreen", () => {
 
     render(<GroupScreen animDir="up" onBack={vi.fn()} onNext={vi.fn()} />);
 
+    expect(search).not.toHaveBeenCalled();
+    expect(screen.getByText("Digite parte do nome para encontrar seu grupo.")).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText("Buscar grupo..."), { target: { value: "Luz" } });
     expect(
       await screen.findByRole("button", { name: "Jovens da Luz" }),
     ).toBeInTheDocument();
-    expect(search).toHaveBeenCalledWith("", "participant-token");
+    expect(search).toHaveBeenCalledWith("Luz", "participant-token");
+    expect(screen.getByRole("button", { name: "Continuar" })).toBeInTheDocument();
   });
 });
