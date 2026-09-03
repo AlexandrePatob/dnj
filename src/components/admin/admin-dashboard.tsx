@@ -583,7 +583,6 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
   const [checkInPoints, setCheckInPoints] = useState("10");
   const [momentPoints, setMomentPoints] = useState("20");
   const [cooldownSeconds, setCooldownSeconds] = useState("60");
-  const [allowsMoment, setAllowsMoment] = useState(true);
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
   const [durationMinutes, setDurationMinutes] = useState("");
@@ -594,10 +593,45 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
     try {
       const data = await api<{ data: Activity[] }>("/admin/activities");
       setActivities(data.data);
+      if (kind !== "checkpoint") return;
+      const savedQrs = await Promise.all(
+        data.data
+          .filter((activity) => activity.kind === "checkpoint")
+          .map(async (activity) => {
+            try {
+              const qr = await api<{ runId: string; qrToken: string } | null>(
+                `/admin/activities/${encodeURIComponent(activity.id)}/qr`,
+              );
+              return qr
+                ? {
+                    activityId: activity.id,
+                    runId: qr.runId,
+                    imageUrl: await toDataURL(qr.qrToken, {
+                      width: 420,
+                      margin: 2,
+                    }),
+                  }
+                : null;
+            } catch {
+              return null;
+            }
+          }),
+      );
+      const availableQrs = savedQrs.filter((qr) => qr !== null);
+      setQrByActivity(
+        Object.fromEntries(
+          availableQrs.map((qr) => [qr.activityId, qr.imageUrl]),
+        ),
+      );
+      setRunByActivity(
+        Object.fromEntries(
+          availableQrs.map((qr) => [qr.activityId, qr.runId]),
+        ),
+      );
     } catch {
       setError("Não foi possível carregar as atividades.");
     }
-  }, []);
+  }, [kind]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -615,7 +649,6 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
     setCheckInPoints(kind === "challenge" ? "0" : "10");
     setMomentPoints("20");
     setCooldownSeconds(kind === "challenge" ? "0" : "60");
-    setAllowsMoment(true);
     setStartsAt("");
     setEndsAt("");
     setDurationMinutes("");
@@ -641,7 +674,6 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
     setCheckInPoints(String(activity.checkInPoints));
     setMomentPoints(String(activity.momentPoints));
     setCooldownSeconds(String(activity.cooldownSeconds));
-    setAllowsMoment(true);
     setStartsAt(toDeviceDateTimeInput(activity.startsAt));
     setEndsAt(toDeviceDateTimeInput(activity.endsAt));
     setDurationMinutes("");
@@ -686,7 +718,7 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
             checkInPoints: kind === "challenge" ? 0 : Number(checkInPoints),
             momentPoints: kind === "challenge" ? Number(momentPoints) : 0,
             cooldownSeconds: kind === "challenge" ? 0 : Number(cooldownSeconds),
-            allowsMoment: kind === "challenge" || allowsMoment,
+            allowsMoment: kind !== "schedule",
             startsAt: start,
             endsAt: end,
           },

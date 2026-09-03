@@ -46,6 +46,7 @@ function MomentImage({
       alt={alt}
       width={1024}
       height={1280}
+      unoptimized
       className={classes}
     />
   );
