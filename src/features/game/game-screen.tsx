@@ -296,7 +296,7 @@ export function GameScreen({
   const [rankingTab, setRankingTab] = useState<RankingTab>("individual");
   const [qrOpen, setQrOpen] = useState(false);
   const [celebration, setCelebration] = useState<
-    | (Participation & { activityKind?: QrActivityKind; qrAction?: "joined" | "scored" })
+    | (Participation & { activityKind?: QrActivityKind; qrAction?: "joined" | "scored"; alreadyRegistered?: boolean })
     | MomentCelebration
     | null
   >(null);
@@ -441,6 +441,8 @@ export function GameScreen({
     }
     if (value.qrAction === "scored")
       setCelebration({ ...value, checkInPoints: value.qrPoints });
+    else if (value.activityKind === "checkpoint" || value.activityKind === "live")
+      setCelebration({ ...value, alreadyRegistered: true });
   };
   return (
     <div
@@ -702,7 +704,16 @@ export function GameScreen({
             scored={
               "points" in celebration || celebration.qrAction === "scored"
             }
-            durationMs={"points" in celebration ? celebration.durationMs : undefined}
+            alreadyRegistered={
+              "alreadyRegistered" in celebration && celebration.alreadyRegistered === true
+            }
+            durationMs={
+              "points" in celebration
+                ? celebration.durationMs
+                : "alreadyRegistered" in celebration && celebration.alreadyRegistered
+                  ? 1_600
+                  : undefined
+            }
             label={
               "points" in celebration
                 ? celebration.label

@@ -659,7 +659,8 @@ describe("GameScreen scanner entry", () => {
     await user.click(screen.getByRole("button", { name: "Simular leitura" }));
 
     await waitFor(() => expect(onPointsChange).toHaveBeenCalledWith(25));
-    expect(screen.queryByLabelText("Pontos creditados")).not.toBeInTheDocument();
+    expect(await screen.findByLabelText("Atividade já pontuada")).toHaveTextContent("Você já pontuou nessa atividade!");
+    expect(screen.queryByText("+0 pontos")).not.toBeInTheDocument();
     expect(screen.queryByRole("dialog", { name: "Status da partida" })).not.toBeInTheDocument();
   });
 

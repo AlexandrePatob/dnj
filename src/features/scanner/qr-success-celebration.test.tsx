@@ -9,6 +9,13 @@ describe("QrSuccessCelebration", () => {
     expect(screen.getByText("Acolhida · Espaço Juventude")).toBeInTheDocument();
   });
 
+  it("celebrates a repeated QR without displaying new points", () => {
+    render(<QrSuccessCelebration points={0} label="Ponto de presença · Capela" alreadyRegistered onDone={vi.fn()} />);
+    expect(screen.getByLabelText("Atividade já pontuada")).toHaveTextContent("Você já pontuou nessa atividade!");
+    expect(screen.getByText("Sua participação está garantida no DNJ Game.")).toBeInTheDocument();
+    expect(screen.queryByText("+0 pontos")).not.toBeInTheDocument();
+  });
+
   it("keeps a game celebration visible for the requested duration", async () => {
     vi.useFakeTimers();
     try {

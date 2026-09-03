@@ -34,6 +34,7 @@ function scannerMessage(error: unknown) {
 function scannerSuccessMessage(kind: QrActivityKind, action: "joined" | "scored") {
   if (kind === "competitive") return "Entrada na partida confirmada.";
   if (kind === "challenge") return "Entrada no desafio confirmada. Preparando a câmera.";
+  if (action === "joined") return "Você já pontuou nessa atividade! Preparando sua confirmação.";
   return action === "scored" ? "Pontos creditados. Preparando a celebração." : "Participação confirmada.";
 }
 
