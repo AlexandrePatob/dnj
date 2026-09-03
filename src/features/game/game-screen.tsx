@@ -22,7 +22,7 @@ import {
 } from "@/features/scanner/qr-scanner-modal";
 import { QrSuccessCelebration } from "@/features/scanner/qr-success-celebration";
 import { useNetworkStatus } from "@/hooks/use-network-status";
-import { gameApi } from "@/lib/api/game";
+import { gameApi, type QrActivityKind } from "@/lib/api/game";
 import type { Participation } from "@/types/experience";
 
 type RankingEntry = {
@@ -296,7 +296,7 @@ export function GameScreen({
   const [rankingTab, setRankingTab] = useState<RankingTab>("individual");
   const [qrOpen, setQrOpen] = useState(false);
   const [celebration, setCelebration] = useState<
-    | (Participation & { qrAction?: "joined" | "scored" })
+    | (Participation & { activityKind?: QrActivityKind; qrAction?: "joined" | "scored" })
     | MomentCelebration
     | null
   >(null);
@@ -430,10 +430,14 @@ export function GameScreen({
     setParticipation(value);
     setQrOpen(false);
     onPointsChange(value.newTotalPoints ?? user.points + value.checkInPoints);
-    if (value.qrAction === "joined") {
+    if (value.activityKind === "competitive") {
       const run = await loadLiveRun();
       if (run) setLiveRun(run);
-      if (momentChallenge) setMomentOpen(true);
+      return;
+    }
+    if (value.activityKind === "challenge") {
+      setMomentOpen(true);
+      return;
     }
     if (value.qrAction === "scored")
       setCelebration({ ...value, checkInPoints: value.qrPoints });

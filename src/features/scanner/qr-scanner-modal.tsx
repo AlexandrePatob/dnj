@@ -5,12 +5,12 @@ import { Camera, QrCode, RefreshCw, X, ZoomIn, ZoomOut } from "lucide-react";
 import { motion } from "motion/react";
 import type { IScannerControls } from "@zxing/browser";
 import type { ExperienceError, Participation } from "@/types/experience";
-import { gameApi } from "@/lib/api/game";
+import { gameApi, type QrActivityKind } from "@/lib/api/game";
 
 type ScannerStatus = "starting" | "reading" | "error" | "success";
 type CameraFacing = "environment" | "user";
 type ZoomRange = { min: number; max: number; step: number } | null;
-export type QrValidation = Participation & { qrAction: "joined" | "scored"; qrPoints: number };
+export type QrValidation = Participation & { activityKind: QrActivityKind; qrAction: "joined" | "scored"; qrPoints: number };
 const cameraStartTimeout = "CAMERA_START_TIMEOUT";
 type ZoomCapableTrack = MediaStreamTrack & {
   getCapabilities?: () => {
@@ -29,6 +29,12 @@ function scannerMessage(error: unknown) {
   if (error instanceof DOMException && error.name === "NotFoundError")
     return "Nenhuma câmera foi encontrada neste aparelho.";
   return "Não foi possível abrir a câmera. Tente novamente.";
+}
+
+function scannerSuccessMessage(kind: QrActivityKind, action: "joined" | "scored") {
+  if (kind === "competitive") return "Entrada na partida confirmada.";
+  if (kind === "challenge") return "Entrada no desafio confirmada. Preparando a câmera.";
+  return action === "scored" ? "Pontos creditados. Preparando a celebração." : "Participação confirmada.";
 }
 
 export function QrScannerModal({
@@ -89,9 +95,9 @@ export function QrScannerModal({
         const body = await gameApi.validateQr(qrToken);
         setStatus("success");
         const qrAction = body.action === "scored" ? "scored" : "joined";
-        setMessage(qrAction === "scored" ? "Pontos creditados. Preparando a celebração." : "Entrada na partida confirmada.");
+        setMessage(scannerSuccessMessage(body.activityKind, qrAction));
         window.setTimeout(() => {
-          void onValidated({ ...(body.participation as unknown as Participation), qrAction, qrPoints: body.pointsAwarded ?? 0 });
+          void onValidated({ ...(body.participation as unknown as Participation), activityKind: body.activityKind, qrAction, qrPoints: body.pointsAwarded ?? 0 });
         }, 450);
       } catch (error) {
         setStatus("error");

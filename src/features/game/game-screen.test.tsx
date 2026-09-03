@@ -3,6 +3,21 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GameScreen } from "./game-screen";
 
+type ScannedValidation = {
+  id: string;
+  activity: { id: string; name: string };
+  place: { id: string; name: string };
+  activityKind: "checkpoint" | "challenge" | "competitive" | "live";
+  qrAction: "joined" | "scored";
+  qrPoints: number;
+  checkInPoints: number;
+  newTotalPoints?: number;
+};
+
+const { scannedValidation } = vi.hoisted(() => ({
+  scannedValidation: { current: null as ScannedValidation | null },
+}));
+
 vi.mock("@/lib/api/game", () => ({
   gameApi: {
     currentParticipation: async () => {
@@ -23,8 +38,22 @@ vi.mock("@/lib/api/game", () => ({
 }));
 
 vi.mock("@/features/scanner/qr-scanner-modal", () => ({
-  QrScannerModal: () => (
-    <section aria-label="Escanear QR Code">Scanner aberto</section>
+  QrScannerModal: ({
+    onValidated,
+  }: {
+    onValidated: (value: ScannedValidation) => void | Promise<void>;
+  }) => (
+    <section aria-label="Escanear QR Code">
+      Scanner aberto
+      <button
+        type="button"
+        onClick={() => {
+          if (scannedValidation.current) void onValidated(scannedValidation.current);
+        }}
+      >
+        Simular leitura
+      </button>
+    </section>
   ),
 }));
 vi.mock("@/features/moments/moment-composer", () => ({
@@ -41,6 +70,7 @@ vi.mock("@/features/moments/moment-composer", () => ({
 
 describe("GameScreen scanner entry", () => {
   beforeEach(() => {
+    scannedValidation.current = null;
     localStorage.setItem("dnj.game.onboarding.v1.ana@example.com", "1");
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 204 }));
     Object.defineProperty(navigator, "onLine", {
@@ -563,5 +593,102 @@ describe("GameScreen scanner entry", () => {
 
     await waitFor(() => expect(onPointsChange).toHaveBeenCalledWith(120));
     expect(await screen.findByText("+120")).toBeInTheDocument();
+  });
+
+  it("confirms a static activity without opening the match status", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 1 } })))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+    scannedValidation.current = {
+      id: "participation-1",
+      activity: { id: "checkpoint-1", name: "Ponto de presença" },
+      place: { id: "space-1", name: "Capela" },
+      activityKind: "checkpoint",
+      qrAction: "scored",
+      qrPoints: 15,
+      checkInPoints: 15,
+      newTotalPoints: 25,
+    };
+
+    render(
+      <GameScreen
+        animDir="up"
+        theme="light"
+        onPointsChange={vi.fn()}
+        user={{ name: "Ana", cpf: "", email: "ana@example.com", group: "Chama Viva", points: 10, rankPosition: 1 }}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Escanear QR Code" }));
+    await user.click(screen.getByRole("button", { name: "Simular leitura" }));
+
+    expect(await screen.findByLabelText("Pontos creditados")).toHaveTextContent("+15 pontos");
+    expect(screen.queryByRole("dialog", { name: "Status da partida" })).not.toBeInTheDocument();
+  });
+
+  it("opens the challenge flow instead of the match status", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 1 } })))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+    scannedValidation.current = {
+      id: "participation-1",
+      activity: { id: "challenge-1", name: "Foto com a galera" },
+      place: { id: "space-1", name: "Palco" },
+      activityKind: "challenge",
+      qrAction: "joined",
+      qrPoints: 0,
+      checkInPoints: 0,
+    };
+
+    render(
+      <GameScreen
+        animDir="up"
+        theme="light"
+        onPointsChange={vi.fn()}
+        user={{ name: "Ana", cpf: "", email: "ana@example.com", group: "Chama Viva", points: 10, rankPosition: 1 }}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Escanear QR Code" }));
+    await user.click(screen.getByRole("button", { name: "Simular leitura" }));
+
+    expect(await screen.findByRole("button", { name: "Concluir Momento" })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Status da partida" })).not.toBeInTheDocument();
+  });
+
+  it("keeps opening the match status for a competitive activity", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 1 } })))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: "run-1", status: "draft", gameName: "Corrida do saco" })));
+    scannedValidation.current = {
+      id: "participation-1",
+      activity: { id: "competitive-1", name: "Corrida do saco" },
+      place: { id: "space-1", name: "Arena" },
+      activityKind: "competitive",
+      qrAction: "joined",
+      qrPoints: 0,
+      checkInPoints: 0,
+    };
+
+    render(
+      <GameScreen
+        animDir="up"
+        theme="light"
+        onPointsChange={vi.fn()}
+        user={{ name: "Ana", cpf: "", email: "ana@example.com", group: "Chama Viva", points: 10, rankPosition: 1 }}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Escanear QR Code" }));
+    await user.click(screen.getByRole("button", { name: "Simular leitura" }));
+
+    expect(await screen.findByRole("dialog", { name: "Status da partida" })).toHaveTextContent("Aguarde o gestor iniciar a atividade");
   });
 });
