@@ -583,11 +583,12 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
   const [checkInPoints, setCheckInPoints] = useState("10");
   const [momentPoints, setMomentPoints] = useState("20");
   const [cooldownSeconds, setCooldownSeconds] = useState("60");
-  const [allowsMoment, setAllowsMoment] = useState(true);
+  const [allowsMoment, setAllowsMoment] = useState(kind !== "schedule");
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
   const [durationMinutes, setDurationMinutes] = useState("");
   const [qrByActivity, setQrByActivity] = useState<Record<string, string>>({});
+  const [qrLoaded, setQrLoaded] = useState<Record<string, boolean>>({});
   const [runByActivity, setRunByActivity] = useState<Record<string, string>>({});
   const [creatingQr, setCreatingQr] = useState("");
   const load = useCallback(async () => {
@@ -606,6 +607,28 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
       .then((data) => setSpaces(data.data))
       .catch(() => setError("Não foi possível carregar os espaços."));
   }, []);
+  useEffect(() => {
+    if (kind !== "checkpoint" || !activities) return;
+    let cancelled = false;
+    for (const activity of activities) {
+      if (activity.kind !== "checkpoint" || activity.status === "archived") continue;
+      void api<{ qrToken: string } | null>(`/admin/activities/${activity.id}/qr`)
+        .then(async (qr) => {
+          const image = qr ? await toDataURL(qr.qrToken, { width: 420, margin: 2 }) : "";
+          if (!cancelled && image) {
+            setQrByActivity((current) => ({ ...current, [activity.id]: image }));
+          }
+          if (!cancelled) setQrLoaded((current) => ({ ...current, [activity.id]: true }));
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setError(`Não foi possível carregar o QR Code de ${activity.name}. Tente novamente.`);
+            setQrLoaded((current) => ({ ...current, [activity.id]: false }));
+          }
+        });
+    }
+    return () => { cancelled = true; };
+  }, [activities, kind]);
   function reset() {
     setEditing(null);
     setName("");
@@ -615,7 +638,7 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
     setCheckInPoints(kind === "challenge" ? "0" : "10");
     setMomentPoints("20");
     setCooldownSeconds(kind === "challenge" ? "0" : "60");
-    setAllowsMoment(true);
+    setAllowsMoment(kind !== "schedule");
     setStartsAt("");
     setEndsAt("");
     setDurationMinutes("");
@@ -641,7 +664,7 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
     setCheckInPoints(String(activity.checkInPoints));
     setMomentPoints(String(activity.momentPoints));
     setCooldownSeconds(String(activity.cooldownSeconds));
-    setAllowsMoment(true);
+    setAllowsMoment(activity.allowsMoment);
     setStartsAt(toDeviceDateTimeInput(activity.startsAt));
     setEndsAt(toDeviceDateTimeInput(activity.endsAt));
     setDurationMinutes("");
@@ -686,7 +709,7 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
             checkInPoints: kind === "challenge" ? 0 : Number(checkInPoints),
             momentPoints: kind === "challenge" ? Number(momentPoints) : 0,
             cooldownSeconds: kind === "challenge" ? 0 : Number(cooldownSeconds),
-            allowsMoment: kind === "challenge" || allowsMoment,
+            allowsMoment: kind !== "schedule" && (kind === "challenge" || allowsMoment),
             startsAt: start,
             endsAt: end,
           },
@@ -754,8 +777,18 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
     }
   }
   async function generateQr(activity: Activity) {
+    if (qrByActivity[activity.id]) return;
     setCreatingQr(activity.id);
+    setError("");
     try {
+      if (activity.kind === "checkpoint") {
+        const existing = await api<{ qrToken: string } | null>(`/admin/activities/${activity.id}/qr`);
+        if (existing) {
+          const qr = await toDataURL(existing.qrToken, { width: 420, margin: 2 });
+          setQrByActivity((current) => ({ ...current, [activity.id]: qr }));
+          return;
+        }
+      }
       const runId =
         runByActivity[activity.id] ??
         (
@@ -886,6 +919,10 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
                       <strong>
                         {qrByActivity[activity.id]
                           ? "QR Code pronto"
+                          : kind === "checkpoint" && qrLoaded[activity.id] === undefined
+                            ? "Carregando QR Code…"
+                          : kind === "checkpoint" && qrLoaded[activity.id] === false
+                            ? "Não foi possível carregar o QR"
                           : "QR ainda não gerado"}
                       </strong>
                       <small>Baixe a imagem para imprimir no local.</small>
@@ -900,11 +937,13 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
                         ) : (
                           <button
                             className={styles.primaryButton}
-                            disabled={creatingQr === activity.id}
+                            disabled={creatingQr === activity.id || (kind === "checkpoint" && qrLoaded[activity.id] === undefined)}
                             onClick={() => void generateQr(activity)}
                           >
                             {creatingQr === activity.id
                               ? "Gerando…"
+                              : kind === "checkpoint" && qrLoaded[activity.id] === false
+                                ? "Tentar novamente"
                               : "Gerar QR Code"}
                           </button>
                         )}

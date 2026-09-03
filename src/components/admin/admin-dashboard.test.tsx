@@ -32,9 +32,11 @@ const queueConfig = vi.hoisted(() => ({
 vi.mock("@/lib/pastoral-queue/config-service", () => queueConfig);
 
 const fetchMock = vi.fn();
+let checkpointToken: string | null;
 const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
 beforeEach(() => {
+  checkpointToken = null;
   fetchMock.mockReset();
   fetchMock.mockImplementation((input: string, init?: RequestInit) => {
     if (input === "/api/v2/admin/moments/moderation?queue=challenge&page=1" || input === "/api/v2/admin/moments/moderation?queue=general&page=1")
@@ -47,11 +49,16 @@ beforeEach(() => {
       return Promise.resolve(jsonResponse({ data: [
         { id: "activity-1", name: "Gincana", slug: "gincana", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 10, momentPoints: 20, cooldownSeconds: 60, allowsMoment: true },
         { id: "checkpoint-1", name: "Ponto de presença", slug: "ponto-de-presenca", kind: "checkpoint", status: "active", description: null, spaceId: "space-1", startsAt: null, endsAt: null, checkInPoints: 15, momentPoints: 0, cooldownSeconds: 60, allowsMoment: false },
+        { id: "schedule-1", name: "Missa", slug: "missa", kind: "schedule", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 0, momentPoints: 0, cooldownSeconds: 0, allowsMoment: false },
       ] }));
+    if (input === "/api/v2/admin/activities/checkpoint-1/qr")
+      return Promise.resolve(checkpointToken ? jsonResponse({ qrToken: checkpointToken }) : new Response(null, { status: 204 }));
     if (input === "/api/v2/manager/runs" && init?.method === "POST")
       return Promise.resolve(jsonResponse({ id: "run-checkpoint" }, 201));
-    if (input === "/api/v2/manager/runs/run-checkpoint/qr" && init?.method === "POST")
-      return Promise.resolve(jsonResponse({ qrToken: "checkpoint-token" }, 201));
+    if (input === "/api/v2/manager/runs/run-checkpoint/qr" && init?.method === "POST") {
+      checkpointToken = "checkpoint-token";
+      return Promise.resolve(jsonResponse({ qrToken: checkpointToken }, 201));
+    }
     if (input === "/api/v2/admin/spaces")
       return Promise.resolve(jsonResponse({ data: [{ id: "space-1", name: "Capela", slug: "capela", mapReference: null }] }));
     return Promise.resolve(jsonResponse({ data: [{ id: "staff-1", name: "Ana Gestora", email: "ana.gestora@example.com", role: "EVENT_MANAGER", onboardingComplete: true }] }));
@@ -83,11 +90,63 @@ describe("AdminDashboard V2", () => {
     const navigation = within(screen.getByRole("navigation", { name: "Navegação administrativa" }));
     fireEvent.click(navigation.getByRole("button", { name: "Estáticos" }));
     expect(await screen.findByText("Ponto de presença")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Gerar QR Code" })).toBeEnabled());
     fireEvent.click(screen.getByRole("button", { name: "Gerar QR Code" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/runs", expect.objectContaining({ method: "POST", body: JSON.stringify({ gameId: "checkpoint-1" }) })));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/runs/run-checkpoint/qr", expect.objectContaining({ method: "POST" })));
     expect(await screen.findByRole("img", { name: "QR Code de Ponto de presença" })).toBeInTheDocument();
+    const originalImage = screen.getByRole("img", { name: "QR Code de Ponto de presença" }).getAttribute("src");
+    fireEvent.click(navigation.getByRole("button", { name: "Espaços" }));
+    await screen.findByText("Capela");
+    fireEvent.click(navigation.getByRole("button", { name: "Estáticos" }));
+    expect(await screen.findByRole("img", { name: "QR Code de Ponto de presença" })).toHaveAttribute("src", originalImage);
+    expect(fetchMock.mock.calls.filter(([path, init]) => path.includes("/manager/runs") && init?.method === "POST")).toHaveLength(2);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("restores an existing checkpoint QR on a fresh admin visit without any mutation", async () => {
+    checkpointToken = "already-persisted-token";
+    const view = render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Estáticos" }));
+    const image = await screen.findByRole("img", { name: "QR Code de Ponto de presença" });
+    const source = image.getAttribute("src");
+    expect(screen.getByRole("button", { name: "Baixar PNG" })).toBeInTheDocument();
+    view.unmount();
+    render(<AdminDashboard session={{ email: "another-admin@dnj.test", name: "Outro admin" }} onExit={vi.fn()} />);
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Estáticos" }));
+    expect(await screen.findByRole("img", { name: "QR Code de Ponto de presença" })).toHaveAttribute("src", source);
+    expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(0);
+  });
+
+  it("does not create a run when the existing checkpoint QR cannot be loaded", async () => {
+    const defaultFetch = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation((input: string, init?: RequestInit) => input === "/api/v2/admin/activities/checkpoint-1/qr"
+      ? Promise.resolve(jsonResponse({ message: "Falha de leitura" }, 503))
+      : defaultFetch(input, init));
+    render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Estáticos" }));
+    await screen.findByRole("alert");
+    fireEvent.click(screen.getByRole("button", { name: "Tentar novamente" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Falha de leitura");
+    expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(0);
+  });
+
+  it("creates and edits schedule activities without enabling Moments", async () => {
+    render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Programação" }));
+    await screen.findByText("Missa");
+    fireEvent.click(screen.getByRole("button", { name: "Nova" }));
+    fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Acolhida" } });
+    fireEvent.click(screen.getByRole("button", { name: "Criar atividade" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Editar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Salvar alterações" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    const writes = fetchMock.mock.calls.filter(([path, init]) => path.startsWith("/api/v2/admin/activities") && ["POST", "PATCH"].includes(init?.method));
+    expect(writes).toHaveLength(2);
+    for (const [, init] of writes) expect(JSON.parse(init.body)).toMatchObject({ kind: "schedule", allowsMoment: false, momentPoints: 0 });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("shows both pastoral queues as a read-only live overview", async () => {
