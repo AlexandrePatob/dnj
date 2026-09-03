@@ -22,7 +22,7 @@ import {
 } from "@/features/scanner/qr-scanner-modal";
 import { QrSuccessCelebration } from "@/features/scanner/qr-success-celebration";
 import { useNetworkStatus } from "@/hooks/use-network-status";
-import { gameApi } from "@/lib/api/game";
+import { gameApi, type QrActivityKind } from "@/lib/api/game";
 import type { Participation } from "@/types/experience";
 
 type RankingEntry = {
@@ -296,7 +296,7 @@ export function GameScreen({
   const [rankingTab, setRankingTab] = useState<RankingTab>("individual");
   const [qrOpen, setQrOpen] = useState(false);
   const [celebration, setCelebration] = useState<
-    | (Participation & { qrAction?: "joined" | "scored" })
+    | (Participation & { activityKind?: QrActivityKind; qrAction?: "joined" | "scored"; alreadyRegistered?: boolean })
     | MomentCelebration
     | null
   >(null);
@@ -430,13 +430,19 @@ export function GameScreen({
     setParticipation(value);
     setQrOpen(false);
     onPointsChange(value.newTotalPoints ?? user.points + value.checkInPoints);
-    if (value.qrAction === "joined") {
+    if (value.activityKind === "competitive") {
       const run = await loadLiveRun();
       if (run) setLiveRun(run);
-      if (momentChallenge) setMomentOpen(true);
+      return;
+    }
+    if (value.activityKind === "challenge") {
+      setMomentOpen(true);
+      return;
     }
     if (value.qrAction === "scored")
       setCelebration({ ...value, checkInPoints: value.qrPoints });
+    else if (value.activityKind === "checkpoint" || value.activityKind === "live")
+      setCelebration({ ...value, alreadyRegistered: true });
   };
   return (
     <div
@@ -698,7 +704,16 @@ export function GameScreen({
             scored={
               "points" in celebration || celebration.qrAction === "scored"
             }
-            durationMs={"points" in celebration ? celebration.durationMs : undefined}
+            alreadyRegistered={
+              "alreadyRegistered" in celebration && celebration.alreadyRegistered === true
+            }
+            durationMs={
+              "points" in celebration
+                ? celebration.durationMs
+                : "alreadyRegistered" in celebration && celebration.alreadyRegistered
+                  ? 1_600
+                  : undefined
+            }
             label={
               "points" in celebration
                 ? celebration.label
