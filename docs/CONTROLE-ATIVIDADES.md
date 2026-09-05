@@ -15,7 +15,7 @@ Fonte de verdade versionada para entregas do DNJ Game.
 
 | ID | Prioridade | Atividade | Repositório(s) | Branch / PR | Status | Homologação e evidências |
 | --- | --- | --- | --- | --- | --- | --- |
-| DNJ-001 | P0 | Fila Firebase: persistir entrada, restaurar após reconexão, impedir tela vazia, cancelar corretamente e bloquear toques repetidos. | Front | `codex/dnj-001-queue-lifecycle` / pendente | HOMOLOGAÇÃO | Gate técnico aprovado; captura local/manual pendente antes da PR. |
+| DNJ-001 | P0 | Fila Firebase: persistir entrada, restaurar após reconexão, impedir tela vazia, cancelar corretamente e bloquear toques repetidos. | Front | `codex/dnj-001-queue-lifecycle` / PR pendente | PR ABERTA / DONE | Homologação técnica e manual no iPhone aprovadas; refinamento visual do loading fica fora desta atividade. |
 | DNJ-002 | P0 | Publicação de Momentos: câmera, loading, upload e bloqueio de duplo envio. | Front + API se necessário | pendente | BACKLOG | Latência/timeout, toque duplo e roteiro no iPhone. |
 | DNJ-003 | P0 | Momentos, grupo, remoção de foto, compartilhamento e curtida imediata. | Front + API se necessário | pendente | BACKLOG | Latência, toque duplo e estados vazios. |
 | DNJ-004 | P1 | Ranking individual e sincronização automática de dados ativos. | Front + API se necessário | pendente | BACKLOG | Ranking, foco/retorno e atualização controlada. |
@@ -28,3 +28,4 @@ Fonte de verdade versionada para entregas do DNJ Game.
 | ID | Data | Ambiente | Executor | Parecer | Evidências |
 | --- | --- | --- | --- | --- | --- |
 | DNJ-001 | 04/09/2026 | Checkout local; testes com pendência/falha Firebase simulada | Subagente independente | PASS técnico; PR bloqueada até evidência visual/manual | Testes de tela 4/4, serviço Firebase 6/6, typecheck e lint do escopo aprovados. |
+| DNJ-001 | 05/09/2026 | HTTPS temporário no Safari/iPhone | Executor + subagente independente | PASS manual e técnico | Fluxo aprovado pelo executor: entrar → atualizar posição → posição, sem tela transitória; 15 testes, typecheck, lint e diff check aprovados. |
