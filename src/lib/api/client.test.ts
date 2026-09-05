@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, apiMutation, apiRequest, setCsrfToken } from "./client";
+import { ApiError, apiMutation, apiRequest, setCsrfToken, setSessionExpiredHandler } from "./client";
 
 function response(body: unknown, init: { status?: number; contentType?: string } = {}) {
   const contentType = init.contentType ?? "application/json";
@@ -13,6 +13,7 @@ function response(body: unknown, init: { status?: number; contentType?: string }
 describe("apiRequest offline behavior", () => {
   beforeEach(() => {
     setCsrfToken();
+    setSessionExpiredHandler();
     vi.stubGlobal("window", { setTimeout, clearTimeout });
     vi.stubGlobal("navigator", { onLine: true });
     vi.stubGlobal("fetch", vi.fn());
@@ -112,6 +113,81 @@ describe("apiRequest offline behavior", () => {
     await expect(Promise.all([apiRequest("/one"), apiRequest("/two")])).resolves.toEqual([{ value: 1 }, { value: 2 }]);
     expect(fetch).toHaveBeenCalledTimes(5);
     expect(vi.mocked(fetch).mock.calls.filter(([url]) => url === "/api/v2/auth/refresh")).toHaveLength(1);
+  });
+
+  it("notifies session expiry once and preserves the original 401 when refresh returns 401", async () => {
+    const onSessionExpired = vi.fn();
+    setSessionExpiredHandler(onSessionExpired);
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(response({ code: "AUTH_EXPIRED", message: "expired" }, { status: 401 }))
+      .mockResolvedValueOnce(response({ code: "REFRESH_EXPIRED", message: "refresh expired" }, { status: 401 }));
+
+    await expect(apiRequest("/ranking")).rejects.toMatchObject({ status: 401, code: "AUTH_EXPIRED" });
+
+    expect(onSessionExpired).toHaveBeenCalledOnce();
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("notifies session expiry when refresh returns 403", async () => {
+    const onSessionExpired = vi.fn();
+    setSessionExpiredHandler(onSessionExpired);
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(response({ code: "AUTH_EXPIRED", message: "expired" }, { status: 401 }))
+      .mockResolvedValueOnce(response({ code: "REFRESH_FORBIDDEN", message: "refresh forbidden" }, { status: 403 }));
+
+    await expect(apiRequest("/ranking")).rejects.toMatchObject({ status: 401, code: "AUTH_EXPIRED" });
+
+    expect(onSessionExpired).toHaveBeenCalledOnce();
+  });
+
+  it("preserves the session and propagates a refresh network error", async () => {
+    const onSessionExpired = vi.fn();
+    setSessionExpiredHandler(onSessionExpired);
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(response({ code: "AUTH_EXPIRED", message: "expired" }, { status: 401 }))
+      .mockRejectedValueOnce(new TypeError("network down"));
+
+    await expect(apiRequest("/ranking")).rejects.toMatchObject({ status: 0, code: "NETWORK" });
+
+    expect(onSessionExpired).not.toHaveBeenCalled();
+  });
+
+  it("preserves the session and propagates a refresh timeout", async () => {
+    const onSessionExpired = vi.fn();
+    setSessionExpiredHandler(onSessionExpired);
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(response({ code: "AUTH_EXPIRED", message: "expired" }, { status: 401 }))
+      .mockRejectedValueOnce(new DOMException("aborted", "AbortError"));
+
+    await expect(apiRequest("/ranking")).rejects.toMatchObject({ status: 408, code: "TIMEOUT" });
+
+    expect(onSessionExpired).not.toHaveBeenCalled();
+  });
+
+  it("preserves the session and propagates a refresh 5xx", async () => {
+    const onSessionExpired = vi.fn();
+    setSessionExpiredHandler(onSessionExpired);
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(response({ code: "AUTH_EXPIRED", message: "expired" }, { status: 401 }))
+      .mockResolvedValueOnce(response({ code: "UPSTREAM_DOWN", message: "try later" }, { status: 503 }));
+
+    await expect(apiRequest("/ranking")).rejects.toMatchObject({ status: 503, code: "UPSTREAM_DOWN" });
+
+    expect(onSessionExpired).not.toHaveBeenCalled();
+  });
+
+  it("does not attempt a second refresh when the replay returns 401", async () => {
+    const onSessionExpired = vi.fn();
+    setSessionExpiredHandler(onSessionExpired);
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(response({ code: "AUTH_EXPIRED", message: "expired" }, { status: 401 }))
+      .mockResolvedValueOnce(response({ ok: true }))
+      .mockResolvedValueOnce(response({ code: "AUTH_REJECTED", message: "rejected" }, { status: 401 }));
+
+    await expect(apiRequest("/ranking")).rejects.toMatchObject({ status: 401, code: "AUTH_REJECTED" });
+
+    expect(vi.mocked(fetch).mock.calls.filter(([url]) => url === "/api/v2/auth/refresh")).toHaveLength(1);
+    expect(onSessionExpired).not.toHaveBeenCalled();
   });
 
   it("preserves the complete V2 error envelope", async () => {

@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { authApi } from "@/lib/api/auth";
-import { ApiError } from "@/lib/api/client";
+import { ApiError, setSessionExpiredHandler } from "@/lib/api/client";
 import { mapIdentityUser } from "@/lib/api/mappers";
 import { profileApi } from "@/lib/api/profile";
 import { momentChallengesApi, type MomentChallenge } from "@/lib/api/moment-challenges";
@@ -208,6 +208,15 @@ export function DnjApp() {
   const animDir = getAnimDir(prevScreen, screen);
   const isMain  = ["home", "schedule", "map", "game", "queue", "gallery", "account"].includes(screen);
   const activeNavScreen = screen === "schedule" || screen === "map" ? "home" : screen;
+
+  useEffect(() => {
+    setSessionExpiredHandler(() => {
+      storage.clearSession();
+      clearOfflineSnapshot();
+      setScreen("login");
+    });
+    return () => setSessionExpiredHandler();
+  }, []);
 
   useEffect(() => {
     if (restoredSession.current) return;

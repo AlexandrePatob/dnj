@@ -5,6 +5,8 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { storage } from "@/lib/storage";
+import { apiRequest } from "@/lib/api/client";
+import { OFFLINE_SNAPSHOT_KEY } from "@/lib/pwa/offline-snapshot";
 import type { AuthSession } from "@/types/domain";
 import { AppShell, BottomNav, TopBar } from "./layout/dnj-layout";
 import { DnjApp } from "./dnj-app";
@@ -90,6 +92,21 @@ describe("DnjApp session restoration", () => {
     expect(fetch).toHaveBeenCalledWith("/api/v2/auth/session", expect.anything());
     expect(storage.getSession()?.user.avatarUrl).toBe("https://images.example/ana.jpg");
     expect(localStorage.getItem("dnj.identity-token.v1")).toBeNull();
+  });
+
+  it("clears local session state and returns to login when refresh cannot recover a 401", async () => {
+    render(<DnjApp />);
+    await screen.findByText(/Ana!/);
+    localStorage.setItem(OFFLINE_SNAPSHOT_KEY, JSON.stringify({ schemaVersion: 1, capturedAt: "2026-09-04T12:00:00.000Z", lastMainScreen: "home", user: { name: "Ana Souza", group: "Grupo Esperanca", points: 230, rankPosition: 4 } }));
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(new Response(JSON.stringify({ code: "AUTH_EXPIRED", message: "expired" }), { status: 401, headers: { "Content-Type": "application/json" } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ code: "REFRESH_EXPIRED", message: "refresh expired" }), { status: 401, headers: { "Content-Type": "application/json" } }));
+
+    await expect(apiRequest("/ranking")).rejects.toMatchObject({ status: 401, code: "AUTH_EXPIRED" });
+
+    expect(storage.getSession()).toBeNull();
+    expect(localStorage.getItem(OFFLINE_SNAPSHOT_KEY)).toBeNull();
+    expect(await screen.findByRole("heading", { name: /Bem-vindo/ })).toBeInTheDocument();
   });
 
   it("resumes incomplete onboarding from the V2 session instead of opening verification", async () => {
