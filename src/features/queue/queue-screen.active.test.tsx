@@ -16,7 +16,7 @@ vi.mock("@/lib/pastoral-queue/realtime-service", () => ({
 }));
 
 import { QueueScreen } from "./queue-screen";
-import { getActiveQueue, joinQueue } from "@/lib/pastoral-queue/participant-service";
+import { getActiveQueue, joinQueue, leaveQueue } from "@/lib/pastoral-queue/participant-service";
 import { subscribeQueue, type QueueSnapshot } from "@/lib/pastoral-queue/realtime-service";
 import type { QueueEntry } from "@/lib/pastoral-queue/types";
 
@@ -91,5 +91,65 @@ describe("QueueScreen active queue", () => {
 
     expect(screen.getByText("Sua vez!")).toBeInTheDocument();
     expect(screen.queryByText("Atendimento encerrado")).not.toBeInTheDocument();
+  });
+
+  it("blocks a second join while the first Firebase request is pending", async () => {
+    const user = userEvent.setup();
+    let resolveJoin!: (value: QueueEntry) => void;
+    vi.mocked(getActiveQueue).mockResolvedValue(null);
+    vi.mocked(joinQueue).mockImplementationOnce(() => new Promise((resolve) => { resolveJoin = resolve; }));
+    vi.mocked(subscribeQueue).mockReturnValue(vi.fn());
+    render(<QueueScreen animDir="up" user={{ id: "ana", name: "Ana" }} />);
+
+    await user.click(await screen.findByRole("button", { name: "Preparar para Confissão" }));
+    await user.click(screen.getByRole("checkbox"));
+    const joinButton = screen.getByRole("button", { name: "Entrar na fila de Confissão" });
+    await user.click(joinButton);
+
+    expect(joinButton).toBeDisabled();
+    await user.click(joinButton);
+    expect(joinQueue).toHaveBeenCalledOnce();
+
+    resolveJoin(entry);
+    expect(await screen.findByRole("status")).toHaveTextContent("Atualizando sua posição na fila…");
+    expect(screen.queryByText(/Você entrou na fila/i)).not.toBeInTheDocument();
+  });
+
+  it("does not flash completion before the first snapshot confirms a new entry", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getActiveQueue).mockResolvedValue(null);
+    vi.mocked(subscribeQueue).mockImplementation((_type, onChange) => {
+      onChange(snapshot());
+      return vi.fn();
+    });
+    render(<QueueScreen animDir="up" user={{ id: "ana", name: "Ana" }} />);
+
+    await user.click(await screen.findByRole("button", { name: "Preparar para Confissão" }));
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("button", { name: "Entrar na fila de Confissão" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Atualizando sua posição na fila…");
+    expect(screen.queryByText("Atendimento encerrado")).not.toBeInTheDocument();
+    expect(getActiveQueue).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps tracking visible and explains when Firebase cannot cancel the queue", async () => {
+    const user = userEvent.setup();
+    vi.mocked(leaveQueue).mockRejectedValueOnce(new Error("Firebase indisponível"));
+    render(<QueueScreen animDir="up" user={{ id: "ana", name: "Ana" }} />);
+
+    await user.click(await screen.findByRole("button", { name: "Sair da fila" }));
+    await user.click(screen.getByRole("button", { name: "Confirmar saída" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Firebase indisponível");
+    expect(screen.getByRole("heading", { name: "Confissão" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sair da fila" })).toBeEnabled();
+  });
+
+  it("shows a loading state while an existing queue waits for its first Firebase snapshot", async () => {
+    vi.mocked(subscribeQueue).mockReturnValue(vi.fn());
+    render(<QueueScreen animDir="up" user={{ id: "ana", name: "Ana" }} />);
+
+    expect(await screen.findByText("Atualizando sua posição na fila…")).toBeInTheDocument();
   });
 });
