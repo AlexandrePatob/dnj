@@ -111,7 +111,8 @@ describe("QueueScreen active queue", () => {
     expect(joinQueue).toHaveBeenCalledOnce();
 
     resolveJoin(entry);
-    expect(await screen.findByText(/Você entrou na fila/i)).toBeInTheDocument();
+    expect(await screen.findByRole("status")).toHaveTextContent("Atualizando sua posição na fila…");
+    expect(screen.queryByText(/Você entrou na fila/i)).not.toBeInTheDocument();
   });
 
   it("does not flash completion before the first snapshot confirms a new entry", async () => {
