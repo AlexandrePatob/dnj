@@ -114,6 +114,24 @@ describe("QueueScreen active queue", () => {
     expect(await screen.findByText(/Você entrou na fila/i)).toBeInTheDocument();
   });
 
+  it("does not flash completion before the first snapshot confirms a new entry", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getActiveQueue).mockResolvedValue(null);
+    vi.mocked(subscribeQueue).mockImplementation((_type, onChange) => {
+      onChange(snapshot());
+      return vi.fn();
+    });
+    render(<QueueScreen animDir="up" user={{ id: "ana", name: "Ana" }} />);
+
+    await user.click(await screen.findByRole("button", { name: "Preparar para Confissão" }));
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("button", { name: "Entrar na fila de Confissão" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Atualizando sua posição na fila…");
+    expect(screen.queryByText("Atendimento encerrado")).not.toBeInTheDocument();
+    expect(getActiveQueue).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps tracking visible and explains when Firebase cannot cancel the queue", async () => {
     const user = userEvent.setup();
     vi.mocked(leaveQueue).mockRejectedValueOnce(new Error("Firebase indisponível"));

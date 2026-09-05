@@ -14,7 +14,7 @@ const preparation = {
  spiritual: { intro: "A Direção Espiritual é um momento de escuta, partilha e discernimento.", steps: ["Reserve alguns minutos de silêncio para olhar com sinceridade para o que está vivendo.", "Escolha aquilo que hoje mais precisa de luz: uma dúvida, decisão, luta ou inquietação.", "Vá com liberdade para falar e humildade para escutar."], note: "Direção espiritual não substitui a Confissão. Se perceber que precisa se confessar, procure a fila de Confissão." },
 } as const;
 export function QueueScreen({animDir,user={id:"anonymous",name:"Participante"},onQueueNotification}:{animDir:AnimDir;user?:{id:string;name:string};onQueueNotification?:(notification: LiveQueueNotification | null)=>void}){
- const [type,setType]=useState<QueueType>(null),[stage,setStage]=useState<QueueStage>(pastoralFirestore?"checking":"select"),[position,setPosition]=useState<number|null>(null),[confirmingExit,setConfirmingExit]=useState(false),[ready,setReady]=useState(false),[error,setError]=useState(""),[operation,setOperation]=useState<"enter"|"exit"|null>(null); const noticeRef=useRef(""),exitingRef=useRef(false);
+ const [type,setType]=useState<QueueType>(null),[stage,setStage]=useState<QueueStage>(pastoralFirestore?"checking":"select"),[position,setPosition]=useState<number|null>(null),[confirmingExit,setConfirmingExit]=useState(false),[ready,setReady]=useState(false),[error,setError]=useState(""),[operation,setOperation]=useState<"enter"|"exit"|null>(null); const noticeRef=useRef(""),exitingRef=useRef(false),joinedThisSessionRef=useRef(false);
  useEffect(() => () => onQueueNotification?.(null), [onQueueNotification]);
  useEffect(()=>{if(!pastoralFirestore)return;let mounted=true;void getActiveQueue(pastoralFirestore,user.id).then((entry)=>{if(!mounted)return;if(entry){setType(entry.type);setStage("tracking")}else setStage("select")}).catch((cause)=>{if(mounted){setError(cause instanceof Error?cause.message:"Não foi possível consultar sua fila.");setStage("select")}});return()=>{mounted=false}},[user.id]);
  const tracking = stage === "confirmed" || stage === "tracking";
@@ -28,6 +28,12 @@ export function QueueScreen({animDir,user={id:"anonymous",name:"Participante"},o
    if (exitingRef.current) return;
    const mine = [...s.queued, ...s.calledEntries].find(e => e.participantId === user.id);
    if (!mine) {
+    // A write may reach the client before its first Firestore snapshot. Do not turn that gap into a false completion.
+    if (joinedThisSessionRef.current) {
+     setPosition(null);
+     setStage("tracking");
+     return;
+    }
     // The waiting and called lists update independently; confirm absence before ending tracking.
     void getActiveQueue(db, user.id).then((active) => {
      if (disposed || currentRevision !== revision || exitingRef.current || active) return;
@@ -39,6 +45,7 @@ export function QueueScreen({animDir,user={id:"anonymous",name:"Participante"},o
     });
     return;
    }
+   joinedThisSessionRef.current = false;
    const p = mine.status === "called" ? 0 : s.queued.findIndex(e => e.id === mine.id) + 1;
    setPosition(p);
    setStage("tracking");
@@ -51,8 +58,8 @@ export function QueueScreen({animDir,user={id:"anonymous",name:"Participante"},o
   return () => { disposed = true; unsubscribe(); };
  }, [onQueueNotification, tracking, type, user.id]);
  const faq=type==="confession"?CONFESSION_FAQ:SPIRITUAL_FAQ; const state=position===0?"Dirija-se ao Espaço Esperança — estamos lhe aguardando!":position!==null&&position<=3?"Sua vez está próxima. Permaneça por perto.":"A fila atualiza automaticamente.";
- async function enter(next:"confession"|"spiritual"){if(!pastoralFirestore){setError("Fila indisponível neste ambiente.");return}if(operation)return;setOperation("enter");try{setError("");await joinQueue(pastoralFirestore,user,next);setType(next);setStage("confirmed")}catch(e){setError(e instanceof Error?e.message:"Não foi possível entrar na fila.")}finally{setOperation(null)}}
- async function exit(){if(operation)return;exitingRef.current=true;setOperation("exit");try{if(!pastoralFirestore)throw new Error("Fila indisponível neste ambiente.");await leaveQueue(pastoralFirestore,user.id);setType(null);setPosition(null);onQueueNotification?.(null);setStage("select")}catch(e){setError(e instanceof Error?e.message:"Não foi possível sair da fila.");setStage("tracking")}finally{exitingRef.current=false;setOperation(null);setConfirmingExit(false)}}
+ async function enter(next:"confession"|"spiritual"){if(!pastoralFirestore){setError("Fila indisponível neste ambiente.");return}if(operation)return;setOperation("enter");try{setError("");await joinQueue(pastoralFirestore,user,next);joinedThisSessionRef.current=true;setType(next);setStage("confirmed")}catch(e){setError(e instanceof Error?e.message:"Não foi possível entrar na fila.")}finally{setOperation(null)}}
+ async function exit(){if(operation)return;exitingRef.current=true;setOperation("exit");try{if(!pastoralFirestore)throw new Error("Fila indisponível neste ambiente.");await leaveQueue(pastoralFirestore,user.id);joinedThisSessionRef.current=false;setType(null);setPosition(null);onQueueNotification?.(null);setStage("select")}catch(e){setError(e instanceof Error?e.message:"Não foi possível sair da fila.");setStage("tracking")}finally{exitingRef.current=false;setOperation(null);setConfirmingExit(false)}}
  return <div className="absolute inset-0 overflow-y-auto px-5 pb-[calc(var(--bottom-nav-total-height)+1rem)]" style={{background:"var(--background)",paddingTop:"calc(70px + var(--safe-area-top))",animation:animDir==="left"?"slideInLeft 280ms both":"fadeUp 220ms both"}}>{error&&<p role="alert" className="mt-3 rounded-xl p-3 text-sm" style={{background:"var(--red-alpha-12)",color:"var(--secondary)"}}>{error}</p>}
  {stage==="checking"&&<p className="mt-6 text-sm" role="status">Verificando sua fila…</p>}
  {stage==="select"&&<><h1 className="text-2xl font-black">Fila do Espaço Esperança</h1><p className="mt-1 text-sm" style={{color:"var(--muted-foreground)"}}>Escolha seu atendimento.</p><div className="mt-6 space-y-4">{(["confession","spiritual"] as const).map(item=><section key={item} className="rounded-2xl p-5" style={{background:"var(--card)",boxShadow:"var(--shadow-card)"}}><Heart size={24}/><h2 className="mt-3 text-lg font-black">{label(item)}</h2><p className="mt-1 text-sm" style={{color:"var(--muted-foreground)"}}>{item==="confession"?"Sacramento da reconciliação com um sacerdote.":"Diálogo sobre sua caminhada de fé e discernimento."}</p><button className="mt-5 w-full rounded-xl py-3 font-bold text-white" style={{background:item==="confession"?"var(--primary)":"var(--chart-2)"}} onClick={()=>{setType(item);setReady(false);setStage("preparing")}}>Preparar para {label(item)}</button></section>)}</div></>}
