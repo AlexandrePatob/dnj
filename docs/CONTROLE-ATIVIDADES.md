@@ -15,7 +15,7 @@ Fonte de verdade versionada para entregas do DNJ Game.
 
 | ID | Prioridade | Atividade | Repositório(s) | Branch / PR | Status | Homologação e evidências |
 | --- | --- | --- | --- | --- | --- | --- |
-| DNJ-001 | P0 | Fila Firebase: persistir entrada, restaurar após reconexão, impedir tela vazia, cancelar corretamente e bloquear toques repetidos. | Front | `codex/dnj-001-queue-lifecycle` / PR pendente | PR ABERTA / DONE | Homologação técnica e manual no iPhone aprovadas; refinamento visual do loading fica fora desta atividade. |
+| DNJ-001 | P0 | Fila Firebase: persistir entrada, restaurar após reconexão, impedir tela vazia, cancelar corretamente e bloquear toques repetidos. | Front | `codex/dnj-001-queue-lifecycle` / [PR #38](https://github.com/AlexandrePatob/dnj/pull/38) | PR ABERTA / DONE | Homologação técnica e manual no iPhone aprovadas; refinamento visual do loading fica fora desta atividade. |
 | DNJ-002 | P0 | Publicação de Momentos: câmera, loading, upload e bloqueio de duplo envio. | Front + API se necessário | pendente | BACKLOG | Latência/timeout, toque duplo e roteiro no iPhone. |
 | DNJ-003 | P0 | Momentos, grupo, remoção de foto, compartilhamento e curtida imediata. | Front + API se necessário | pendente | BACKLOG | Latência, toque duplo e estados vazios. |
 | DNJ-004 | P1 | Ranking individual e sincronização automática de dados ativos. | Front + API se necessário | pendente | BACKLOG | Ranking, foco/retorno e atualização controlada. |
