@@ -666,6 +666,7 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
   const [durationMinutes, setDurationMinutes] = useState("");
   const [qrByActivity, setQrByActivity] = useState<Record<string, string>>({});
   const [runByActivity, setRunByActivity] = useState<Record<string, string>>({});
+  const [scheduleQrBySpace, setScheduleQrBySpace] = useState<Record<string, string>>({});
   const [creatingQr, setCreatingQr] = useState("");
   const load = useCallback(async () => {
     try {
@@ -774,6 +775,10 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
       kind === "challenge" && !endsAt && !durationMinutes
     ) {
       setError("Informe o fim ou a duração do desafio.");
+      return;
+    }
+    if (kind === "schedule" && (!spaceId || !start || !end || Number(checkInPoints) <= 0)) {
+      setError("Programação exige Space, início, fim e pontuação positiva.");
       return;
     }
     if (
@@ -907,6 +912,26 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
     link.download = `${slugify(activity.name)}-qr.png`;
     link.click();
   }
+  async function generateScheduleQr(space: Space) {
+    setCreatingQr(space.id);
+    try {
+      const qr = await api<{ qrToken: string }>(`/admin/spaces/${encodeURIComponent(space.id)}/schedule-qr`);
+      const imageUrl = await toDataURL(qr.qrToken, { width: 420, margin: 2 });
+      setScheduleQrBySpace((current) => ({ ...current, [space.id]: imageUrl }));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Não foi possível gerar o QR Code do Space.");
+    } finally {
+      setCreatingQr("");
+    }
+  }
+  function downloadScheduleQr(space: Space) {
+    const url = scheduleQrBySpace[space.id];
+    if (!url) return;
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${slugify(space.name)}-programacao-qr.png`;
+    link.click();
+  }
   if (kind === "live") return <SpecialEventsPanel />;
   if (error && !activities) return <Failure message={error} />;
   const visible =
@@ -940,6 +965,28 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
         {!activities ? (
           <Loading />
         ) : visible.length ? (
+          <>
+          {kind === "schedule" && (
+            <div className={styles.activityCards}>
+              {spaces.map((space) => (
+                <article className={styles.activityCard} key={`schedule-qr-${space.id}`}>
+                  <div className={styles.activityCardTop}><span className={styles.typeBadge}><QrCode size={13} /> QR do Space</span></div>
+                  <h3>{space.name}</h3>
+                  <p>Um único QR Code resolve automaticamente a programação que estiver no horário deste Space.</p>
+                  <div className={styles.qrPanel}>
+                    {scheduleQrBySpace[space.id] ? <img src={scheduleQrBySpace[space.id]} alt={`QR Code da programação de ${space.name}`} /> : <QrCode size={52} />}
+                    <div>
+                      <strong>{scheduleQrBySpace[space.id] ? "QR Code pronto" : "QR ainda não gerado"}</strong>
+                      <small>Ele permanece o mesmo entre as programações deste Space.</small>
+                      <div className={styles.rowActions}>
+                        {scheduleQrBySpace[space.id] ? <button className={styles.ghostButton} onClick={() => downloadScheduleQr(space)}><Download size={14} /> Baixar PNG</button> : <button className={styles.primaryButton} disabled={creatingQr === space.id} onClick={() => void generateScheduleQr(space)}>{creatingQr === space.id ? "Gerando…" : "Gerar QR Code"}</button>}
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
           <div className={styles.activityCards}>
             {visible.map((activity) => (
               <article className={styles.activityCard} key={activity.id}>
@@ -1067,6 +1114,7 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
               </article>
             ))}
           </div>
+          </>
         ) : (
           <Empty
             text={`Nenhuma atividade em ${config.label.toLowerCase()}. Crie a primeira para começar.`}
