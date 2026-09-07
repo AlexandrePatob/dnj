@@ -168,7 +168,7 @@ export function EventMapScreen({ onBack }: { animDir: AnimDir; onBack: () => voi
     zoomAt(zoomRef.current + delta, bounds ? { x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2 } : undefined);
   };
 
-  return <main className="absolute inset-0 overflow-y-auto px-5 pb-28" style={{ background: "var(--background)", paddingTop: "calc(64px + var(--safe-area-top))" }}>
+  return <main className="absolute inset-0 overflow-y-auto px-5 pb-28" style={{ background: "var(--background)", paddingTop: "calc(var(--participant-header-height) + 16px + var(--safe-area-top))" }}>
     <button type="button" onClick={onBack} aria-label="Voltar"><ArrowLeft /></button>
     <h1 className="mt-4 text-2xl font-black">Mapa do evento</h1>
     <p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>Mapa oficial do DNJ 2K26.</p>

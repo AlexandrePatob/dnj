@@ -66,7 +66,9 @@ import { HomeScreen } from "@/features/home/home-screen";
 import { EventScheduleScreen } from "@/features/schedule/schedule-screen";
 import { EventMapScreen } from "@/features/map/map-screen";
 import { QueueScreen } from "@/features/queue/queue-screen";
-import { AppShell, BottomNav, TopBar } from "@/components/layout/dnj-layout";
+import { AppShell, BottomNav } from "@/components/layout/dnj-layout";
+import { ParticipantHeader } from "@/components/layout/participant-header";
+import { gameApi } from "@/lib/api/game";
 import { DnjOnboarding } from "@/components/onboarding/dnJ-onboarding";
 import { LiveStatusStack, type LiveAdminNotification, type LiveQueueNotification, type LiveSpecialEvent } from "@/components/live/live-status-stack";
 import { apiRequest } from "@/lib/api/client";
@@ -179,7 +181,7 @@ export function DnjApp() {
       group: apiUser.group?.groupName ?? "",
       points: apiUser.points,
       rankPosition: apiUser.rankPosition,
-      avatarUrl: storage.getAvatar(apiUser.id) ?? undefined,
+      avatarUrl: apiUser.avatarUrl ?? storage.getAvatar(apiUser.id) ?? undefined,
     });
     navigate(response.onboardingRequired || !response.user.onboardingComplete ? "group" : "home");
   }, [emailVal, navigate]);
@@ -339,6 +341,24 @@ export function DnjApp() {
     return () => { active = false; window.clearInterval(timer); };
   }, [completedMomentChallengeIds, isMain, network.isOnline, sessionReady]);
 
+  useEffect(() => {
+    if (!sessionReady || !isMain || !network.isOnline || screen === "game") return;
+    let active = true;
+    const refresh = async () => {
+      try {
+        const overview = await gameApi.overview();
+        const current = (overview as typeof overview & { current?: { points?: number; rankPosition?: number } }).current;
+        const points = current?.points ?? overview.points;
+        if (active && typeof points === "number" && Number.isFinite(points)) {
+          setUser((previous) => ({ ...previous, points, rankPosition: current?.rankPosition ?? overview.rankPosition ?? previous.rankPosition }));
+        }
+      } catch { /* Preserve the last known score when the connection fails. */ }
+    };
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 15_000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [sessionReady, isMain, network.isOnline, screen]);
+
   if (!sessionReady) {
     return <div className="min-h-dvh" style={{ background: "var(--background)" }} aria-label="Carregando sessao" />;
   }
@@ -359,7 +379,7 @@ export function DnjApp() {
             {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} homologationCode={emailVerificationCode} />}
             {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onResend={handleResendVerification} onBack={() => navigate("login")}  animDir={animDir} homologationCode={emailVerificationCode} />}
             {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("login")} animDir={animDir} initialName={registration?.name ?? ""} initialGroup={user.group} initialDocument={user.cpf} initialMobilePhone={user.mobilePhone || registration?.mobilePhone} />}
-            {screen === "home"    && <HomeScreen    user={user}                    animDir={animDir} onOpenSchedule={() => navigate("schedule")} onOpenMap={() => navigate("map")} />}
+            {screen === "home"    && <HomeScreen user={user} animDir={animDir} onOpenSchedule={() => navigate("schedule")} onOpenMap={() => navigate("map")} onOpenGame={() => navigate("game")} onOpenAccount={() => navigate("account")} />}
             {screen === "schedule" && <EventScheduleScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "map" && <EventMapScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "game"    && <GameScreen user={user} theme={theme} animDir={animDir} momentChallenge={momentChallenge} onMomentCompleted={(challengeId) => completeMomentChallenge(challengeId)} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
@@ -380,12 +400,12 @@ export function DnjApp() {
           </motion.div>
         </AnimatePresence>
 
-        {isMain && <TopBar points={user.points} />}
+        {isMain && screen !== "home" && <ParticipantHeader user={user} onAccount={() => navigate("account")} onGame={() => navigate("game")} />}
         {isMain && <LiveStatusStack special={specialEvent} momentChallenge={momentChallenge} queueNotification={queueNotification} adminNotification={adminNotification} onOpenGame={() => navigate("game")} onOpenQueue={() => navigate("queue")} onReadAdmin={handleReadAdminNotification} />}
         {!network.isOnline && offlineSnapshotCapturedAt && (
           <p
             className="absolute left-3 right-3 z-40 rounded-xl border px-3 py-2 text-center text-xs font-medium"
-            style={{ top: "calc(48px + var(--safe-area-top) + 8px)", background: "var(--card)", borderColor: "var(--border)", color: "var(--muted-foreground)" }}
+            style={{ top: "calc(var(--participant-header-height) + 0px + var(--safe-area-top) + 8px)", background: "var(--card)", borderColor: "var(--border)", color: "var(--muted-foreground)" }}
           >
             Conteúdo salvo em {new Date(offlineSnapshotCapturedAt).toLocaleString("pt-BR")} · somente leitura
           </p>

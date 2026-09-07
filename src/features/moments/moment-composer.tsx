@@ -175,7 +175,7 @@ export function MomentComposer({
       className="absolute inset-0 z-50 flex min-h-0 flex-col items-center overflow-y-auto px-5 pb-[calc(var(--bottom-nav-total-height)+1rem)]"
       style={{
         background: "var(--background)",
-        paddingTop: "calc(76px + var(--safe-area-top))",
+        paddingTop: "calc(var(--participant-header-height) + 28px + var(--safe-area-top))",
       }}
       aria-label="Compartilhar momento"
     >
@@ -188,7 +188,7 @@ export function MomentComposer({
         }}
         className="absolute right-6 flex h-10 w-10 items-center justify-center rounded-xl"
         style={{
-          top: "calc(48px + var(--safe-area-top))",
+          top: "calc(var(--participant-header-height) + 0px + var(--safe-area-top))",
           background: "var(--muted)",
         }}
         aria-label="Fechar"

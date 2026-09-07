@@ -51,7 +51,7 @@ export function AccountScreen({ user, onAvatarChange, onLogout, theme, onToggleT
   }
   const level = getDnjLevel(user.points);
   return <div key="account" className="absolute inset-0 overflow-y-auto" style={{ background: "var(--background)", paddingBottom: "var(--main-content-bottom-padding)", ...animStyle(animDir) }}>
-    <header className="px-5 pb-5" style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", paddingTop: "calc(64px + var(--safe-area-top))" }}>
+    <header className="px-5 pb-5" style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", paddingTop: "calc(var(--participant-header-height) + 16px + var(--safe-area-top))" }}>
       <div className="flex items-center gap-4">
         <div className="relative h-16 w-16 shrink-0">
           <label htmlFor={avatarInputId} className="block h-full w-full cursor-pointer overflow-hidden rounded-xl focus-within:outline-2 focus-within:outline-offset-2" style={{ background: "var(--primary)", color: "white", boxShadow: "0 10px 22px var(--primary-alpha-40)", outlineColor: "var(--primary)" }}>
