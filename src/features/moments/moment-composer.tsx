@@ -11,6 +11,13 @@ import {
 
 type MomentStep = "capture" | "review";
 const CAMERA_START_TIMEOUT_MS = 8_000;
+const publishLabels: Record<Exclude<PublishProgress, "success" | "error">, string> = {
+  hashing: "Preparando sua foto…",
+  requesting_intent: "Preparando o envio…",
+  uploading: "Enviando sua foto…",
+  completing: "Confirmando o upload…",
+  publishing: "Publicando seu momento…",
+};
 
 export function MomentComposer({
   mode = "free",
@@ -23,10 +30,12 @@ export function MomentComposer({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const publishingRef = useRef(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [step, setStep] = useState<MomentStep>("capture");
   const [facingMode, setFacingMode] = useState<"environment" | "user">(
     "environment",
@@ -130,23 +139,29 @@ export function MomentComposer({
     void startCamera();
   }
   async function submit() {
-    if (!file) return;
-    setStatus("hashing");
+    if (!file || publishingRef.current) return;
+    publishingRef.current = true;
+    setIsPublishing(true);
+    setStatus(publishLabels.hashing);
     try {
       const publish =
         mode === "challenge" ? publishChallengeMoment : publishFreeMoment;
       const moment = await publish({
         file,
         publishConsent: true,
-        onProgress: (value: PublishProgress) => setStatus(value),
+        onProgress: (value: PublishProgress) => {
+          if (value !== "success" && value !== "error") setStatus(publishLabels[value]);
+        },
       });
       setStatus(
         moment.pointsAwarded === undefined || moment.pointsAwarded > 0
-          ? "success"
+          ? "Publicação concluída."
           : "published_without_points",
       );
       window.setTimeout(() => onCreated(moment), 700);
     } catch (error) {
+      publishingRef.current = false;
+      setIsPublishing(false);
       setStatus(
         (error as { message?: string }).message ??
           "Falha segura: tente publicar novamente.",
@@ -166,6 +181,7 @@ export function MomentComposer({
     >
       <button
         type="button"
+        disabled={isPublishing}
         onClick={() => {
           stopCamera();
           onClose();
@@ -205,7 +221,7 @@ export function MomentComposer({
         </p>
       </div>
       <div
-        className="relative mt-7 aspect-square w-full max-w-[34rem] overflow-hidden rounded-3xl"
+        className="relative mt-7 aspect-square w-full max-w-[34rem] shrink-0 overflow-hidden rounded-3xl"
         style={{ background: "var(--muted)" }}
       >
         {preview ? (
@@ -347,22 +363,21 @@ export function MomentComposer({
           )}
           <button
             type="button"
-            disabled={
-              !file ||
-              status === "Enviando momento..." ||
-              status === "published_without_points"
-            }
+            disabled={!file || isPublishing || status === "published_without_points"}
             onClick={() => void submit()}
             className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-bold disabled:opacity-40"
             style={{ background: "var(--primary)", color: "white" }}
           >
             <Check size={18} />{" "}
-            {mode === "challenge"
+            {isPublishing
+              ? "Publicando…"
+              : mode === "challenge"
               ? "Publicar e ganhar pontos"
               : "Publicar momento"}
           </button>
           <button
             type="button"
+            disabled={isPublishing}
             onClick={retakePhoto}
             className="mt-3 flex w-full items-center justify-center gap-2 py-2 text-sm font-semibold"
             style={{ color: "var(--primary)" }}

@@ -112,4 +112,23 @@ describe("Moment publishing", () => {
       completeCalls[1][1].idempotencyKey,
     );
   });
+  it("returns a retryable error when the signed upload times out", async () => {
+    vi.useFakeTimers();
+    vi.mocked(apiMutation).mockReset().mockResolvedValueOnce({
+      id: "asset-1",
+      uploadUrl: "https://upload.test",
+      method: "PUT",
+      headers: {},
+      expiresAt: "2030-01-01T00:00:00Z",
+    });
+    vi.stubGlobal("AbortController", class {
+      signal = { aborted: true } as AbortSignal;
+      abort() {}
+    });
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new DOMException("", "AbortError"); }));
+    const publish = publishFreeMoment({ file: new File(["abc"], "photo.jpg", { type: "image/jpeg" }), publishConsent: true });
+    await expect(publish).rejects.toThrow("demorou demais");
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
 });

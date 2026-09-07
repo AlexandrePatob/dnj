@@ -15,6 +15,7 @@ export type PublishProgress =
   | "publishing"
   | "success"
   | "error";
+const UPLOAD_TIMEOUT_MS = 60_000;
 async function checksum(file: File) {
   const digest = await crypto.subtle.digest(
     "SHA-256",
@@ -45,12 +46,23 @@ async function uploadMoment(input: {
     idempotencyKey: newIdempotencyKey(),
   });
   input.onProgress?.("uploading");
-  const uploaded = await fetch(intent.uploadUrl, {
-    method: intent.method,
-    headers: intent.headers,
-    body: input.file,
-  });
-  if (!uploaded.ok) throw new Error("Não foi possível enviar a imagem.");
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
+  try {
+    const uploaded = await fetch(intent.uploadUrl, {
+      method: intent.method,
+      headers: intent.headers,
+      body: input.file,
+      signal: controller.signal,
+    });
+    if (!uploaded.ok) throw new Error("Não foi possível enviar a imagem.");
+  } catch (error) {
+    if (controller.signal.aborted)
+      throw new Error("O envio da imagem demorou demais. Tente publicar novamente.");
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
   input.onProgress?.("completing");
   const completeKey = newIdempotencyKey();
   let complete: { id: string };
