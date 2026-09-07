@@ -22,6 +22,7 @@ import {
 } from "@/features/scanner/qr-scanner-modal";
 import { QrSuccessCelebration } from "@/features/scanner/qr-success-celebration";
 import { useNetworkStatus } from "@/hooks/use-network-status";
+import { useForegroundRefresh } from "@/hooks/use-visibility-change";
 import { gameApi, type QrActivityKind } from "@/lib/api/game";
 import type { Participation } from "@/types/experience";
 
@@ -338,6 +339,12 @@ export function GameScreen({
       onPointsChange(ownPoints);
     return nextOverview;
   }, [loadOverview, onPointsChange, user.points]);
+
+  const refreshOverviewForVisibility = useCallback(async () => {
+    await refreshOverview();
+  }, [refreshOverview]);
+
+  useForegroundRefresh(refreshOverviewForVisibility, { debounceMs: 1000, enabled: isOnline });
   useEffect(() => {
     let alive = true;
     const participationRequest = gameApi.currentParticipation();
