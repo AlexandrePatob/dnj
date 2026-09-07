@@ -441,7 +441,7 @@ export function GameScreen({
     }
     if (value.qrAction === "scored")
       setCelebration({ ...value, checkInPoints: value.qrPoints });
-    else if (value.activityKind === "checkpoint" || value.activityKind === "live")
+    else if (value.activityKind === "checkpoint" || value.activityKind === "live" || value.activityKind === "schedule")
       setCelebration({ ...value, alreadyRegistered: true });
   };
   return (

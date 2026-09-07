@@ -1,7 +1,7 @@
 import { apiMutation, apiRequest, newIdempotencyKey } from "@/lib/api/client";
 import type { V2GameOverview, V2Participation } from "@/lib/api/contracts";
 export type GameRun = { id: string; status: string; gameName?: string; [key: string]: unknown };
-export type QrActivityKind = "checkpoint" | "challenge" | "competitive" | "live";
+export type QrActivityKind = "schedule" | "checkpoint" | "challenge" | "competitive" | "live";
 export type ValidateQrResponse = { participation: V2Participation; activityKind: QrActivityKind; action?: "joined" | "scored"; pointsAwarded?: number };
 export const gameApi = {
   overview: () => apiRequest<V2GameOverview>("/game/overview"),

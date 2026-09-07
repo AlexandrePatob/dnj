@@ -144,6 +144,63 @@ async function api<T>(path: string, init: DashboardRequest = {}): Promise<T> {
     : apiRequest<T>(path, { ...options, method, body });
 }
 
+type Pagination = {
+  currentPage: number | string;
+  hasNextPage: boolean;
+  limit: number;
+};
+type PaginatedResponse<T> = { data: T[]; pagination?: Pagination };
+
+function withPage(path: string, page: number) {
+  if (page === 1) return path;
+  return `${path}${path.includes("?") ? "&" : "?"}page=${page}`;
+}
+
+async function loadAllPages<T>(path: string) {
+  const items: T[] = [];
+  let page = 1;
+  let response: PaginatedResponse<T>;
+  do {
+    response = await api<PaginatedResponse<T>>(withPage(path, page));
+    items.push(...response.data);
+    page += 1;
+  } while (response.pagination?.hasNextPage);
+  return items;
+}
+
+function PaginationControls({
+  page,
+  pagination,
+  onChange,
+}: {
+  page: number;
+  pagination: Pagination | null;
+  onChange: (page: number) => void;
+}) {
+  if (page === 1 && !pagination?.hasNextPage) return null;
+  return (
+    <nav className={styles.pagination} aria-label="Paginação">
+      <button
+        className={styles.ghostButton}
+        disabled={page === 1}
+        onClick={() => onChange(page - 1)}
+        aria-label="Página anterior"
+      >
+        Anterior
+      </button>
+      <span>Página {page}</span>
+      <button
+        className={styles.ghostButton}
+        disabled={!pagination?.hasNextPage}
+        onClick={() => onChange(page + 1)}
+        aria-label="Próxima página"
+      >
+        Próxima
+      </button>
+    </nav>
+  );
+}
+
 export function AdminDashboard({
   session,
   onExit,
@@ -259,6 +316,7 @@ export function AdminDashboard({
         {(panel === "Atividades" ||
           activityTypes.some((item) => item.label === panel)) && (
           <ActivityList
+            key={`${panel}-${activityKind}`}
             kind={
               panel === "Atividades"
                 ? activityKind
@@ -278,6 +336,8 @@ export function AdminDashboard({
 
 function StaffList() {
   const [staff, setStaff] = useState<Staff[] | null>(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
   const [scopeByUser, setScopeByUser] = useState<Record<string, string>>({});
   const [candidateEmail, setCandidateEmail] = useState("");
   const [candidateScope, setCandidateScope] = useState("actions");
@@ -285,13 +345,14 @@ function StaffList() {
   const [message, setMessage] = useState("");
   const load = useCallback(async () => {
     try {
-      const managers = await api<{ data: Staff[] }>(
-        "/admin/staff?role=EVENT_MANAGER",
+      const managers = await api<PaginatedResponse<Staff>>(
+        withPage("/admin/staff?role=EVENT_MANAGER", page),
       );
       const managerItems = managers.data.filter(
         (item) => item.role === "EVENT_MANAGER",
       );
       setStaff(managerItems);
+      setPagination(managers.pagination ?? null);
       setScopeByUser(
         Object.fromEntries(
           managerItems.map((item) => [item.id, item.scope ?? "actions"]),
@@ -300,7 +361,7 @@ function StaffList() {
     } catch {
       setError("Não foi possível carregar os gestores.");
     }
-  }, []);
+  }, [page]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -418,6 +479,11 @@ function StaffList() {
         ) : (
           <Empty text="Nenhum gestor cadastrado." />
         )}
+        <PaginationControls
+          page={page}
+          pagination={pagination}
+          onChange={setPage}
+        />
       </section>
       <section className={styles.activity}>
         <SectionTitle kicker="Participantes" title="Adicionar gestor" />
@@ -482,15 +548,22 @@ function StaffList() {
 
 function SpaceList() {
   const [spaces, setSpaces] = useState<Space[] | null>(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
   const [error, setError] = useState("");
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [scheduleQrBySpace, setScheduleQrBySpace] = useState<Record<string, string>>({});
+  const [creatingQr, setCreatingQr] = useState("");
   const load = useCallback(
     () =>
-      void api<{ data: Space[] }>("/admin/spaces")
-        .then((data) => setSpaces(data.data))
+      void api<PaginatedResponse<Space>>(withPage("/admin/spaces", page))
+        .then((data) => {
+          setSpaces(data.data);
+          setPagination(data.pagination ?? null);
+        })
         .catch(() => setError("Não foi possível carregar os espaços.")),
-    [],
+    [page],
   );
   useEffect(load, [load]);
   async function create(event: FormEvent) {
@@ -506,6 +579,26 @@ function SpaceList() {
     } catch {
       setError("Não foi possível criar o espaço.");
     }
+  }
+  async function generateScheduleQr(space: Space) {
+    setCreatingQr(space.id);
+    try {
+      const qr = await api<{ qrToken: string }>(`/admin/spaces/${encodeURIComponent(space.id)}/schedule-qr`);
+      const imageUrl = await toDataURL(qr.qrToken, { width: 420, margin: 2 });
+      setScheduleQrBySpace((current) => ({ ...current, [space.id]: imageUrl }));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Não foi possível gerar o QR Code do Space.");
+    } finally {
+      setCreatingQr("");
+    }
+  }
+  function downloadScheduleQr(space: Space) {
+    const url = scheduleQrBySpace[space.id];
+    if (!url) return;
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${slugify(space.name)}-programacao-qr.png`;
+    link.click();
   }
   if (error && !spaces) return <Failure message={error} />;
   return (
@@ -554,6 +647,11 @@ function SpaceList() {
                     {space.slug}
                     {space.mapReference ? ` · ${space.mapReference}` : ""}
                   </p>
+                  {scheduleQrBySpace[space.id] ? (
+                    <button className={styles.ghostButton} onClick={() => downloadScheduleQr(space)}><Download size={14} /> Baixar QR da programação</button>
+                  ) : (
+                    <button className={styles.ghostButton} disabled={creatingQr === space.id} onClick={() => void generateScheduleQr(space)}><QrCode size={14} /> {creatingQr === space.id ? "Gerando…" : "Gerar QR da programação"}</button>
+                  )}
                 </div>
               </li>
             ))}
@@ -561,6 +659,11 @@ function SpaceList() {
         ) : (
           <Empty text="Nenhum espaço cadastrado." />
         )}
+        <PaginationControls
+          page={page}
+          pagination={pagination}
+          onChange={setPage}
+        />
       </section>
     </div>
   );
@@ -572,6 +675,8 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
   const TypeIcon = config.icon;
   const [activities, setActivities] = useState<Activity[] | null>(null);
   const [spaces, setSpaces] = useState<Space[]>([]);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [editing, setEditing] = useState<Activity | null>(null);
@@ -591,8 +696,11 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
   const [creatingQr, setCreatingQr] = useState("");
   const load = useCallback(async () => {
     try {
-      const data = await api<{ data: Activity[] }>("/admin/activities");
+      const data = await api<PaginatedResponse<Activity>>(
+        withPage("/admin/activities", page),
+      );
       setActivities(data.data);
+      setPagination(data.pagination ?? null);
       if (kind !== "checkpoint") return;
       const savedQrs = await Promise.all(
         data.data
@@ -631,13 +739,13 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
     } catch {
       setError("Não foi possível carregar as atividades.");
     }
-  }, [kind]);
+  }, [kind, page]);
   useEffect(() => {
     void load();
   }, [load]);
   useEffect(() => {
-    void api<{ data: Space[] }>("/admin/spaces")
-      .then((data) => setSpaces(data.data))
+    void loadAllPages<Space>("/admin/spaces")
+      .then(setSpaces)
       .catch(() => setError("Não foi possível carregar os espaços."));
   }, []);
   function reset() {
@@ -693,6 +801,10 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
       kind === "challenge" && !endsAt && !durationMinutes
     ) {
       setError("Informe o fim ou a duração do desafio.");
+      return;
+    }
+    if (kind === "schedule" && (!spaceId || !start || !end || Number(checkInPoints) <= 0)) {
+      setError("Programação exige Space, início, fim e pontuação positiva.");
       return;
     }
     if (
@@ -991,6 +1103,11 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
             text={`Nenhuma atividade em ${config.label.toLowerCase()}. Crie a primeira para começar.`}
           />
         )}
+        <PaginationControls
+          page={page}
+          pagination={pagination}
+          onChange={setPage}
+        />
       </section>
       {formOpen && (
         <div
@@ -1147,6 +1264,7 @@ function SpecialEventsPanel() {
   const [duration, setDuration] = useState("5");
   const [customDuration, setCustomDuration] = useState("");
   const [targets, setTargets] = useState<string[]>(["app"]);
+  const [operatingEvent, setOperatingEvent] = useState("");
   const [activeQr, setActiveQr] = useState<{
     title: string;
     imageUrl: string;
@@ -1170,6 +1288,42 @@ function SpecialEventsPanel() {
   useEffect(() => {
     void load();
   }, [load]);
+  const releaseQr = useCallback(
+    async (event: SpecialEvent) => {
+      setOperatingEvent(event.id);
+      try {
+        const result = await api<{ qrToken: string; expiresAt?: string }>(
+          "/manager/special-events/qr",
+          { method: "POST", body: { eventId: event.id } },
+        );
+        setActiveQr({
+          title: event.title,
+          imageUrl: await toDataURL(result.qrToken, { width: 360, margin: 1 }),
+          expiresAt: result.expiresAt ?? event.expiresAt,
+        });
+        await load();
+      } catch (cause) {
+        setError(
+          cause instanceof Error
+            ? cause.message
+            : "Não foi possível gerar o QR Code.",
+        );
+      } finally {
+        setOperatingEvent("");
+      }
+    },
+    [load],
+  );
+  useEffect(() => {
+    const teaser = events?.find((event) => event.status === "teaser");
+    if (!teaser || operatingEvent === teaser.id) return;
+    const teaserStartedAt = Date.parse(teaser.qrAvailableAt ?? "");
+    const delay = Number.isNaN(teaserStartedAt)
+      ? 15_000
+      : Math.max(0, teaserStartedAt + 15_000 - Date.now());
+    const timer = window.setTimeout(() => void releaseQr(teaser), delay);
+    return () => window.clearTimeout(timer);
+  }, [events, operatingEvent, releaseQr]);
   function toggleTarget(target: string) {
     setTargets((current) =>
       current.includes(target)
@@ -1207,22 +1361,15 @@ function SpecialEventsPanel() {
   }
   async function operate(event: SpecialEvent) {
     const path =
-      event.status === "draft"
-        ? "/manager/special-events/teaser"
-        : event.status === "teaser"
-          ? "/manager/special-events/qr"
-          : "/manager/special-events/close";
+      event.status === "active"
+        ? "/manager/special-events/close"
+        : "/manager/special-events/teaser";
+    setOperatingEvent(event.id);
     try {
-      const result = await api<{ qrToken?: string; expiresAt?: string }>(path, {
+      await api(path, {
         method: "POST",
         body: { eventId: event.id },
       });
-      if (result.qrToken)
-        setActiveQr({
-          title: event.title,
-          imageUrl: await toDataURL(result.qrToken, { width: 360, margin: 1 }),
-          expiresAt: result.expiresAt ?? event.expiresAt,
-        });
       if (event.status === "active") setActiveQr(null);
       await load();
     } catch (cause) {
@@ -1231,26 +1378,8 @@ function SpecialEventsPanel() {
           ? cause.message
           : "Não foi possível atualizar o evento.",
       );
-    }
-  }
-  async function renewQr(event: SpecialEvent) {
-    try {
-      const result = await api<{ qrToken: string; expiresAt?: string }>(
-        "/manager/special-events/qr",
-        { method: "POST", body: { eventId: event.id } },
-      );
-      setActiveQr({
-        title: event.title,
-        imageUrl: await toDataURL(result.qrToken, { width: 360, margin: 1 }),
-        expiresAt: result.expiresAt ?? event.expiresAt,
-      });
-      await load();
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "Não foi possível gerar o QR Code.",
-      );
+    } finally {
+      setOperatingEvent("");
     }
   }
   if (!events) return <Loading />;
@@ -1262,8 +1391,8 @@ function SpecialEventsPanel() {
             <p className={styles.context}>Atividades · Eventos especiais</p>
             <h2>Eventos especiais</h2>
             <p className={styles.help}>
-              A mesma operação do gestor: crie, exiba em App/TV/Telão, solte o
-              teaser e libere o QR.
+              Crie o evento e inicie uma vez. O teaser aparece por 15 segundos;
+              ao terminar, o QR é liberado automaticamente.
             </p>
           </div>
           <Sparkles size={22} />
@@ -1390,30 +1519,45 @@ function SpecialEventsPanel() {
                         ? "QR ativo"
                         : "Pronto para o teaser"}
                   </small>
+                  {event.status === "teaser" && (
+                    <div className={styles.teaserStatus} role="status">
+                      <Sparkles size={15} />
+                      <span>
+                        <strong>Teaser em exibição</strong>
+                        O QR será liberado automaticamente ao terminar.
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className={styles.rowActions}>
                   {event.status === "active" && (
                     <button
                       className={styles.ghostButton}
-                      onClick={() => void renewQr(event)}
+                      disabled={operatingEvent === event.id}
+                      onClick={() => void releaseQr(event)}
                     >
-                      Gerar novo QR
+                      {operatingEvent === event.id
+                        ? "Gerando…"
+                        : "Gerar novo QR"}
                     </button>
                   )}
-                  <button
-                    className={
-                      event.status === "active"
-                        ? styles.dangerButton
-                        : styles.primaryButton
-                    }
-                    onClick={() => void operate(event)}
-                  >
-                    {event.status === "draft"
-                      ? "Teaser 15 s"
-                      : event.status === "teaser"
-                        ? "Liberar QR"
-                        : "Encerrar"}
-                  </button>
+                  {event.status !== "teaser" && (
+                    <button
+                      className={
+                        event.status === "active"
+                          ? styles.dangerButton
+                          : styles.primaryButton
+                      }
+                      disabled={operatingEvent === event.id}
+                      onClick={() => void operate(event)}
+                    >
+                      {operatingEvent === event.id
+                        ? "Aguarde…"
+                        : event.status === "active"
+                          ? "Encerrar"
+                          : "Iniciar"}
+                    </button>
+                  )}
                 </div>
               </article>
             ))
@@ -1434,11 +1578,11 @@ function ManagerAssignments({ activityId }: { activityId: string }) {
   const load = useCallback(async () => {
     try {
       const [available, current] = await Promise.all([
-        api<{ data: Staff[] }>("/admin/staff?role=EVENT_MANAGER"),
-        api<{ data: Staff[] }>(`/admin/activities/${activityId}/managers`),
+        loadAllPages<Staff>("/admin/staff?role=EVENT_MANAGER"),
+        loadAllPages<Staff>(`/admin/activities/${activityId}/managers`),
       ]);
-      setManagers(available.data);
-      setAssigned(current.data);
+      setManagers(available);
+      setAssigned(current);
     } catch {
       setError("Não foi possível carregar os vínculos.");
     }
@@ -1531,18 +1675,23 @@ function ModerationList() {
   const [moments, setMoments] = useState<Moderation[] | null>(null);
   const [error, setError] = useState("");
   const [queue, setQueue] = useState<"challenge" | "general">("challenge");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
   const [selectedMoment, setSelectedMoment] = useState<Moderation | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const load = useCallback(
     () =>
-      void api<{ data: Moderation[] }>(
-        `/admin/moments/moderation?queue=${queue}&page=1`,
+      void api<PaginatedResponse<Moderation>>(
+        `/admin/moments/moderation?queue=${queue}&page=${page}`,
       )
-        .then((data) => setMoments(data.data))
+        .then((data) => {
+          setMoments(data.data);
+          setPagination(data.pagination ?? null);
+        })
         .catch(() =>
           setError("Não foi possível carregar a fila de moderação."),
         ),
-    [queue],
+    [page, queue],
   );
   useEffect(load, [load]);
   async function decide(
@@ -1578,6 +1727,7 @@ function ModerationList() {
           value={queue}
           onChange={(event) => {
             setSelectedMoment(null);
+            setPage(1);
             setQueue(event.target.value as typeof queue);
           }}
         >
@@ -1649,6 +1799,14 @@ function ModerationList() {
       ) : (
         <Empty text="Fila limpa. Não há Momentos para corrigir." />
       )}
+      <PaginationControls
+        page={page}
+        pagination={pagination}
+        onChange={(nextPage) => {
+          setSelectedMoment(null);
+          setPage(nextPage);
+        }}
+      />
       {selectedMoment && (
         <section
           role="dialog"
