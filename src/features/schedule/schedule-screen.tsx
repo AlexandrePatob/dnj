@@ -33,7 +33,7 @@ export function EventScheduleScreen({ onBack }: { animDir: AnimDir; onBack: () =
   const knownActivityIds = new Set(knownGroups.flatMap((group) => group.activities.map((item) => item.id)));
   const otherGroups = Array.from(new Map(items.filter((item) => item.sector && !knownActivityIds.has(item.id)).sort(byTime).map((item) => [item.sector!.slug, { name: item.sector!.name, activities: items.filter((candidate) => candidate.sector?.slug === item.sector!.slug).sort(byTime) }])).values());
   const spaceGroups = [...knownGroups, ...otherGroups];
-  return <main className="absolute inset-0 overflow-y-auto px-5 pb-[calc(var(--bottom-nav-total-height)+1rem)]" style={{ background: "var(--background)", paddingTop: "calc(64px + var(--safe-area-top))" }}>
+  return <main className="absolute inset-0 overflow-y-auto px-5 pb-[calc(var(--bottom-nav-total-height)+1rem)]" style={{ background: "var(--background)", paddingTop: "calc(var(--participant-header-height) + 16px + var(--safe-area-top))" }}>
     <button type="button" onClick={onBack} aria-label="Voltar"><ArrowLeft /></button>
     <h1 className="mt-4 text-2xl font-black">Programação completa</h1>
     <p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>Acompanhe o que acontece no DNJ 2K26.</p>

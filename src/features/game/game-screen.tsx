@@ -458,7 +458,7 @@ export function GameScreen({
         style={{
           background: "var(--card)",
           borderBottom: "1px solid var(--border)",
-          paddingTop: "calc(48px + var(--safe-area-top))",
+          paddingTop: "calc(var(--participant-header-height) + 0px + var(--safe-area-top))",
         }}
       >
         <div className="mt-4 flex items-center justify-between">

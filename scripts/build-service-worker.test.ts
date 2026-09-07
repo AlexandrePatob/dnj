@@ -43,6 +43,15 @@ describe("service worker build", () => {
     expect(result.contents).not.toContain("__PWA_REVISION__");
   });
 
+  it("enables fresh network assets for predev but preserves production caching", async () => {
+    const outputPath = await temporaryPath("sw.js");
+    const dev = await buildServiceWorker({ outputPath, env: { npm_lifecycle_event: "predev" } });
+    const production = await buildServiceWorker({ outputPath, env: { npm_lifecycle_event: "prebuild" } });
+    expect(dev.contents).toContain("const development = true");
+    expect(production.contents).toContain("const development = false");
+    expect(dev.revision).not.toBe(production.revision);
+  });
+
   it("produces byte-identical output for identical builds", async () => {
     const firstPath = await temporaryPath("first.js");
     const secondPath = await temporaryPath("second.js");

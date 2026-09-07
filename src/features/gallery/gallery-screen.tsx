@@ -408,7 +408,7 @@ export function GalleryScreen({
         className="absolute inset-0 overflow-y-auto pb-[calc(var(--bottom-nav-total-height)+1rem)]"
         style={{
           background: "var(--background)",
-          paddingTop: "calc(64px + var(--safe-area-top))",
+          paddingTop: "calc(var(--participant-header-height) + 16px + var(--safe-area-top))",
         }}
       >
         <div style={motion(animDir)}>
