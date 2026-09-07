@@ -32,10 +32,10 @@ function scannerMessage(error: unknown) {
 }
 
 function scannerSuccessMessage(kind: QrActivityKind, action: "joined" | "scored") {
-  if (kind === "competitive") return "Entrada na partida confirmada.";
-  if (kind === "challenge") return "Entrada no desafio confirmada. Preparando a câmera.";
-  if (action === "joined") return "Você já pontuou nessa atividade! Preparando sua confirmação.";
-  return action === "scored" ? "Pontos creditados. Preparando a celebração." : "Participação confirmada.";
+  if (kind === "competitive") return "✓ Entrada na partida confirmada!";
+  if (kind === "challenge") return "✓ Entrada no desafio confirmada!";
+  if (action === "joined") return "✓ Você já pontuou nesta atividade!";
+  return action === "scored" ? "✓ Pontos creditados com sucesso!" : "✓ Participação confirmada!";
 }
 
 export function QrScannerModal({
@@ -241,11 +241,15 @@ export function QrScannerModal({
             className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-5 text-center"
             style={{
               background:
-                "color-mix(in srgb, var(--background) 82%, transparent)",
+                status === "success"
+                  ? "color-mix(in srgb, var(--game) 15%, transparent)"
+                  : status === "error"
+                    ? "color-mix(in srgb, var(--destructive) 10%, transparent)"
+                    : "color-mix(in srgb, var(--background) 82%, transparent)",
             }}
           >
             {status === "success" ? (
-              <QrCode size={36} style={{ color: "var(--primary)" }} />
+              <QrCode size={36} style={{ color: "var(--game)" }} />
             ) : (
               <Camera size={36} style={{ color: "var(--muted-foreground)" }} />
             )}
@@ -317,7 +321,9 @@ export function QrScannerModal({
           color:
             status === "error"
               ? "var(--destructive)"
-              : "var(--muted-foreground)",
+              : status === "success"
+                ? "var(--game)"
+                : "var(--muted-foreground)",
         }}
       >
         {message}

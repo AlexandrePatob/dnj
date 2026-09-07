@@ -6,7 +6,7 @@ import { motion, useReducedMotion } from "motion/react";
 
 const particles = Array.from({ length: 14 }, (_, index) => ({ index, x: ((index * 47) % 180) - 90, y: -42 - ((index * 29) % 96), color: ["#E87425", "#B2D64D", "#DB3A2E", "#34D1D1"][index % 4] }));
 
-export function QrSuccessCelebration({ points, label, scored = false, alreadyRegistered = false, durationMs = 900, onDone }: { points: number; label: string; scored?: boolean; alreadyRegistered?: boolean; durationMs?: number; onDone: () => void }) {
+export function QrSuccessCelebration({ points, label, scored = false, alreadyRegistered = false, durationMs = 1800, onDone }: { points: number; label: string; scored?: boolean; alreadyRegistered?: boolean; durationMs?: number; onDone: () => void }) {
   const reducedMotion = useReducedMotion();
   useEffect(() => { const timer = window.setTimeout(onDone, reducedMotion ? 160 : durationMs); return () => window.clearTimeout(timer); }, [durationMs, onDone, reducedMotion]);
   const announcement = alreadyRegistered ? "Atividade já pontuada" : scored ? "Pontos creditados" : "Participação confirmada";
