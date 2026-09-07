@@ -12,18 +12,6 @@ vi.mock("@/lib/api/media", () => ({
   publishChallengeMoment,
 }));
 
-const participation = {
-  id: "participation-1",
-  event: { id: "event-1", name: "DNJ" },
-  activity: { id: "activity-1", name: "Foto" },
-  place: { id: "place-1", name: "Espaço DNJ" },
-  checkedInAt: "2026-08-25T12:00:00.000Z",
-  cooldownEndsAt: "2026-08-25T13:00:00.000Z",
-  status: "active" as const,
-  canShareMoment: true,
-  checkInPoints: 10,
-};
-
 describe("MomentComposer", () => {
   beforeEach(() => {
     publishFreeMoment.mockReset();
@@ -85,7 +73,7 @@ describe("MomentComposer", () => {
     expect(publishFreeMoment.mock.calls[0][0]).toMatchObject({
       publishConsent: true,
     });
-    expect(screen.getByText("success")).toBeInTheDocument();
+    expect(screen.getByText("Publicação concluída.")).toBeInTheDocument();
     expect(onCreated).not.toHaveBeenCalled();
   });
 
@@ -111,6 +99,24 @@ describe("MomentComposer", () => {
     expect(
       screen.getByRole("button", { name: "Publicar momento" }),
     ).toBeEnabled();
+  });
+
+  it("blocks repeated publication while a slow upload is pending", async () => {
+    const user = userEvent.setup();
+    let resolvePublish!: (moment: { id: string }) => void;
+    publishFreeMoment.mockImplementationOnce(
+      () => new Promise((resolve) => { resolvePublish = resolve; }),
+    );
+    render(<MomentComposer onClose={vi.fn()} onCreated={vi.fn()} />);
+    await user.click(await screen.findByRole("button", { name: "Capturar foto" }));
+    const publish = screen.getByRole("button", { name: "Publicar momento" });
+    await user.click(publish);
+    await user.click(publish);
+
+    expect(publishFreeMoment).toHaveBeenCalledOnce();
+    expect(publish).toBeDisabled();
+    expect(screen.getByText("Preparando sua foto…")).toBeInTheDocument();
+    resolvePublish({ id: "moment-1" });
   });
 
   it("shows a retryable message when camera startup times out", async () => {
