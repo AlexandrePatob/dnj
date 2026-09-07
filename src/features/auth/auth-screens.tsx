@@ -110,23 +110,42 @@ export function LoginScreen({
   return (
     <div
       key="login"
-      className="flex min-h-dvh flex-col overflow-y-auto"
+      className="flex flex-col min-h-dvh"
       style={{ background: "var(--background)", ...animStyle(animDir) }}
     >
-      {/* Official DNJ welcome artwork */}
-      <div className="relative shrink-0 overflow-hidden bg-[var(--primary)] pt-[var(--safe-area-top)]">
-        <img
-          src="/images/Topo_Inicio_App.png"
-          alt="DNJ 2K26 em Curitiba"
-          className="block h-auto w-full max-[420px]:max-h-[205px] max-[420px]:object-cover max-[420px]:object-center"
-          width={900}
-          height={566}
-          fetchPriority="high"
+      {/* Orange hero with official logo */}
+      <div
+        className="relative flex flex-col items-center justify-center overflow-hidden"
+        style={{
+          background: "var(--primary)",
+          paddingTop: "calc(56px + var(--safe-area-top))",
+          paddingBottom: "32px",
+        }}
+      >
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(0,0,0,0.08) 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
         />
+        <div
+          className="relative z-10"
+          style={{ width: "72%", maxWidth: "280px" }}
+        >
+          <BrandSticker variant="intro" className="w-full" />
+        </div>
+        <p
+          className="text-sm text-center relative z-10 mt-4 font-medium"
+          style={{ color: "rgba(0,0,0,0.55)" }}
+        >
+          Curitiba · 2026
+        </p>
       </div>
 
       {/* Form */}
-      <div className="flex flex-col gap-5 px-5 pb-[calc(28px+var(--safe-area-bottom))] pt-6 max-[420px]:gap-3 max-[420px]:pt-4 sm:px-6">
+      <div className="flex flex-col flex-1 px-6 pt-6 pb-10 gap-5">
         <div>
           <h2
             className="text-xl font-bold mb-1"
@@ -140,7 +159,7 @@ export function LoginScreen({
         </div>
 
         <div
-          className="flex flex-col gap-4 rounded-2xl p-4 max-[420px]:gap-3 max-[420px]:p-3 sm:p-6"
+          className="rounded-2xl p-6 flex flex-col gap-4"
           style={{
             background: "var(--card)",
             border: "1px solid var(--border)",
