@@ -693,6 +693,15 @@
   min-width: 300px;
   margin: 0;
 }
+.moderationReasonInput {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border: 1px solid #b8e1c4;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
 .help {
   margin: 12px 0 6px;
 }

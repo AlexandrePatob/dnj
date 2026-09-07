@@ -1679,6 +1679,7 @@ function ModerationList() {
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [selectedMoment, setSelectedMoment] = useState<Moderation | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [moderationReason, setModerationReason] = useState("");
   const load = useCallback(
     () =>
       void api<PaginatedResponse<Moderation>>(
@@ -1697,12 +1698,17 @@ function ModerationList() {
   async function decide(
     momentId: string,
     action: Moderation["availableActions"][number],
+    reason?: string,
   ) {
     try {
       setSubmitting(true);
+      const body: Record<string, unknown> = { action };
+      if (reason && (action === "deny_points" || action === "delete_photo")) {
+        body.reason = reason;
+      }
       await api(`/admin/moments/${momentId}/moderation`, {
         method: "POST",
-        body: { action },
+        body,
       });
       const index = moments?.findIndex((moment) => moment.momentId === momentId) ?? -1;
       setSelectedMoment(
@@ -1836,11 +1842,23 @@ function ModerationList() {
                 <strong>{selectedMoment.participantName}</strong>
                 <p>{selectedMoment.activity?.name ?? "DNJ"} · {selectedMoment.pointsAwarded} pontos</p>
               </div>
+              {selectedMoment.pointsAwarded > 0 && (
+                <label className={styles.help}>
+                  Motivo da remoção
+                  <input
+                    type="text"
+                    value={moderationReason}
+                    onChange={(event) => setModerationReason(event.target.value)}
+                    placeholder="Ex: Foto não relacionada ao desafio"
+                    className={styles.moderationReasonInput}
+                  />
+                </label>
+              )}
               <span className={styles.moderationActions}>
                 {selectedMoment.availableActions.map((action) => (
                   <button
                     key={action}
-                    disabled={submitting}
+                    disabled={submitting || ((action === "deny_points" || action === "delete_photo") && selectedMoment.pointsAwarded > 0 && !moderationReason.trim())}
                     className={
                       action === "approve"
                         ? styles.primaryButton
@@ -1848,7 +1866,10 @@ function ModerationList() {
                           ? styles.dangerButton
                           : styles.ghostButton
                     }
-                    onClick={() => void decide(selectedMoment.momentId, action)}
+                    onClick={() => {
+                      void decide(selectedMoment.momentId, action, moderationReason.trim());
+                      setModerationReason("");
+                    }}
                   >
                     {action === "approve"
                       ? "Aceitar"
