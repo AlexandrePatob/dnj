@@ -38,6 +38,19 @@ describe("LiveStatusStack", () => {
 
   afterEach(() => vi.useRealTimers());
 
+  it("does not repeat a dismissed Moment challenge after remounting", async () => {
+    const user = userEvent.setup();
+    const challenge = { id: "challenge-dismissed", title: "Foto com a galera", description: null, endsAt: "2099-10-18T13:00:00Z", points: 30 };
+    const view = render(<LiveStatusStack special={null} momentChallenge={challenge} />);
+
+    await user.click(screen.getByRole("button", { name: "Fechar aviso do desafio" }));
+    view.unmount();
+    render(<LiveStatusStack special={null} momentChallenge={challenge} />);
+
+    expect(screen.queryByText("Desafio Momento DNJ")).not.toBeInTheDocument();
+    window.localStorage.removeItem("dnj.dismissed-moment-challenge.challenge-dismissed");
+  });
+
   it("briefly directs an eligible participant to DNJ Game for a Moment challenge", () => {
     vi.useFakeTimers();
     render(<LiveStatusStack special={null} momentChallenge={{ id: "challenge-1", title: "Foto com a galera", description: "Registre seu grupo", endsAt: "2099-10-18T13:00:00Z", points: 30 }} />);
