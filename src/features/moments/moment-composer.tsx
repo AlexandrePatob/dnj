@@ -32,6 +32,8 @@ export function MomentComposer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const publishingRef = useRef(false);
+  const publishStatusTimerRef = useRef<number | null>(null);
+  const lastPublishStatusAtRef = useRef(0);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -50,6 +52,33 @@ export function MomentComposer({
     },
     [preview],
   );
+  useEffect(
+    () => () => {
+      if (publishStatusTimerRef.current) {
+        window.clearTimeout(publishStatusTimerRef.current);
+      }
+    },
+    [],
+  );
+  const showPublishStatus = useCallback((message: string) => {
+    const update = () => {
+      publishStatusTimerRef.current = null;
+      lastPublishStatusAtRef.current = Date.now();
+      setStatus(message);
+    };
+    const remaining = Math.max(
+      0,
+      850 - (Date.now() - lastPublishStatusAtRef.current),
+    );
+    if (!remaining) {
+      update();
+      return;
+    }
+    if (publishStatusTimerRef.current) {
+      window.clearTimeout(publishStatusTimerRef.current);
+    }
+    publishStatusTimerRef.current = window.setTimeout(update, remaining);
+  }, []);
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
@@ -168,6 +197,7 @@ export function MomentComposer({
     publishingRef.current = true;
     setIsPublishing(true);
     setStatus(publishLabels.hashing);
+    lastPublishStatusAtRef.current = Date.now();
     try {
       const publish =
         mode === "challenge" ? publishChallengeMoment : publishFreeMoment;
@@ -175,15 +205,21 @@ export function MomentComposer({
         file,
         publishConsent: true,
         onProgress: (value: PublishProgress) => {
-          if (value !== "success" && value !== "error") setStatus(publishLabels[value]);
+          if (value !== "success" && value !== "error") {
+            showPublishStatus(publishLabels[value]);
+          }
         },
       });
+      if (publishStatusTimerRef.current) {
+        window.clearTimeout(publishStatusTimerRef.current);
+        publishStatusTimerRef.current = null;
+      }
       setStatus(
         moment.pointsAwarded === undefined || moment.pointsAwarded > 0
           ? "Publicação concluída."
           : "published_without_points",
       );
-      window.setTimeout(() => onCreated(moment), 700);
+      window.setTimeout(() => onCreated(moment), 3_000);
     } catch (error) {
       publishingRef.current = false;
       setIsPublishing(false);
@@ -258,7 +294,7 @@ export function MomentComposer({
           <img
             src={preview}
             alt="Prévia do momento capturado"
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain"
           />
         ) : (
           <>
@@ -343,32 +379,20 @@ export function MomentComposer({
             >
               <RefreshCw size={18} />
             </button>
-          {!cameraOpen && (
-            <button
-              type="button"
-              onClick={() => void startCamera()}
-              className="mt-3 text-sm font-semibold"
-              style={{ color: "var(--primary)" }}
-            >
-              Tentar abrir câmera
-            </button>
-          )}
           </div>
         </>
       ) : (
-        <div className="mt-6 w-full max-w-[34rem]">
+        <div className="absolute bottom-4 left-1/2 z-10 w-[calc(100%-2rem)] max-w-[34rem] -translate-x-1/2 rounded-2xl bg-black/65 p-3 text-white shadow-lg backdrop-blur-sm">
           <p
-            className="rounded-2xl p-4 text-sm"
+            className="p-0 text-xs leading-4"
             style={{
-              background: "var(--card)",
-              border: "1px solid var(--border)",
+              color: "rgb(255 255 255 / 0.9)",
             }}
           >
-            <strong>Publicação imediata</strong>
-            <br />
-            <span style={{ color: "var(--muted-foreground)" }}>
-              Sua foto entra em Momentos e a pontuação é registrada agora. A
-              equipe pode revisar depois.
+            <strong className="block text-sm">Publicar participação</strong>
+            <span className="mt-1 block" style={{ color: "rgb(255 255 255 / 0.72)" }}>
+              Sua foto será compartilhada em Momentos para toda a juventude do
+              DNJ.
             </span>
           </p>
           {status === "published_without_points" && (
@@ -391,29 +415,25 @@ export function MomentComposer({
               {status}
             </p>
           )}
-          <button
-            type="button"
-            disabled={!file || isPublishing || status === "published_without_points"}
-            onClick={() => void submit()}
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-bold disabled:opacity-40"
-            style={{ background: "var(--primary)", color: "white" }}
-          >
-            <Check size={18} />{" "}
-            {isPublishing
-              ? "Publicando…"
-              : mode === "challenge"
-              ? "Publicar e ganhar pontos"
-              : "Publicar momento"}
-          </button>
-          <button
-            type="button"
-            disabled={isPublishing}
-            onClick={retakePhoto}
-            className="mt-3 flex w-full items-center justify-center gap-2 py-2 text-sm font-semibold"
-            style={{ color: "var(--primary)" }}
-          >
-            <RotateCcw size={16} /> Refazer foto
-          </button>
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              disabled={!file || isPublishing || status === "published_without_points"}
+              onClick={() => void submit()}
+              className="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-xl py-2.5 text-sm font-bold disabled:opacity-40"
+              style={{ background: "var(--primary)", color: "white" }}
+            >
+              <Check size={16} /> {isPublishing ? "Publicando…" : "Publicar"}
+            </button>
+            <button
+              type="button"
+              disabled={isPublishing}
+              onClick={retakePhoto}
+              className="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-xl border border-white/30 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
+            >
+              <RotateCcw size={15} /> Refazer
+            </button>
+          </div>
         </div>
       )}
     </section>
