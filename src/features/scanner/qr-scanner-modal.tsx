@@ -112,7 +112,10 @@ export function QrScannerModal({
       } catch (error) {
         const typed = error as Partial<ExperienceError>;
         const cooldownMessage = typed.message ?? "";
-        if (typed.code === "SCORING_CLOSED" || /pontuação está fechada/i.test(cooldownMessage)) {
+        const nestedCode = (typed.details as { code?: string } | undefined)?.code;
+        const scoringClosed = String(typed.code) === "SCORING_CLOSED" || nestedCode === "SCORING_CLOSED" || /pontuação está fechada/i.test(cooldownMessage);
+        if (scoringClosed) {
+          cooldownRef.current = false;
           stopScanner();
           setStatus("warning");
           setMessage("A pontuação está fechada no momento. O Desafio Especial continua disponível pela TV ou telão.");
