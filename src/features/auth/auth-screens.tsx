@@ -169,7 +169,10 @@ export function LoginScreen({
           </PrimaryButton>
         </div>
 
-        <p className="text-center text-sm max-[420px]:text-xs" style={{ color: "var(--muted-foreground)" }}>Já tem um código? Use seu e-mail acima. É seu primeiro acesso? <button type="button" onClick={onRegister} className="inline-flex items-center gap-1 font-semibold underline underline-offset-2" style={{ color: "var(--primary)" }}><Plus size={15} />Criar conta</button></p>
+        <div className="text-center text-sm leading-relaxed max-[420px]:text-xs" style={{ color: "var(--muted-foreground)" }}>
+          <p>Já tem um código? Use seu e-mail acima.</p>
+          <p className="mt-1">Primeiro acesso? <button type="button" onClick={onRegister} className="inline-flex min-h-9 items-center gap-1 rounded-full px-3 font-semibold" style={{ background: "var(--primary-alpha-10)", color: "var(--primary)" }}><Plus size={15} />Criar conta</button></p>
+        </div>
       </div>
     </div>
   );
