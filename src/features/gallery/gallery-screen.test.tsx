@@ -90,11 +90,14 @@ describe("GalleryScreen", () => {
     expect(await screen.findByAltText("Momento em Capela")).toHaveClass(
       "aspect-[3/4]",
     );
+    expect(document.querySelector(".passport-grid")).toHaveClass("grid-cols-2");
     expect(document.querySelector(".passport-grid")).toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "Abrir momento em Capela" }),
     );
-    expect(await screen.findByRole("button", { name: "Compartilhar momento" })).toBeInTheDocument();
+    expect(
+      await screen.findAllByRole("button", { name: "Compartilhar momento" }),
+    ).toHaveLength(2);
     await user.click(screen.getByRole("button", { name: "Grupo" }));
     expect(
       await screen.findByRole("heading", {

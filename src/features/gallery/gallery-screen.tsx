@@ -281,17 +281,19 @@ function FeedCard({
 function PassportGrid({
   moments,
   groupView = false,
+  socialView = false,
   onOpen,
   onChanged,
 }: {
   moments: Moment[];
   groupView?: boolean;
+  socialView?: boolean;
   onOpen: (value: Moment) => void;
   onChanged?: () => void;
 }) {
   return (
     <div
-      className={`passport-grid grid ${groupView ? "grid-cols-2 gap-3" : "grid-cols-3 gap-2.5"} rounded-[20px] p-2.5`}
+      className={`passport-grid grid ${socialView ? "grid-cols-2 gap-3" : "grid-cols-3 gap-2.5"} rounded-[20px] p-2.5`}
       style={{ background: "var(--muted)", border: "1px solid var(--border)" }}
     >
       {moments.map((moment) => (
@@ -318,7 +320,7 @@ function PassportGrid({
               {moment.placeName}
             </span>
           </button>
-          {groupView && onChanged && (
+          {socialView && onChanged && (
             <div className="mt-2 flex items-center justify-between border-t pt-2" style={{ borderColor: "var(--border)" }}>
               <LikeButton moment={moment} onChanged={onChanged} />
               <ShareButton moment={moment} />
@@ -503,6 +505,7 @@ export function GalleryScreen({
               <PassportGrid
                 moments={page.items}
                 groupView={tab === "group"}
+                socialView={tab !== "public"}
                 onOpen={setSelected}
                 onChanged={() => setAttempt((value) => value + 1)}
               />
