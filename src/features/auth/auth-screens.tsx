@@ -169,18 +169,7 @@ export function LoginScreen({
           </PrimaryButton>
         </div>
 
-        <p
-          className="text-center text-xs"
-          style={{ color: "var(--muted-foreground)" }}
-        >
-          Ao entrar, você concorda com os{" "}
-          <span className="underline" style={{ color: "var(--primary)" }}>
-            termos de uso
-          </span>{" "}
-          do evento.
-        </p>
-
-        <p className="text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Já tem um código? Use seu e-mail acima. É seu primeiro acesso? <button type="button" onClick={onRegister} className="inline-flex items-center gap-1 font-semibold underline underline-offset-2" style={{ color: "var(--primary)" }}><Plus size={15} />Criar conta</button></p>
+        <p className="text-center text-sm max-[420px]:text-xs" style={{ color: "var(--muted-foreground)" }}>Já tem um código? Use seu e-mail acima. É seu primeiro acesso? <button type="button" onClick={onRegister} className="inline-flex items-center gap-1 font-semibold underline underline-offset-2" style={{ color: "var(--primary)" }}><Plus size={15} />Criar conta</button></p>
       </div>
     </div>
   );
