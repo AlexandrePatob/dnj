@@ -408,7 +408,7 @@ export function GalleryScreen({
         className="absolute inset-0 overflow-y-auto pb-[calc(var(--bottom-nav-total-height)+1rem)]"
         style={{
           background: "var(--background)",
-          paddingTop: "calc(var(--participant-header-height) + 16px + var(--safe-area-top))",
+          paddingTop: "calc(var(--participant-header-height) + var(--safe-area-top))",
         }}
       >
         <div style={motion(animDir)}>
@@ -441,7 +441,7 @@ export function GalleryScreen({
               ))}
             </div>
           </header>
-          <main className="px-4 py-4">
+          <main className="px-4 pb-4 pt-1">
             {loadState === "loading" ? (
               <p className="py-10 text-center text-sm">
                 Carregando momentos...
