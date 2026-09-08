@@ -316,8 +316,9 @@ function PassportGrid({
             </span>
           </button>
           {groupView && onChanged && (
-            <div className="mt-2 flex justify-start border-t pt-2" style={{ borderColor: "var(--border)" }}>
+            <div className="mt-2 flex items-center justify-between border-t pt-2" style={{ borderColor: "var(--border)" }}>
               <LikeButton moment={moment} onChanged={onChanged} />
+              <ShareButton moment={moment} />
             </div>
           )}
           {moment.moderationMessage && (
