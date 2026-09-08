@@ -593,6 +593,7 @@ export function VerifyScreen({
   const [allFilled, setAllFilled] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState("");
+  const autoSubmitted = useRef(false);
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -601,7 +602,21 @@ export function VerifyScreen({
     return () => clearInterval(id);
   }, [timer]);
 
+  useEffect(() => {
+    if (!allFilled) {
+      autoSubmitted.current = false;
+      return;
+    }
+    if (!autoSubmitted.current) {
+      autoSubmitted.current = true;
+      void submitCode();
+    }
+  // submitCode is intentionally called only when the six-digit state becomes complete.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allFilled]);
+
   function handleChange(index: number, value: string) {
+    autoSubmitted.current = false;
     const digit = value.replace(/\D/g, "").slice(-1);
     const next = [...digits];
     next[index] = digit;
@@ -623,6 +638,7 @@ export function VerifyScreen({
       .slice(0, 6);
     if (!pasted) return;
     e.preventDefault();
+    autoSubmitted.current = false;
     const next = [...pasted, "", "", "", "", ""].slice(0, 6);
     setDigits(next);
     setAllFilled(pasted.length === 6);
