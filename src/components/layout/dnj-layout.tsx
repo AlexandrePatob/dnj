@@ -61,7 +61,7 @@ export function BottomNav({
 
   return (
     <motion.nav
-      data-tour="bottom-nav" className="absolute bottom-0 left-0 right-0 flex items-stretch z-40"
+      className="absolute bottom-0 left-0 right-0 flex items-stretch z-40"
       style={{
         background: "var(--card)",
         borderTop:  "1px solid var(--border)",

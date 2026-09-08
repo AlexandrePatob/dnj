@@ -68,8 +68,8 @@ import { EventMapScreen } from "@/features/map/map-screen";
 import { QueueScreen } from "@/features/queue/queue-screen";
 import { AppShell, BottomNav } from "@/components/layout/dnj-layout";
 import { ParticipantHeader } from "@/components/layout/participant-header";
-import { ParticipantProductTour } from "@/components/ui/product-tour";
 import { gameApi } from "@/lib/api/game";
+import { DnjOnboarding } from "@/components/onboarding/dnJ-onboarding";
 import { LiveStatusStack, type LiveAdminNotification, type LiveQueueNotification, type LiveSpecialEvent } from "@/components/live/live-status-stack";
 import { apiRequest } from "@/lib/api/client";
 import { notificationsApi } from "@/lib/api/notifications";
@@ -253,11 +253,10 @@ export function DnjApp() {
   useEffect(() => {
     if (!sessionReady || !isMain) return;
     const timer = window.setTimeout(() => {
-      const onboardingKey = `dnj.onboarding.2k26.${user.id || user.email || "anonymous"}`;
-      try { if (!localStorage.getItem(onboardingKey)) setOnboardingOpen(true); } catch { setOnboardingOpen(true); }
+      try { if (!localStorage.getItem("dnj.onboarding.2k26")) setOnboardingOpen(true); } catch { setOnboardingOpen(true); }
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [isMain, sessionReady, user.email, user.id]);
+  }, [isMain, sessionReady]);
 
   useEffect(() => {
     if (network.isOnline || restoredSnapshot.current || screen !== "login") return;
@@ -412,7 +411,7 @@ export function DnjApp() {
           </p>
         )}
         {isMain && <BottomNav active={activeNavScreen} onNavigate={navigate} />}
-        {isMain && onboardingOpen && <ParticipantProductTour run onFinish={() => { const onboardingKey = `dnj.onboarding.2k26.${user.id || user.email || "anonymous"}`; try { localStorage.setItem(onboardingKey, "1"); } catch {} setOnboardingOpen(false); setPushPromptOpen(true); }} />}
+        {isMain && onboardingOpen && <DnjOnboarding onClose={() => { try { localStorage.setItem("dnj.onboarding.2k26", "1"); } catch {} setOnboardingOpen(false); setPushPromptOpen(true); }} />}
         {isMain && !onboardingOpen && pushPromptOpen && <div className="absolute inset-0 z-[66] flex items-end bg-black/40 pb-6"><div className="w-full"><PushNotificationSettings prompt onDone={() => setPushPromptOpen(false)} /><button type="button" className="mx-5 mt-3 w-[calc(100%-2.5rem)] py-2 text-sm font-semibold" style={{ color: "white" }} onClick={() => setPushPromptOpen(false)}>Agora não</button></div></div>}
         <ConnectivityStatus
           idleContent={(
