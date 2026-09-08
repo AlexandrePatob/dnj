@@ -5,8 +5,11 @@ import { Joyride, STATUS, type Step } from "react-joyride";
 const Tour = Joyride as any;
 
 const steps: Step[] = [
-  { target: "[data-tour='participant-header']", title: "Bem-vindo ao DNJ!", content: "Conheça rapidamente sua Home e descubra onde encontrar cada funcionalidade do app." },
-  { target: "[data-tour='bottom-nav']", title: "Tudo em um só lugar", content: "Use esta barra para navegar por Home, Momentos, DNJ Game, Fila e Conta. Depois, a Home fica com você para começar sua jornada." },
+  { target: "[data-tour='participant-header']", content: "Aqui você acessa sua conta e acompanha seus pontos no DNJ Game." },
+  { target: "[data-tour='journey']", content: "Esta é a sua jornada: veja seu progresso e as próximas conquistas." },
+  { target: "[data-tour='schedule']", content: "Consulte a programação e descubra o que está acontecendo agora." },
+  { target: "[data-tour='map']", content: "Use o mapa para encontrar os espaços e experiências do evento." },
+  { target: "[data-tour='bottom-nav']", content: "Navegue entre Home, Momentos, DNJ Game, Fila e Conta." },
 ];
 
 export function ParticipantProductTour({ run, onFinish }: { run: boolean; onFinish: () => void }) {
