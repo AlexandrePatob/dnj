@@ -31,12 +31,41 @@ function MomentImage({
     ? "aspect-[3/4] w-full rounded-[7px] object-cover"
     : "aspect-[4/5] w-full rounded-[22px] object-cover";
   const alt = `Momento em ${moment.placeName}`;
-  let localStorageUrl = source.startsWith("data:");
-  try {
-    const hostname = new URL(source).hostname;
-    localStorageUrl ||= hostname === "localhost" || hostname === "127.0.0.1";
-  } catch {
-    // Relative URLs are safe for next/image.
+  let hasValidImage = false;
+  let localStorageUrl = false;
+  if (source) {
+    try {
+      const url = new URL(source, window.location.origin);
+      hasValidImage = true;
+      localStorageUrl = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    } catch {
+      // Invalid URL
+      hasValidImage = false;
+    }
+  }
+  if (!hasValidImage) {
+    return (
+      <div
+        className={classes}
+        style={{
+          background: "var(--muted)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--muted-foreground)",
+        }}
+        aria-label={alt}
+      >
+        <span className="text-center px-2">
+          <span className="block text-xs font-semibold">Foto indisponível</span>
+          {moment.moderationMessage && (
+            <span className="block text-[0.6rem] mt-1" style={{ color: "var(--destructive)" }}>
+              {moment.moderationMessage}
+            </span>
+          )}
+        </span>
+      </div>
+    );
   }
   return localStorageUrl ? (
     <img src={source} alt={alt} className={classes} />
@@ -159,8 +188,15 @@ function LikeButton({
 }) {
   const [sending, setSending] = useState(false);
   const [burst, setBurst] = useState(false);
+  const [optimisticLiked, setOptimisticLiked] = useState(moment.likedByCurrentUser);
+  const [optimisticLikesCount, setOptimisticLikesCount] = useState(moment.likesCount);
   async function toggleLike() {
+    if (sending) return;
     setSending(true);
+    const newLiked = !optimisticLiked;
+    const newLikesCount = newLiked ? optimisticLikesCount + 1 : optimisticLikesCount - 1;
+    setOptimisticLiked(newLiked);
+    setOptimisticLikesCount(newLikesCount);
     try {
       const result = await momentsApi.like(moment.id);
       if (result.liked) {
@@ -168,6 +204,10 @@ function LikeButton({
         window.setTimeout(() => setBurst(false), 650);
       }
       onChanged();
+    } catch {
+      // Revert on error
+      setOptimisticLiked(optimisticLiked);
+      setOptimisticLikesCount(optimisticLikesCount);
     } finally {
       setSending(false);
     }
@@ -178,10 +218,10 @@ function LikeButton({
       onClick={() => void toggleLike()}
       disabled={sending}
       aria-label="Curtir momento"
-      aria-pressed={moment.likedByCurrentUser}
+      aria-pressed={optimisticLiked}
       className="flex items-center gap-2 text-sm font-bold disabled:opacity-50"
       style={{
-        color: moment.likedByCurrentUser
+        color: optimisticLiked
           ? "var(--secondary)"
           : "var(--foreground)",
       }}
@@ -189,11 +229,11 @@ function LikeButton({
       <span className="relative inline-flex">
         <Heart
           size={20}
-          fill={moment.likedByCurrentUser ? "currentColor" : "none"}
+          fill={optimisticLiked ? "currentColor" : "none"}
         />
         {burst ? <span className="moment-like-burst" aria-hidden="true">{Array.from({ length: 6 }, (_, index) => <i key={index} />)}</span> : null}
       </span>
-      {moment.likesCount ?? 0}
+      {optimisticLikesCount}
     </button>
   );
 }
@@ -565,7 +605,14 @@ export function GalleryScreen({
               />
             </div>
             <div className="flex items-center justify-between gap-4 px-2 pt-3">
-              <strong>{selected.placeName}</strong>
+              <div>
+                <strong className="block">{selected.placeName}</strong>
+                {selected.groupName && (
+                  <small style={{ color: "var(--muted-foreground)" }}>
+                    {selected.groupName}
+                  </small>
+                )}
+              </div>
               <div className="flex items-center gap-5">
                 {(tab !== "public" ||
                   canShareFeedMoment(
