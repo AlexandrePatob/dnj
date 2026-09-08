@@ -320,7 +320,7 @@ function PassportGrid({
               {moment.placeName}
             </span>
           </button>
-          {socialView && onChanged && (
+          {socialView && onChanged && !moment.moderationMessage && (
             <div className="mt-2 flex items-center justify-between border-t pt-2" style={{ borderColor: "var(--border)" }}>
               <LikeButton moment={moment} onChanged={onChanged} />
               <ShareButton moment={moment} />
