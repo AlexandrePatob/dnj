@@ -253,10 +253,11 @@ export function DnjApp() {
   useEffect(() => {
     if (!sessionReady || !isMain) return;
     const timer = window.setTimeout(() => {
-      try { if (!localStorage.getItem("dnj.onboarding.2k26")) setOnboardingOpen(true); } catch { setOnboardingOpen(true); }
+      const onboardingKey = `dnj.onboarding.2k26.${user.id || user.email || "anonymous"}`;
+      try { if (!localStorage.getItem(onboardingKey)) setOnboardingOpen(true); } catch { setOnboardingOpen(true); }
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [isMain, sessionReady]);
+  }, [isMain, sessionReady, user.email, user.id]);
 
   useEffect(() => {
     if (network.isOnline || restoredSnapshot.current || screen !== "login") return;
@@ -411,7 +412,7 @@ export function DnjApp() {
           </p>
         )}
         {isMain && <BottomNav active={activeNavScreen} onNavigate={navigate} />}
-        {isMain && onboardingOpen && <ParticipantProductTour run onFinish={() => { try { localStorage.setItem("dnj.onboarding.2k26", "1"); } catch {} setOnboardingOpen(false); setPushPromptOpen(true); }} />}
+        {isMain && onboardingOpen && <ParticipantProductTour run onFinish={() => { const onboardingKey = `dnj.onboarding.2k26.${user.id || user.email || "anonymous"}`; try { localStorage.setItem(onboardingKey, "1"); } catch {} setOnboardingOpen(false); setPushPromptOpen(true); }} />}
         {isMain && !onboardingOpen && pushPromptOpen && <div className="absolute inset-0 z-[66] flex items-end bg-black/40 pb-6"><div className="w-full"><PushNotificationSettings prompt onDone={() => setPushPromptOpen(false)} /><button type="button" className="mx-5 mt-3 w-[calc(100%-2.5rem)] py-2 text-sm font-semibold" style={{ color: "white" }} onClick={() => setPushPromptOpen(false)}>Agora não</button></div></div>}
         <ConnectivityStatus
           idleContent={(
