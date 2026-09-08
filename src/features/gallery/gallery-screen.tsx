@@ -239,7 +239,7 @@ function FeedCard({
         <span className="flex-1">
           <strong className="block text-sm">{moment.authorName}</strong>
           <small style={{ color: "var(--muted-foreground)" }}>
-            Juventude DNJ
+            {moment.groupName || "Juventude DNJ"}
           </small>
         </span>
       </header>

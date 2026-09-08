@@ -22,6 +22,14 @@ function Test-ProcessAlive([int]$id) {
   return $null -ne (Get-Process -Id $id -ErrorAction SilentlyContinue)
 }
 
+function Assert-PortFree([int]$port, [string]$name) {
+  $listener = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($null -eq $listener) { return }
+  $process = Get-CimInstance Win32_Process -Filter "ProcessId=$($listener.OwningProcess)" -ErrorAction SilentlyContinue
+  $command = if ($process) { $process.CommandLine } else { "PID $($listener.OwningProcess)" }
+  throw "$name já está ocupando a porta $port ($command). Execute 'npm run dev:local:stop' ou encerre esse processo antes de iniciar."
+}
+
 function Stop-ProcessTree([int]$processId) {
   Get-CimInstance Win32_Process -Filter "ParentProcessId=$processId" |
     ForEach-Object { Stop-ProcessTree $_.ProcessId }
@@ -72,6 +80,10 @@ function Wait-TryCloudflareUrl([string]$logPrefix, [string]$name) {
 
 foreach ($command in "docker", "go", "npm", "cloudflared") { Require-Command $command }
 if (-not (Test-Path (Join-Path $apiRoot "docker-compose.yml"))) { throw "Backend não encontrado em $apiRoot." }
+Assert-PortFree 3000 "Frontend"
+Assert-PortFree 8081 "API"
+Assert-PortFree $minioPort "MinIO"
+Assert-PortFree $minioConsolePort "Console MinIO"
 if (Test-Path $stateFile) {
   $oldState = Get-Content -Raw $stateFile | ConvertFrom-Json
   if (@($oldState.pids | Where-Object { Test-ProcessAlive $_ }).Count -gt 0) {

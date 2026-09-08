@@ -148,7 +148,7 @@ describe("GalleryScreen", () => {
       json: async () => ({
         items: [
           { id: "mine", authorName: "Alex", groupId: "other", placeName: "Capela", imageUrl: "/mock/moments/dnj-feed-01.png" },
-          { id: "group", authorName: "Outra pessoa", groupId: "group-1", placeName: "Palco", imageUrl: "/mock/moments/dnj-feed-01.png" },
+          { id: "group", authorName: "Outra pessoa", groupId: "group-1", groupName: "Cursilho", placeName: "Palco", imageUrl: "/mock/moments/dnj-feed-01.png" },
           { id: "other", authorName: "Outra pessoa", groupId: "group-2", placeName: "Quadra", imageUrl: "/mock/moments/dnj-feed-01.png" },
         ],
         nextCursor: null,
@@ -167,6 +167,7 @@ describe("GalleryScreen", () => {
       await screen.findAllByRole("button", { name: "Compartilhar momento" }),
     ).toHaveLength(2);
     expect(screen.getAllByText("DNJ")).toHaveLength(3);
+    expect(screen.getByText("Cursilho")).toBeInTheDocument();
   });
 
   it("shows the author's profile photo when the feed provides one", async () => {
