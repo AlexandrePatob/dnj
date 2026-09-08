@@ -27,6 +27,13 @@ function animStyle(dir: AnimDir): React.CSSProperties {
   };
   return { animation: map[dir] };
 }
+function AuthHeader({ onBack }: { onBack: () => void }) {
+  return <header className="relative -mx-6 flex h-24 shrink-0 items-center px-6" style={{ background: "linear-gradient(to bottom, transparent 74%, var(--background) 100%), url('/images/participant/top.webp') center / 100% 100% no-repeat" }}>
+    <div className="-translate-y-3">
+      <BackButton onClick={onBack} className="rounded-full bg-white/20 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm" style={{ color: "white" }} />
+    </div>
+  </header>;
+}
 function requestErrorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
@@ -185,11 +192,7 @@ export function CreateAccountScreen({ onBack, onDone, animDir }: { onBack: () =>
   const valid = name.trim().length >= 2 && email.includes("@");
 
   return <div key="create-account" className="flex min-h-dvh flex-col px-6 pb-10" style={{ background: "var(--background)", paddingTop: "var(--safe-area-top)", ...animStyle(animDir) }}>
-    <header className="relative -mx-6 flex h-24 shrink-0 items-center px-6" style={{ background: "linear-gradient(to bottom, transparent 74%, var(--background) 100%), url('/images/participant/top.webp') center / 100% 100% no-repeat" }}>
-      <div className="-translate-y-3">
-        <BackButton onClick={onBack} className="rounded-full bg-white/20 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm" style={{ color: "white" }} />
-      </div>
-    </header>
+    <AuthHeader onBack={onBack} />
     <div className="mb-6 mt-2"><h2 className="mb-1 text-2xl font-bold" style={{ color: "var(--foreground)" }}>Criar conta</h2><p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Comece com seu nome e e-mail. Os demais dados serão pedidos após a validação.</p></div>
     <div className="mb-5 flex flex-col gap-4 rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><FieldInput label="Nome completo" placeholder="Seu nome" value={name} onChange={(event) => setName(event.target.value)} error={name && name.trim().length < 2 ? "Informe seu nome completo." : ""} /><FieldInput label="E-mail" type="email" placeholder="seu@email.com" value={email} onChange={(event) => setEmail(event.target.value)} error={email && !email.includes("@") ? "Informe um e-mail válido." : ""} /></div>
     <PrimaryButton onClick={() => onDone({ name: name.trim(), email, mobilePhone: "", group: "" })} disabled={!valid}>Enviar código</PrimaryButton>
@@ -642,14 +645,14 @@ export function VerifyScreen({
   return (
     <div
       key="verify"
-      className="flex flex-col min-h-dvh px-6 pb-10"
+      className="flex min-h-dvh flex-col overflow-y-auto px-6 pb-10"
       style={{
         background: "var(--background)",
         paddingTop: "calc(48px + var(--safe-area-top))",
         ...animStyle(animDir),
       }}
     >
-      <BackButton onClick={onBack} />
+      <AuthHeader onBack={onBack} />
 
       <div className="mt-8 mb-6">
         <h2
@@ -877,7 +880,7 @@ export function GroupScreen({
         className="min-h-0 flex-1 overflow-y-auto px-6"
         style={{ paddingTop: "calc(48px + var(--safe-area-top))" }}
       >
-        <BackButton onClick={onBack} />
+        <AuthHeader onBack={onBack} />
 
       <div className="mt-6 mb-5">
         <h2
