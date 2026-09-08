@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, MapPin, Plus, Search } from "lucide-react";
-import { BrandSticker } from "@/components/brand/brand-sticker";
 import {
   BackButton,
   FieldInput,
