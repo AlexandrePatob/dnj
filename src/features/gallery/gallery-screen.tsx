@@ -277,42 +277,49 @@ function FeedCard({
 
 function PassportGrid({
   moments,
+  groupView = false,
   onOpen,
+  onChanged,
 }: {
   moments: Moment[];
+  groupView?: boolean;
   onOpen: (value: Moment) => void;
+  onChanged?: () => void;
 }) {
   return (
     <div
-      className="passport-grid grid grid-cols-3 gap-2.5 rounded-[20px] p-2.5"
+      className={`passport-grid grid ${groupView ? "grid-cols-2 gap-3" : "grid-cols-3 gap-2.5"} rounded-[20px] p-2.5`}
       style={{ background: "var(--muted)", border: "1px solid var(--border)" }}
     >
       {moments.map((moment) => (
-        <button
+        <div
           key={moment.id}
-          type="button"
-          onClick={() => onOpen(moment)}
-          aria-label={`Abrir momento em ${moment.placeName}`}
-          className="min-w-0 rounded-[10px] p-1.5 pb-2 text-left transition-transform active:scale-[.97]"
+          className="min-w-0 rounded-[10px] p-1.5 pb-2"
           style={{
             background: "var(--card)",
             boxShadow: "0 5px 10px rgba(11, 35, 37, .10)",
           }}
         >
-          <span className="relative block">
-            <MomentImage moment={moment} compact />
-            <BrandSticker
-              variant="watermark"
-              decorative
-              className="absolute bottom-1 right-1 scale-[.42] origin-bottom-right drop-shadow-sm"
-            />
-          </span>
-          <span
-            className="mt-1.5 block truncate px-0.5 text-[.58rem] font-bold uppercase tracking-[.04em]"
-            style={{ color: "var(--muted-foreground)" }}
-          >
-            {moment.placeName}
-          </span>
+          {groupView && (
+            <div className="mb-2 flex min-w-0 items-center gap-1.5 px-0.5">
+              <AuthorAvatar moment={moment} />
+              <span className="truncate text-[.68rem] font-bold" title={moment.authorName}>{moment.authorName}</span>
+            </div>
+          )}
+          <button type="button" onClick={() => onOpen(moment)} aria-label={`Abrir momento em ${moment.placeName}`} className="block w-full text-left transition-transform active:scale-[.97]">
+            <span className="relative block">
+              <MomentImage moment={moment} compact />
+              <BrandSticker variant="watermark" decorative className="absolute bottom-1 right-1 scale-[.42] origin-bottom-right drop-shadow-sm" />
+            </span>
+            <span className="mt-1.5 block truncate px-0.5 text-[.58rem] font-bold uppercase tracking-[.04em]" style={{ color: "var(--muted-foreground)" }}>
+              {moment.placeName}
+            </span>
+          </button>
+          {groupView && onChanged && (
+            <div className="mt-2 flex justify-start border-t pt-2" style={{ borderColor: "var(--border)" }}>
+              <LikeButton moment={moment} onChanged={onChanged} />
+            </div>
+          )}
           {moment.moderationMessage && (
             <span
               className="mt-1 block px-0.5 text-[.6rem] font-semibold leading-tight"
@@ -321,7 +328,7 @@ function PassportGrid({
               {moment.moderationMessage}
             </span>
           )}
-        </button>
+        </div>
       ))}
     </div>
   );
@@ -489,7 +496,12 @@ export function GalleryScreen({
                 ))}
               </div>
             ) : (
-              <PassportGrid moments={page.items} onOpen={setSelected} />
+              <PassportGrid
+                moments={page.items}
+                groupView={tab === "group"}
+                onOpen={setSelected}
+                onChanged={() => setAttempt((value) => value + 1)}
+              />
             )}
           </main>
         </div>
@@ -548,10 +560,6 @@ export function GalleryScreen({
             <div className="flex items-center justify-between gap-4 px-2 pt-3">
               <strong>{selected.placeName}</strong>
               <div className="flex items-center gap-5">
-                <LikeButton
-                  moment={selected}
-                  onChanged={() => setAttempt((value) => value + 1)}
-                />
                 {(tab !== "public" ||
                   canShareFeedMoment(
                     selected,

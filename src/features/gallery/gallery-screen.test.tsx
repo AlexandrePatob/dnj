@@ -133,13 +133,8 @@ describe("GalleryScreen", () => {
       screen.getByRole("button", { name: "Abrir momento em Palco" }),
     );
     expect(await screen.findByRole("dialog", { name: "Detalhe do momento" })).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Curtir momento" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Curtir momento" })).toHaveLength(1);
     expect(screen.queryByRole("button", { name: "Compartilhar momento" })).not.toBeInTheDocument();
-    const detailLike = screen.getAllByRole("button", {
-      name: "Curtir momento",
-    })[1];
-    await user.click(detailLike);
-    expect(detailLike).not.toBeDisabled();
   });
 
   it("shows feed sharing only for personal and group moments", async () => {
