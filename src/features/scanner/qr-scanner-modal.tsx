@@ -112,7 +112,11 @@ export function QrScannerModal({
       } catch (error) {
         const typed = error as Partial<ExperienceError>;
         const cooldownMessage = typed.message ?? "";
-        if (typed.code?.toLowerCase() === "cooldown_active" || /10 minutos|outro qr/i.test(cooldownMessage)) {
+        if (typed.code === "SCORING_CLOSED") {
+          stopScanner();
+          setStatus("warning");
+          setMessage("A pontuação está fechada no momento. O Desafio Especial continua disponível pela TV ou telão.");
+        } else if (typed.code?.toLowerCase() === "cooldown_active" || /10 minutos|outro qr/i.test(cooldownMessage)) {
           cooldownRef.current = true;
           stopScanner();
           setStatus("warning");
