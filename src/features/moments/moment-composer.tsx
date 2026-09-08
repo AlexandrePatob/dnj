@@ -172,10 +172,10 @@ export function MomentComposer({
     <section
       role="dialog"
       aria-modal="true"
-      className="absolute inset-0 z-50 flex min-h-0 flex-col items-center overflow-y-auto px-5 pb-[calc(var(--bottom-nav-total-height)+1rem)]"
+      className="absolute inset-0 z-30 flex min-h-0 flex-col items-center overflow-y-auto px-0 pb-[var(--bottom-nav-total-height)]"
       style={{
         background: "var(--background)",
-        paddingTop: "calc(var(--participant-header-height) + 28px + var(--safe-area-top))",
+        paddingTop: "calc(var(--participant-header-height) + var(--safe-area-top))",
       }}
       aria-label="Compartilhar momento"
     >
@@ -186,22 +186,17 @@ export function MomentComposer({
           stopCamera();
           onClose();
         }}
-        className="absolute right-6 flex h-10 w-10 items-center justify-center rounded-xl"
+        className="absolute right-5 z-10 flex h-10 w-10 items-center justify-center rounded-full border-2"
         style={{
-          top: "calc(var(--participant-header-height) + 0px + var(--safe-area-top))",
+          top: "calc(var(--participant-header-height) + 8px + var(--safe-area-top))",
           background: "var(--muted)",
+          borderColor: "var(--primary)",
         }}
         aria-label="Fechar"
       >
         <X size={18} />
       </button>
-      <div className="text-center">
-        <span
-          className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
-          style={{ background: "var(--primary-alpha-15)" }}
-        >
-          <Camera size={26} style={{ color: "var(--primary)" }} />
-        </span>
+      <div className="hidden">
         <h2 className="text-xl font-bold">
           {step === "capture" && mode === "challenge"
             ? "Foto do desafio"
@@ -221,9 +216,19 @@ export function MomentComposer({
         </p>
       </div>
       <div
-        className="relative mt-7 aspect-square w-full max-w-[34rem] shrink-0 overflow-hidden rounded-3xl"
-        style={{ background: "var(--muted)" }}
+        className="relative mt-0 h-[calc(100dvh-var(--participant-header-height)-var(--safe-area-top))] min-h-0 w-full shrink-0 overflow-hidden rounded-[2rem] border-2"
+        style={{ background: "#101010", borderColor: "var(--primary)" }}
       >
+        <h2
+          className="absolute left-1/2 top-2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border-2 px-5 py-2 text-sm font-bold leading-5 shadow-lg"
+          style={{
+            background: "rgb(239 115 24 / 0.82)",
+            borderColor: "rgb(255 255 255 / 0.8)",
+            color: "white",
+          }}
+        >
+          Compartilhar Momento DNJ
+        </h2>
         {preview ? (
           <img
             src={preview}
@@ -236,7 +241,7 @@ export function MomentComposer({
               ref={videoRef}
               muted
               playsInline
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
               style={{ display: cameraOpen ? "block" : "none" }}
             />
             {!cameraOpen && (
@@ -251,53 +256,19 @@ export function MomentComposer({
             )}
           </>
         )}
-        {!preview && (
-          <>
-            <span
-              aria-hidden="true"
-              className="absolute left-0 top-0 h-12 w-12 rounded-tl-3xl border-l-4 border-t-4"
-              style={{ borderColor: "var(--primary)" }}
-            />
-            <span
-              aria-hidden="true"
-              className="absolute right-0 top-0 h-12 w-12 rounded-tr-3xl border-r-4 border-t-4"
-              style={{ borderColor: "var(--primary)" }}
-            />
-            <span
-              aria-hidden="true"
-              className="absolute bottom-0 left-0 h-12 w-12 rounded-bl-3xl border-b-4 border-l-4"
-              style={{ borderColor: "var(--primary)" }}
-            />
-            <span
-              aria-hidden="true"
-              className="absolute bottom-0 right-0 h-12 w-12 rounded-br-3xl border-b-4 border-r-4"
-              style={{ borderColor: "var(--primary)" }}
-            />
-          </>
-        )}
       </div>
       {step === "capture" ? (
         <>
-          <p
-            className="mt-6 text-center text-sm"
-            style={{
-              color:
-                status && !cameraOpen
-                  ? "var(--destructive)"
-                  : "var(--muted-foreground)",
-            }}
-          >
-            {cameraOpen ? "Capture uma foto agora para compartilhar." : status}
-          </p>
-          <div className="mt-4 flex w-full max-w-[34rem] gap-3">
+          <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-black/65 px-4 py-2 backdrop-blur-sm">
             <button
               type="button"
               disabled={!cameraOpen}
               onClick={capturePhoto}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold disabled:opacity-40"
+              className="grid h-16 w-16 shrink-0 place-items-center rounded-full border-4 border-white text-sm font-bold shadow-lg disabled:opacity-40"
               style={{ background: "var(--primary)", color: "white" }}
+              aria-label="Capturar foto"
             >
-              <Camera size={18} /> Capturar foto
+              <Camera size={26} />
             </button>
             <button
               type="button"
@@ -307,13 +278,12 @@ export function MomentComposer({
                   value === "environment" ? "user" : "environment",
                 )
               }
-              className="rounded-xl px-4 disabled:opacity-40"
-              style={{ background: "var(--muted)", color: "var(--foreground)" }}
+              className="grid h-9 w-9 place-items-center rounded-full bg-white/90 disabled:opacity-40"
+              style={{ color: "var(--foreground)" }}
               aria-label="Trocar câmera"
             >
               <RefreshCw size={18} />
             </button>
-          </div>
           {!cameraOpen && (
             <button
               type="button"
@@ -324,6 +294,7 @@ export function MomentComposer({
               Tentar abrir câmera
             </button>
           )}
+          </div>
         </>
       ) : (
         <div className="mt-6 w-full max-w-[34rem]">
