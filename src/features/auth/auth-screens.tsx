@@ -185,8 +185,13 @@ export function CreateAccountScreen({ onBack, onDone, animDir }: { onBack: () =>
   const [email, setEmail] = useState("");
   const valid = name.trim().length >= 2 && email.includes("@");
 
-  return <div key="create-account" className="flex min-h-dvh flex-col px-6 pb-10" style={{ background: "var(--background)", paddingTop: "calc(48px + var(--safe-area-top))", ...animStyle(animDir) }}>
-    <BackButton onClick={onBack} />
+  return <div key="create-account" className="flex min-h-dvh flex-col px-6 pb-10" style={{ background: "var(--background)", paddingTop: "var(--safe-area-top)", ...animStyle(animDir) }}>
+    <header className="relative -mx-6 flex h-14 shrink-0 items-center justify-center border-b px-6" style={{ borderColor: "var(--border)" }}>
+      <BackButton onClick={onBack} />
+      <div className="absolute left-1/2 -translate-x-1/2">
+        <BrandSticker className="h-8 w-auto" />
+      </div>
+    </header>
     <div className="mb-6 mt-6"><h2 className="mb-1 text-2xl font-bold" style={{ color: "var(--foreground)" }}>Criar conta</h2><p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Comece com seu nome e e-mail. Os demais dados serão pedidos após a validação.</p></div>
     <div className="mb-5 flex flex-col gap-4 rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><FieldInput label="Nome completo" placeholder="Seu nome" value={name} onChange={(event) => setName(event.target.value)} error={name && name.trim().length < 2 ? "Informe seu nome completo." : ""} /><FieldInput label="E-mail" type="email" placeholder="seu@email.com" value={email} onChange={(event) => setEmail(event.target.value)} error={email && !email.includes("@") ? "Informe um e-mail válido." : ""} /></div>
     <PrimaryButton onClick={() => onDone({ name: name.trim(), email, mobilePhone: "", group: "" })} disabled={!valid}>Enviar código</PrimaryButton>
