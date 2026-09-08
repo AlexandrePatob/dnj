@@ -186,12 +186,9 @@ export function CreateAccountScreen({ onBack, onDone, animDir }: { onBack: () =>
   const valid = name.trim().length >= 2 && email.includes("@");
 
   return <div key="create-account" className="flex min-h-dvh flex-col px-6 pb-10" style={{ background: "var(--background)", paddingTop: "var(--safe-area-top)", ...animStyle(animDir) }}>
-    <header className="relative -mx-6 flex h-14 shrink-0 items-center justify-center border-b px-6" style={{ borderColor: "var(--border)" }}>
-      <div className="absolute left-6">
+    <header className="relative -mx-6 flex h-24 shrink-0 items-center px-6" style={{ background: "linear-gradient(to bottom, transparent 74%, var(--background) 100%), url('/images/participant/top.webp') center / 100% 100% no-repeat" }}>
+      <div style={{ color: "white" }}>
         <BackButton onClick={onBack} />
-      </div>
-      <div className="absolute left-1/2 -translate-x-1/2">
-        <BrandSticker className="h-8 w-auto" />
       </div>
     </header>
     <div className="mb-6 mt-6"><h2 className="mb-1 text-2xl font-bold" style={{ color: "var(--foreground)" }}>Criar conta</h2><p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Comece com seu nome e e-mail. Os demais dados serão pedidos após a validação.</p></div>
