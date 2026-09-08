@@ -14,6 +14,8 @@
   --color-red: #db3a2e;
   --color-lime: #b2d64d;
   --color-teal: #34d1d1;
+  --color-queue-purple: #b719aa;
+  --queue-confession: var(--color-queue-purple);
   --color-game-green: #b2d64d;
   --game: var(--color-game-green);
   --space-1: 0.25rem;
