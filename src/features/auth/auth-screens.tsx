@@ -790,6 +790,7 @@ export function GroupScreen({
   const [groupsError, setGroupsError] = useState("");
   const [searchingGroups, setSearchingGroups] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
 
   useEffect(() => {
     const search = query.trim();
@@ -882,19 +883,23 @@ export function GroupScreen({
       >
         <AuthHeader onBack={onBack} />
 
-      <div className="mt-6 mb-5">
+      <div className="mt-2 mb-4">
         <h2
           className="text-2xl font-bold mb-1"
           style={{ color: "var(--foreground)" }}
         >
-          Seu grupo jovem
+          Complete seu cadastro
         </h2>
         <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-          Complete seus dados e confirme seu grupo de juventude
+          {step === 1 ? "Informe seus dados para continuar." : "Agora escolha ou crie seu grupo de jovens."}
         </p>
       </div>
 
-      <div className="mb-4 flex flex-col gap-3">
+      <div className="mb-5 grid grid-cols-2 gap-2 rounded-xl p-1" style={{ background: "var(--muted)" }}>
+        {[{ id: 1, label: "Dados" }, { id: 2, label: "Grupo" }].map((tab) => <button key={tab.id} type="button" onClick={() => tab.id === 1 || name.trim().length >= 2 ? setStep(tab.id as 1 | 2) : undefined} className="rounded-lg py-2.5 text-xs font-bold transition-colors" style={{ background: step === tab.id ? "var(--card)" : "transparent", color: step === tab.id ? "var(--primary)" : "var(--muted-foreground)", boxShadow: step === tab.id ? "0 2px 8px rgb(0 0 0 / .08)" : "none" }}>{tab.label}</button>)}
+      </div>
+
+      {step === 1 ? <div className="mb-4 flex flex-col gap-3">
         <FieldInput
           label="Nome completo"
           placeholder="Seu nome completo"
@@ -914,9 +919,9 @@ export function GroupScreen({
           value={mobilePhone}
           onChange={(event) => setMobilePhone(formatWhatsApp(event.target.value))}
         />
-      </div>
+      </div> : null}
 
-      <AnimatePresence>
+      {step === 2 ? <><AnimatePresence>
         {selected && !adding && (
           <motion.div
             className="rounded-xl p-3 mb-4 flex items-center gap-3"
@@ -1127,6 +1132,7 @@ export function GroupScreen({
           </button>
         </div>
       )}
+      </> : null}
 
       </div>
 
@@ -1138,8 +1144,8 @@ export function GroupScreen({
           paddingBottom: "calc(16px + var(--safe-area-bottom))",
         }}
       >
-        <PrimaryButton onClick={confirmGroup} disabled={!selected || document.replace(/\D/g, "").length !== 11 || mobilePhone.replace(/\D/g, "").length < 10 || confirming}>
-          {confirming ? "Salvando..." : "Continuar"}
+        <PrimaryButton onClick={() => step === 1 ? setStep(2) : void confirmGroup()} disabled={step === 1 ? name.trim().length < 2 || document.replace(/\D/g, "").length !== 11 || mobilePhone.replace(/\D/g, "").length < 10 : !selected || confirming}>
+          {step === 1 ? "Continuar para grupo" : confirming ? "Salvando..." : "Confirmar grupo"}
         </PrimaryButton>
       </div>
     </div>
