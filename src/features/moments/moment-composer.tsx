@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/media";
 
 type MomentStep = "capture" | "review";
+type CameraZoom = 0.5 | 1 | 2;
 const CAMERA_START_TIMEOUT_MS = 8_000;
 const publishLabels: Record<Exclude<PublishProgress, "success" | "error">, string> = {
   hashing: "Preparando sua foto…",
@@ -40,6 +41,8 @@ export function MomentComposer({
   const [facingMode, setFacingMode] = useState<"environment" | "user">(
     "environment",
   );
+  const [cameraZoom, setCameraZoom] = useState<CameraZoom>(1);
+  const [zoomMenuOpen, setZoomMenuOpen] = useState(false);
 
   useEffect(
     () => () => {
@@ -88,6 +91,25 @@ export function MomentComposer({
       );
     }
   }, [facingMode, stopCamera]);
+  const selectCameraZoom = useCallback(async (zoom: CameraZoom) => {
+    const track = streamRef.current?.getVideoTracks()[0];
+    if (!track) return;
+    const capabilities = track.getCapabilities() as MediaTrackCapabilities & {
+      zoom?: { min?: number; max?: number };
+    };
+    if (!capabilities.zoom) return;
+    const min = capabilities.zoom.min ?? zoom;
+    const max = capabilities.zoom.max ?? zoom;
+    const nativeZoom = Math.min(max, Math.max(min, zoom));
+    try {
+      await track.applyConstraints({
+        advanced: [{ zoom: nativeZoom } as MediaTrackConstraintSet],
+      });
+      setCameraZoom(zoom);
+    } catch {
+      setStatus("Este dispositivo não oferece esse zoom nativo.");
+    }
+  }, []);
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void startCamera();
@@ -103,6 +125,9 @@ export function MomentComposer({
       void videoRef.current.play();
     }
   }, [cameraOpen]);
+  useEffect(() => {
+    if (cameraOpen) void selectCameraZoom(cameraZoom);
+  }, [cameraOpen, cameraZoom, selectCameraZoom]);
   function selectFile(next: File) {
     if (preview) URL.revokeObjectURL(preview);
     setFile(next);
@@ -259,7 +284,41 @@ export function MomentComposer({
       </div>
       {step === "capture" ? (
         <>
-          <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-black/65 px-4 py-2 backdrop-blur-sm">
+          <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-black/65 px-3 py-2 backdrop-blur-sm">
+            <div className="relative" aria-label="Zoom nativo da câmera">
+              <button
+                type="button"
+                disabled={!cameraOpen}
+                onClick={() => setZoomMenuOpen((open) => !open)}
+                className="rounded-full bg-white/20 px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
+                aria-expanded={zoomMenuOpen}
+                aria-haspopup="listbox"
+              >
+                {cameraZoom}x
+              </button>
+              {zoomMenuOpen && (
+                <div className="absolute bottom-full left-0 mb-2 flex flex-col gap-1 rounded-2xl bg-black/75 p-1 backdrop-blur-sm" role="listbox" aria-label="Opções de zoom">
+                  {([0.5, 1, 2] as const)
+                    .filter((zoom) => zoom !== cameraZoom)
+                    .map((zoom) => (
+                <button
+                  key={zoom}
+                  type="button"
+                  disabled={!cameraOpen}
+                  onClick={() => {
+                    setZoomMenuOpen(false);
+                    void selectCameraZoom(zoom);
+                  }}
+                  className="rounded-full px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
+                  aria-label={`Zoom ${zoom}x`}
+                  role="option"
+                >
+                  {zoom}x
+                </button>
+                    ))}
+                </div>
+              )}
+            </div>
             <button
               type="button"
               disabled={!cameraOpen}
