@@ -52,7 +52,7 @@ function Start-LoggedProcess([string]$name, [string]$workingDirectory, [string[]
   $stdout = Join-Path $logsDir "$name.out.log"
   $stderr = Join-Path $logsDir "$name.err.log"
   Remove-Item -Force $stdout, $stderr -ErrorAction SilentlyContinue
-  return Start-Process -FilePath "cmd.exe" -WorkingDirectory $workingDirectory -ArgumentList $arguments -RedirectStandardOutput $stdout -RedirectStandardError $stderr -PassThru
+  return Start-Process -FilePath "cmd.exe" -WindowStyle Hidden -WorkingDirectory $workingDirectory -ArgumentList $arguments -RedirectStandardOutput $stdout -RedirectStandardError $stderr -PassThru
 }
 
 function Wait-TryCloudflareUrl([string]$logPrefix, [string]$name) {
