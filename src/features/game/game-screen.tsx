@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Award, BookOpen, Church, Crown, Footprints, Hammer, LockKeyhole, QrCode, Send, Sprout } from "lucide-react";
+import { Award, BookOpen, Camera, Church, Crown, Footprints, Hammer, Info, LockKeyhole, MonitorPlay, QrCode, Send, Sprout, X } from "lucide-react";
 import gameLogoDark from "@/assets/brand/DNJGAME_DARK.png";
 import gameLogoLight from "@/assets/brand/DNJGAME_01.png";
 import { MedalBadge, PointIcon } from "@/components/ui/dnj-controls";
@@ -295,6 +295,7 @@ export function GameScreen({
   onPointsChange: (points: number) => void;
 }) {
   const [tab, setTab] = useState<GameTab>("overview");
+  const [pointsInfoOpen, setPointsInfoOpen] = useState(false);
   const [rankingTab, setRankingTab] = useState<RankingTab>("individual");
   const [qrOpen, setQrOpen] = useState(false);
   const [celebration, setCelebration] = useState<
@@ -468,6 +469,15 @@ export function GameScreen({
             alt="DNJ Game"
             className="h-auto w-36"
           />
+          <button
+            type="button"
+            onClick={() => setPointsInfoOpen(true)}
+            className="absolute right-0 flex h-9 items-center gap-1 rounded-full px-3 text-xs font-black text-white"
+            style={{ background: "var(--primary)" }}
+            aria-label="Regras do DNJ Game"
+          >
+            <Info size={16} /> Regras
+          </button>
         </div>
         <div
           className="mt-4 flex rounded-xl p-1"
@@ -660,6 +670,55 @@ export function GameScreen({
         >
           <QrCode />
         </button>
+      )}
+      {pointsInfoOpen && (
+        <div
+          className="absolute inset-0 z-30 flex items-end bg-black/40"
+          role="presentation"
+          onClick={() => setPointsInfoOpen(false)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="points-info-title"
+            className="w-full rounded-t-3xl p-5 pb-[calc(1.25rem+var(--safe-area-bottom))] shadow-2xl"
+            style={{ background: "var(--card)" }}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.12em]" style={{ color: "var(--game)" }}>DNJ Game</p>
+                <h2 id="points-info-title" className="mt-1 text-xl font-black">Regras do DNJ Game</h2>
+              </div>
+              <button type="button" onClick={() => setPointsInfoOpen(false)} className="grid h-9 w-9 place-items-center rounded-full" style={{ background: "var(--muted)" }} aria-label="Fechar informações">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="mt-5 space-y-4">
+              <div className="flex gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl" style={{ background: "var(--primary-alpha-15)", color: "var(--primary)" }}><QrCode size={20} /></span>
+                <p className="min-w-0 text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                  <strong className="flex items-center gap-2 text-[var(--foreground)]">Escanear QR Code <span className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white" style={{ background: "var(--primary)" }}>Pontua</span></strong>
+                  <span className="mt-1 block">Check-in, espaços, atividades dinâmicas e desafios especiais.</span>
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl" style={{ background: "var(--primary-alpha-15)", color: "var(--primary)" }}><Camera size={20} /></span>
+                <p className="min-w-0 text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                  <strong className="flex items-center gap-2 text-[var(--foreground)]">Desafio Momento <span className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white" style={{ background: "var(--primary)" }}>Pontua</span></strong>
+                  <span className="mt-1 block">Durante o dia você receberá uma notificação para tirar uma foto em algum lugar, com alguma pessoa, e ganhará pontos!</span>
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl" style={{ background: "var(--primary-alpha-15)", color: "var(--primary)" }}><MonitorPlay size={20} /></span>
+                <p className="min-w-0 text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                  <strong className="flex items-center gap-2 text-[var(--foreground)]">Desafios especiais <span className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white" style={{ background: "var(--primary)" }}>Vale mais</span></strong>
+                  <span className="mt-1 block">Fique esperto com as TVs e telões: a qualquer momento podem surgir desafios, e o QR Code vale muitos pontos!</span>
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
       )}
       <AnimatePresence>
         {onboarding && (
