@@ -54,6 +54,7 @@ export function QrScannerModal({
   const onCloseRef = useRef(onClose);
   const [status, setStatus] = useState<ScannerStatus>("starting");
   const [message, setMessage] = useState("Preparando câmera...");
+  const [warningTitle, setWarningTitle] = useState("Aguarde 10 minutos");
   const [facingMode, setFacingMode] = useState<CameraFacing>("environment");
   const [zoomRange, setZoomRange] = useState<ZoomRange>(null);
   const [zoom, setZoom] = useState(1);
@@ -112,10 +113,33 @@ export function QrScannerModal({
       } catch (error) {
         const typed = error as Partial<ExperienceError>;
         const cooldownMessage = typed.message ?? "";
-        if (typed.code?.toLowerCase() === "cooldown_active" || /10 minutos|outro qr/i.test(cooldownMessage)) {
+        const nestedCode = (typed.details as { code?: string } | undefined)?.code;
+        const scoringClosed = String(typed.code) === "SCORING_CLOSED" || nestedCode === "SCORING_CLOSED" || /pontuação está fechada/i.test(cooldownMessage);
+        if (scoringClosed) {
+          cooldownRef.current = false;
+          stopScanner();
+          setStatus("warning");
+          setWarningTitle("Pontuação fechada");
+          setMessage("A pontuação está fechada no momento. O Desafio Especial continua disponível pela TV ou telão.");
+        } else if (typed.code?.toLowerCase() === "cooldown_active" || /10 minutos|outro qr/i.test(cooldownMessage)) {
+          try {
+            const scoring = await gameApi.scoringStatus();
+            if (scoring.scoringClosed) {
+              cooldownRef.current = false;
+              stopScanner();
+              setStatus("warning");
+              setWarningTitle("Pontuação fechada");
+              setMessage("A pontuação está fechada no momento. O Desafio Especial continua disponível pela TV ou telão.");
+              busyRef.current = false;
+              return;
+            }
+          } catch {
+            /* Keep the cooldown fallback when the status cannot be checked. */
+          }
           cooldownRef.current = true;
           stopScanner();
           setStatus("warning");
+          setWarningTitle("Aguarde 10 minutos");
           setMessage("Aguarde 10 minutos para poder escanear outro QR Code!");
         } else {
           setStatus("error");
@@ -348,6 +372,7 @@ export function QrScannerModal({
         <QrSuccessCelebration
           points={0}
           label="Você poderá escanear outro QR Code quando o período de espera terminar."
+          warningTitle={warningTitle}
           warning
           durationMs={3_000}
           onDone={() => onCloseRef.current()}
