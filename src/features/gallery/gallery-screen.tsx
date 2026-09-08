@@ -104,7 +104,10 @@ async function createWatermarkedShareFile(moment: Moment) {
 function ShareButton({ moment }: { moment: Moment }) {
   const [message, setMessage] = useState("");
   async function share() {
-    const text = `Um momento especial do DNJ em ${moment.placeName}. #DNJ2026`;
+    const context = moment.placeName || moment.groupName;
+    const text = context
+      ? `Um momento especial do DNJ em ${context}. #DNJ2026`
+      : "Um momento especial do DNJ. #DNJ2026";
     try {
       if (navigator.share) {
         let data: ShareData = { title: "DNJ 2K26", text };
