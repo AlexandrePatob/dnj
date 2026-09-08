@@ -12,6 +12,15 @@ function formatTime(value: string) {
   return new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" }).format(new Date(value));
 }
 
+function formatDuration(startsAt: string, endsAt: string) {
+  const minutes = Math.max(0, Math.round((new Date(endsAt).getTime() - new Date(startsAt).getTime()) / 60000));
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  if (!remainingMinutes) return `${hours} ${hours === 1 ? "hora" : "horas"}`;
+  return `${hours} ${hours === 1 ? "hora" : "horas"} e ${remainingMinutes} minutos`;
+}
+
 const levelIcons = [Sprout, Footprints, BookOpen, Send, Hammer, Church];
 export function HomeScreen({ user, animDir, onOpenSchedule, onOpenMap, onOpenGame, onOpenAccount }: { user: UserData; animDir: AnimDir; onOpenSchedule: () => void; onOpenMap: () => void; onOpenGame: () => void; onOpenAccount: () => void }) {
   const [items, setItems] = useState<ScheduleItem[]>([]);
@@ -50,7 +59,7 @@ export function HomeScreen({ user, animDir, onOpenSchedule, onOpenMap, onOpenGam
         {agendaState === "loading" ? <p className="py-6 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Carregando programação...</p> : null}
         {agendaState === "error" ? <p className="py-6 text-center text-sm" style={{ color: "var(--destructive)" }}>Não foi possível carregar a programação.</p> : null}
         {agendaState === "ready" && !liveItems.length ? <p className="py-6 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Não há atividades acontecendo agora.</p> : null}
-        {agendaState === "ready" && liveItems.length ? <div className="mt-3 divide-y" style={{ borderColor: "var(--border)" }}>{liveItems.map((item) => <article key={item.id} className="flex gap-3 rounded-xl py-3 first:pt-1" style={{ background: "var(--primary-alpha-10)" }}><span className="mt-1 h-2 w-2 shrink-0 rounded-full" style={{ background: "var(--primary)" }} /><div className="min-w-0 flex-1"><p className="text-[.65rem] font-black" style={{ color: "var(--primary)" }}>ACONTECENDO AGORA</p><h2 className="mt-1 text-sm font-black">{item.title}</h2>{item.description ? <p className="mt-0.5 text-xs" style={{ color: "var(--muted-foreground)" }}>{item.description}</p> : null}<p className="mt-2 flex items-center gap-1 text-xs font-medium" style={{ color: "var(--muted-foreground)" }}><MapPin size={12} />{item.sector?.name ?? "Espaço a confirmar"} · {formatTime(item.startsAt)}</p></div></article>)}</div> : null}
+        {agendaState === "ready" && liveItems.length ? <div className="mt-3 grid gap-2">{liveItems.map((item) => <article key={item.id} className="flex min-w-0 gap-3 overflow-hidden rounded-xl px-3 py-3 shadow-sm" style={{ background: "var(--primary-alpha-10)" }}><span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ background: "var(--primary)" }} /><div className="min-w-0 flex-1"><p className="flex min-w-0 items-center gap-1 truncate text-xs font-bold" style={{ color: "var(--muted-foreground)" }}><MapPin className="shrink-0" size={12} />{item.sector?.name ?? "Espaço a confirmar"}</p><h2 className="mt-1 truncate text-sm font-black">{item.title}</h2>{item.description ? <p className="mt-0.5 truncate text-xs" style={{ color: "var(--muted-foreground)" }}>{item.description}</p> : null}<p className="mt-2 truncate text-xs font-medium" style={{ color: "var(--muted-foreground)" }}>Início: {formatTime(item.startsAt)} · Duração: {formatDuration(item.startsAt, item.endsAt)}</p></div></article>)}</div> : null}
         <button type="button" onClick={onOpenSchedule} className="mt-3 flex w-full items-center justify-center gap-1 rounded-xl py-3 text-sm font-bold" style={{ background: "var(--primary)", color: "white" }}>Ver programação completa <ChevronRight size={16} /></button>
       </section>
 
