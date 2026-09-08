@@ -155,10 +155,15 @@ function LikeButton({
   onChanged: () => void;
 }) {
   const [sending, setSending] = useState(false);
+  const [burst, setBurst] = useState(false);
   async function toggleLike() {
     setSending(true);
     try {
-      await momentsApi.like(moment.id);
+      const result = await momentsApi.like(moment.id);
+      if (result.liked) {
+        setBurst(true);
+        window.setTimeout(() => setBurst(false), 650);
+      }
       onChanged();
     } finally {
       setSending(false);
@@ -178,10 +183,13 @@ function LikeButton({
           : "var(--foreground)",
       }}
     >
-      <Heart
-        size={20}
-        fill={moment.likedByCurrentUser ? "currentColor" : "none"}
-      />
+      <span className="relative inline-flex">
+        <Heart
+          size={20}
+          fill={moment.likedByCurrentUser ? "currentColor" : "none"}
+        />
+        {burst ? <span className="moment-like-burst" aria-hidden="true">{Array.from({ length: 6 }, (_, index) => <i key={index} />)}</span> : null}
+      </span>
       {moment.likesCount ?? 0}
     </button>
   );
