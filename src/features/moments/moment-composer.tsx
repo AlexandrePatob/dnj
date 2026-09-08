@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/media";
 
 type MomentStep = "capture" | "review";
+type CameraZoom = 0.5 | 1 | 2;
 const CAMERA_START_TIMEOUT_MS = 8_000;
 const publishLabels: Record<Exclude<PublishProgress, "success" | "error">, string> = {
   hashing: "Preparando sua foto…",
@@ -31,6 +32,8 @@ export function MomentComposer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const publishingRef = useRef(false);
+  const publishStatusTimerRef = useRef<number | null>(null);
+  const lastPublishStatusAtRef = useRef(0);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -40,6 +43,8 @@ export function MomentComposer({
   const [facingMode, setFacingMode] = useState<"environment" | "user">(
     "environment",
   );
+  const [cameraZoom, setCameraZoom] = useState<CameraZoom>(1);
+  const [zoomMenuOpen, setZoomMenuOpen] = useState(false);
 
   useEffect(
     () => () => {
@@ -47,6 +52,33 @@ export function MomentComposer({
     },
     [preview],
   );
+  useEffect(
+    () => () => {
+      if (publishStatusTimerRef.current) {
+        window.clearTimeout(publishStatusTimerRef.current);
+      }
+    },
+    [],
+  );
+  const showPublishStatus = useCallback((message: string) => {
+    const update = () => {
+      publishStatusTimerRef.current = null;
+      lastPublishStatusAtRef.current = Date.now();
+      setStatus(message);
+    };
+    const remaining = Math.max(
+      0,
+      850 - (Date.now() - lastPublishStatusAtRef.current),
+    );
+    if (!remaining) {
+      update();
+      return;
+    }
+    if (publishStatusTimerRef.current) {
+      window.clearTimeout(publishStatusTimerRef.current);
+    }
+    publishStatusTimerRef.current = window.setTimeout(update, remaining);
+  }, []);
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
@@ -88,6 +120,25 @@ export function MomentComposer({
       );
     }
   }, [facingMode, stopCamera]);
+  const selectCameraZoom = useCallback(async (zoom: CameraZoom) => {
+    const track = streamRef.current?.getVideoTracks()[0];
+    if (!track) return;
+    const capabilities = track.getCapabilities() as MediaTrackCapabilities & {
+      zoom?: { min?: number; max?: number };
+    };
+    if (!capabilities.zoom) return;
+    const min = capabilities.zoom.min ?? zoom;
+    const max = capabilities.zoom.max ?? zoom;
+    const nativeZoom = Math.min(max, Math.max(min, zoom));
+    try {
+      await track.applyConstraints({
+        advanced: [{ zoom: nativeZoom } as MediaTrackConstraintSet],
+      });
+      setCameraZoom(zoom);
+    } catch {
+      setStatus("Este dispositivo não oferece esse zoom nativo.");
+    }
+  }, []);
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void startCamera();
@@ -103,6 +154,9 @@ export function MomentComposer({
       void videoRef.current.play();
     }
   }, [cameraOpen]);
+  useEffect(() => {
+    if (cameraOpen) void selectCameraZoom(cameraZoom);
+  }, [cameraOpen, cameraZoom, selectCameraZoom]);
   function selectFile(next: File) {
     if (preview) URL.revokeObjectURL(preview);
     setFile(next);
@@ -143,6 +197,7 @@ export function MomentComposer({
     publishingRef.current = true;
     setIsPublishing(true);
     setStatus(publishLabels.hashing);
+    lastPublishStatusAtRef.current = Date.now();
     try {
       const publish =
         mode === "challenge" ? publishChallengeMoment : publishFreeMoment;
@@ -150,15 +205,21 @@ export function MomentComposer({
         file,
         publishConsent: true,
         onProgress: (value: PublishProgress) => {
-          if (value !== "success" && value !== "error") setStatus(publishLabels[value]);
+          if (value !== "success" && value !== "error") {
+            showPublishStatus(publishLabels[value]);
+          }
         },
       });
+      if (publishStatusTimerRef.current) {
+        window.clearTimeout(publishStatusTimerRef.current);
+        publishStatusTimerRef.current = null;
+      }
       setStatus(
         moment.pointsAwarded === undefined || moment.pointsAwarded > 0
           ? "Publicação concluída."
           : "published_without_points",
       );
-      window.setTimeout(() => onCreated(moment), 700);
+      window.setTimeout(() => onCreated(moment), 3_000);
     } catch (error) {
       publishingRef.current = false;
       setIsPublishing(false);
@@ -172,10 +233,10 @@ export function MomentComposer({
     <section
       role="dialog"
       aria-modal="true"
-      className="absolute inset-0 z-50 flex min-h-0 flex-col items-center overflow-y-auto px-5 pb-[calc(var(--bottom-nav-total-height)+1rem)]"
+      className="absolute inset-0 z-30 flex min-h-0 flex-col items-center overflow-y-auto px-0 pb-[var(--bottom-nav-total-height)]"
       style={{
         background: "var(--background)",
-        paddingTop: "calc(var(--participant-header-height) + 28px + var(--safe-area-top))",
+        paddingTop: "calc(var(--participant-header-height) + var(--safe-area-top))",
       }}
       aria-label="Compartilhar momento"
     >
@@ -186,22 +247,17 @@ export function MomentComposer({
           stopCamera();
           onClose();
         }}
-        className="absolute right-6 flex h-10 w-10 items-center justify-center rounded-xl"
+        className="absolute right-5 z-10 flex h-10 w-10 items-center justify-center rounded-full border-2"
         style={{
-          top: "calc(var(--participant-header-height) + 0px + var(--safe-area-top))",
+          top: "calc(var(--participant-header-height) + 8px + var(--safe-area-top))",
           background: "var(--muted)",
+          borderColor: "var(--primary)",
         }}
         aria-label="Fechar"
       >
         <X size={18} />
       </button>
-      <div className="text-center">
-        <span
-          className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
-          style={{ background: "var(--primary-alpha-15)" }}
-        >
-          <Camera size={26} style={{ color: "var(--primary)" }} />
-        </span>
+      <div className="hidden">
         <h2 className="text-xl font-bold">
           {step === "capture" && mode === "challenge"
             ? "Foto do desafio"
@@ -221,14 +277,24 @@ export function MomentComposer({
         </p>
       </div>
       <div
-        className="relative mt-7 aspect-square w-full max-w-[34rem] shrink-0 overflow-hidden rounded-3xl"
-        style={{ background: "var(--muted)" }}
+        className="relative mt-0 h-[calc(100dvh-var(--participant-header-height)-var(--safe-area-top))] min-h-0 w-full shrink-0 overflow-hidden rounded-[2rem] border-2"
+        style={{ background: "#101010", borderColor: "var(--primary)" }}
       >
+        <h2
+          className="absolute left-1/2 top-2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border-2 px-5 py-2 text-sm font-bold leading-5 shadow-lg"
+          style={{
+            background: "rgb(239 115 24 / 0.82)",
+            borderColor: "rgb(255 255 255 / 0.8)",
+            color: "white",
+          }}
+        >
+          Compartilhar Momento DNJ
+        </h2>
         {preview ? (
           <img
             src={preview}
             alt="Prévia do momento capturado"
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain"
           />
         ) : (
           <>
@@ -236,7 +302,7 @@ export function MomentComposer({
               ref={videoRef}
               muted
               playsInline
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
               style={{ display: cameraOpen ? "block" : "none" }}
             />
             {!cameraOpen && (
@@ -251,53 +317,53 @@ export function MomentComposer({
             )}
           </>
         )}
-        {!preview && (
-          <>
-            <span
-              aria-hidden="true"
-              className="absolute left-0 top-0 h-12 w-12 rounded-tl-3xl border-l-4 border-t-4"
-              style={{ borderColor: "var(--primary)" }}
-            />
-            <span
-              aria-hidden="true"
-              className="absolute right-0 top-0 h-12 w-12 rounded-tr-3xl border-r-4 border-t-4"
-              style={{ borderColor: "var(--primary)" }}
-            />
-            <span
-              aria-hidden="true"
-              className="absolute bottom-0 left-0 h-12 w-12 rounded-bl-3xl border-b-4 border-l-4"
-              style={{ borderColor: "var(--primary)" }}
-            />
-            <span
-              aria-hidden="true"
-              className="absolute bottom-0 right-0 h-12 w-12 rounded-br-3xl border-b-4 border-r-4"
-              style={{ borderColor: "var(--primary)" }}
-            />
-          </>
-        )}
       </div>
       {step === "capture" ? (
         <>
-          <p
-            className="mt-6 text-center text-sm"
-            style={{
-              color:
-                status && !cameraOpen
-                  ? "var(--destructive)"
-                  : "var(--muted-foreground)",
-            }}
-          >
-            {cameraOpen ? "Capture uma foto agora para compartilhar." : status}
-          </p>
-          <div className="mt-4 flex w-full max-w-[34rem] gap-3">
+          <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-black/65 px-3 py-2 backdrop-blur-sm">
+            <div className="relative" aria-label="Zoom nativo da câmera">
+              <button
+                type="button"
+                disabled={!cameraOpen}
+                onClick={() => setZoomMenuOpen((open) => !open)}
+                className="rounded-full bg-white/20 px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
+                aria-expanded={zoomMenuOpen}
+                aria-haspopup="listbox"
+              >
+                {cameraZoom}x
+              </button>
+              {zoomMenuOpen && (
+                <div className="absolute bottom-full left-0 mb-2 flex flex-col gap-1 rounded-2xl bg-black/75 p-1 backdrop-blur-sm" role="listbox" aria-label="Opções de zoom">
+                  {([0.5, 1, 2] as const)
+                    .filter((zoom) => zoom !== cameraZoom)
+                    .map((zoom) => (
+                <button
+                  key={zoom}
+                  type="button"
+                  disabled={!cameraOpen}
+                  onClick={() => {
+                    setZoomMenuOpen(false);
+                    void selectCameraZoom(zoom);
+                  }}
+                  className="rounded-full px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
+                  aria-label={`Zoom ${zoom}x`}
+                  role="option"
+                >
+                  {zoom}x
+                </button>
+                    ))}
+                </div>
+              )}
+            </div>
             <button
               type="button"
               disabled={!cameraOpen}
               onClick={capturePhoto}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold disabled:opacity-40"
+              className="grid h-16 w-16 shrink-0 place-items-center rounded-full border-4 border-white text-sm font-bold shadow-lg disabled:opacity-40"
               style={{ background: "var(--primary)", color: "white" }}
+              aria-label="Capturar foto"
             >
-              <Camera size={18} /> Capturar foto
+              <Camera size={26} />
             </button>
             <button
               type="button"
@@ -307,38 +373,26 @@ export function MomentComposer({
                   value === "environment" ? "user" : "environment",
                 )
               }
-              className="rounded-xl px-4 disabled:opacity-40"
-              style={{ background: "var(--muted)", color: "var(--foreground)" }}
+              className="grid h-9 w-9 place-items-center rounded-full bg-white/90 disabled:opacity-40"
+              style={{ color: "var(--foreground)" }}
               aria-label="Trocar câmera"
             >
               <RefreshCw size={18} />
             </button>
           </div>
-          {!cameraOpen && (
-            <button
-              type="button"
-              onClick={() => void startCamera()}
-              className="mt-3 text-sm font-semibold"
-              style={{ color: "var(--primary)" }}
-            >
-              Tentar abrir câmera
-            </button>
-          )}
         </>
       ) : (
-        <div className="mt-6 w-full max-w-[34rem]">
+        <div className="absolute bottom-4 left-1/2 z-10 w-[calc(100%-2rem)] max-w-[34rem] -translate-x-1/2 rounded-2xl bg-black/65 p-3 text-white shadow-lg backdrop-blur-sm">
           <p
-            className="rounded-2xl p-4 text-sm"
+            className="p-0 text-xs leading-4"
             style={{
-              background: "var(--card)",
-              border: "1px solid var(--border)",
+              color: "rgb(255 255 255 / 0.9)",
             }}
           >
-            <strong>Publicação imediata</strong>
-            <br />
-            <span style={{ color: "var(--muted-foreground)" }}>
-              Sua foto entra em Momentos e a pontuação é registrada agora. A
-              equipe pode revisar depois.
+            <strong className="block text-sm">Publicar participação</strong>
+            <span className="mt-1 block" style={{ color: "rgb(255 255 255 / 0.72)" }}>
+              Sua foto será compartilhada em Momentos para toda a juventude do
+              DNJ.
             </span>
           </p>
           {status === "published_without_points" && (
@@ -361,29 +415,25 @@ export function MomentComposer({
               {status}
             </p>
           )}
-          <button
-            type="button"
-            disabled={!file || isPublishing || status === "published_without_points"}
-            onClick={() => void submit()}
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-bold disabled:opacity-40"
-            style={{ background: "var(--primary)", color: "white" }}
-          >
-            <Check size={18} />{" "}
-            {isPublishing
-              ? "Publicando…"
-              : mode === "challenge"
-              ? "Publicar e ganhar pontos"
-              : "Publicar momento"}
-          </button>
-          <button
-            type="button"
-            disabled={isPublishing}
-            onClick={retakePhoto}
-            className="mt-3 flex w-full items-center justify-center gap-2 py-2 text-sm font-semibold"
-            style={{ color: "var(--primary)" }}
-          >
-            <RotateCcw size={16} /> Refazer foto
-          </button>
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              disabled={!file || isPublishing || status === "published_without_points"}
+              onClick={() => void submit()}
+              className="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-xl py-2.5 text-sm font-bold disabled:opacity-40"
+              style={{ background: "var(--primary)", color: "white" }}
+            >
+              <Check size={16} /> {isPublishing ? "Publicando…" : "Publicar"}
+            </button>
+            <button
+              type="button"
+              disabled={isPublishing}
+              onClick={retakePhoto}
+              className="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-xl border border-white/30 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
+            >
+              <RotateCcw size={15} /> Refazer
+            </button>
+          </div>
         </div>
       )}
     </section>
