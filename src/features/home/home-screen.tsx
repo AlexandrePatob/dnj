@@ -32,7 +32,7 @@ export function HomeScreen({ user, animDir, onOpenSchedule, onOpenMap, onOpenGam
       <ParticipantHeader user={user} home onAccount={onOpenAccount} onGame={onOpenGame} />
       <div className={styles.greeting}><h1>Olá, {user.name.trim().split(/\s+/)[0] || "participante"}!</h1><blockquote>“Não vos conformeis com esse mundo, mas renovai-vos”<cite>Romanos 12, 2</cite></blockquote></div>
     </div>
-    <section className={styles.journey} aria-labelledby="journey-title">
+    <section data-tour="journey" className={styles.journey} aria-labelledby="journey-title">
       <div className={styles.journeyHeading}><h2 id="journey-title">Minha jornada</h2><button type="button" onClick={onOpenGame} className={styles.evolution}>Ver evolução <ChevronRight size={17} aria-hidden="true" /></button></div>
       <ol className={styles.trail} aria-label="Etapas da jornada">{DNJ_LEVELS.map((stage, index) => {
         const reached = user.points >= stage.minPoints;
@@ -45,7 +45,7 @@ export function HomeScreen({ user, animDir, onOpenSchedule, onOpenMap, onOpenGam
     </section>
 
     <main className="flex flex-col gap-5 px-5 py-5">
-      <section className="rounded-3xl p-4" style={{ background: "var(--card)", boxShadow: "var(--shadow-card)" }}>
+      <section data-tour="schedule" className="rounded-3xl p-4" style={{ background: "var(--card)", boxShadow: "var(--shadow-card)" }}>
         <div className="flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-xl" style={{ background: "var(--primary-alpha-15)", color: "var(--primary)" }}><Calendar size={17} /></span><p className="text-sm font-black" style={{ color: "var(--primary)" }}>Acontecendo agora</p></div>
         {agendaState === "loading" ? <p className="py-6 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Carregando programação...</p> : null}
         {agendaState === "error" ? <p className="py-6 text-center text-sm" style={{ color: "var(--destructive)" }}>Não foi possível carregar a programação.</p> : null}
@@ -54,7 +54,7 @@ export function HomeScreen({ user, animDir, onOpenSchedule, onOpenMap, onOpenGam
         <button type="button" onClick={onOpenSchedule} className="mt-3 flex w-full items-center justify-center gap-1 rounded-xl py-3 text-sm font-bold" style={{ background: "var(--primary)", color: "white" }}>Ver programação completa <ChevronRight size={16} /></button>
       </section>
 
-      <section className="rounded-2xl p-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl" style={{ background: "var(--primary-alpha-15)", color: "var(--primary)" }}><MapPin size={20} /></span><div className="min-w-0 flex-1"><h2 className="font-bold">Mapa do evento</h2><p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>Consulte o mapa oficial do DNJ.</p></div><button type="button" onClick={onOpenMap} className="shrink-0 text-sm font-bold" style={{ color: "var(--primary)" }}>Abrir</button></div></section>
+      <section data-tour="map" className="rounded-2xl p-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl" style={{ background: "var(--primary-alpha-15)", color: "var(--primary)" }}><MapPin size={20} /></span><div className="min-w-0 flex-1"><h2 className="font-bold">Mapa do evento</h2><p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>Consulte o mapa oficial do DNJ.</p></div><button type="button" onClick={onOpenMap} className="shrink-0 text-sm font-bold" style={{ color: "var(--primary)" }}>Abrir</button></div></section>
     </main>
   </div>;
 }

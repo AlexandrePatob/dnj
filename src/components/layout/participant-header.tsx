@@ -9,7 +9,7 @@ import styles from "./participant.module.css";
 export function ParticipantHeader({ user, home = false, onAccount, onGame }: { user: UserData; home?: boolean; onAccount: () => void; onGame: () => void }) {
   const [failedAvatar, setFailedAvatar] = useState<string>();
   const initials = user.name.trim().split(/\s+/).slice(0, 2).map((name) => name[0]).join("") || "DNJ";
-  return <header className={`${styles.top} ${home ? styles.homeTop : ""}`}>
+  return <header data-tour="participant-header" className={`${styles.top} ${home ? styles.homeTop : ""}`}>
     <button type="button" className={styles.avatar} onClick={onAccount} aria-label="Abrir minha conta">
       {user.avatarUrl && failedAvatar !== user.avatarUrl ? <img src={user.avatarUrl} alt="" onError={() => setFailedAvatar(user.avatarUrl)} referrerPolicy="no-referrer" /> : <span>{initials}</span>}
     </button>
