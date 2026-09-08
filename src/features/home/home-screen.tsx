@@ -22,7 +22,7 @@ function formatDuration(startsAt: string, endsAt: string) {
 }
 
 const levelIcons = [Sprout, Footprints, BookOpen, Send, Hammer, Church];
-export function HomeScreen({ user, animDir, onOpenSchedule, onOpenMap, onOpenGame, onOpenAccount }: { user: UserData; animDir: AnimDir; onOpenSchedule: () => void; onOpenMap: () => void; onOpenGame: () => void; onOpenAccount: () => void }) {
+export function HomeScreen({ user, animDir, onOpenSchedule, onOpenMap, onOpenGame, onOpenAccount, onOpenHome }: { user: UserData; animDir: AnimDir; onOpenSchedule: () => void; onOpenMap: () => void; onOpenGame: () => void; onOpenAccount: () => void; onOpenHome?: () => void }) {
   const [items, setItems] = useState<ScheduleItem[]>([]);
   const [agendaState, setAgendaState] = useState<"loading" | "error" | "ready">("loading");
 
@@ -38,10 +38,10 @@ export function HomeScreen({ user, animDir, onOpenSchedule, onOpenMap, onOpenGam
   const level = getDnjLevel(user.points);
   return <div key="home" className="absolute inset-0 overflow-y-auto" style={{ background: "var(--background)", paddingBottom: "var(--main-content-bottom-padding)", animation: animDir === "left" ? "slideInLeft 280ms cubic-bezier(.22,1,.36,1) both" : "fadeUp 220ms cubic-bezier(.22,1,.36,1) both" }}>
     <div className={styles.hero}>
-      <ParticipantHeader user={user} home onAccount={onOpenAccount} onGame={onOpenGame} />
+      <ParticipantHeader user={user} home onHome={onOpenHome} onAccount={onOpenAccount} onGame={onOpenGame} />
       <div className={styles.greeting}><h1>Olá, {user.name.trim().split(/\s+/)[0] || "participante"}!</h1><blockquote>“Não vos conformeis com esse mundo, mas renovai-vos”<cite>Romanos 12, 2</cite></blockquote></div>
     </div>
-    <section className={styles.journey} aria-labelledby="journey-title">
+    <section className={styles.journey} aria-labelledby="journey-title" style={{ marginTop: "calc(-10.5% - 8px)" }}>
       <div className={styles.journeyHeading}><h2 id="journey-title">Minha jornada</h2><button type="button" onClick={onOpenGame} className={styles.evolution}>Ver evolução <ChevronRight size={17} aria-hidden="true" /></button></div>
       <ol className={styles.trail} aria-label="Etapas da jornada">{DNJ_LEVELS.map((stage, index) => {
         const reached = user.points >= stage.minPoints;

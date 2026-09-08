@@ -379,7 +379,7 @@ export function DnjApp() {
             {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} homologationCode={emailVerificationCode} />}
             {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onResend={handleResendVerification} onBack={() => navigate("login")}  animDir={animDir} homologationCode={emailVerificationCode} />}
             {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("login")} animDir={animDir} initialName={registration?.name ?? ""} initialGroup={user.group} initialDocument={user.cpf} initialMobilePhone={user.mobilePhone || registration?.mobilePhone} />}
-            {screen === "home"    && <HomeScreen user={user} animDir={animDir} onOpenSchedule={() => navigate("schedule")} onOpenMap={() => navigate("map")} onOpenGame={() => navigate("game")} onOpenAccount={() => navigate("account")} />}
+            {screen === "home"    && <HomeScreen user={user} animDir={animDir} onOpenSchedule={() => navigate("schedule")} onOpenMap={() => navigate("map")} onOpenGame={() => navigate("game")} onOpenAccount={() => navigate("account")} onOpenHome={() => navigate("home")} />}
             {screen === "schedule" && <EventScheduleScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "map" && <EventMapScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "game"    && <GameScreen user={user} theme={theme} animDir={animDir} momentChallenge={momentChallenge} onMomentCompleted={(challengeId) => completeMomentChallenge(challengeId)} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
@@ -400,7 +400,7 @@ export function DnjApp() {
           </motion.div>
         </AnimatePresence>
 
-        {isMain && screen !== "home" && <ParticipantHeader user={user} onAccount={() => navigate("account")} onGame={() => navigate("game")} />}
+        {isMain && screen !== "home" && <ParticipantHeader user={user} showAvatar={screen !== "account"} onHome={() => navigate("home")} onAccount={() => navigate("account")} onGame={() => navigate("game")} />}
         {isMain && <LiveStatusStack special={specialEvent} momentChallenge={momentChallenge} queueNotification={queueNotification} adminNotification={adminNotification} onOpenGame={() => navigate("game")} onOpenQueue={() => navigate("queue")} onReadAdmin={handleReadAdminNotification} />}
         {!network.isOnline && offlineSnapshotCapturedAt && (
           <p
