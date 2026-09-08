@@ -661,7 +661,7 @@ export function GameScreen({
       {!onboarding && (
         <button
           onClick={openScanner}
-          className="absolute bottom-24 right-5 grid h-14 w-14 place-items-center rounded-full text-white"
+          className="absolute bottom-24 right-5 z-20 grid h-14 w-14 place-items-center rounded-full text-white"
           style={{
             background: "var(--primary)",
             boxShadow: "var(--shadow-card)",
