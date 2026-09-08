@@ -268,7 +268,7 @@ export function RegisterScreen({
       className="flex flex-col min-h-dvh px-6 pb-10 overflow-y-auto"
       style={{
         background: "var(--background)",
-        paddingTop: "calc(48px + var(--safe-area-top))",
+        paddingTop: "var(--safe-area-top)",
         ...animStyle(animDir),
       }}
     >
@@ -648,7 +648,7 @@ export function VerifyScreen({
       className="flex min-h-dvh flex-col overflow-y-auto px-6 pb-10"
       style={{
         background: "var(--background)",
-        paddingTop: "calc(48px + var(--safe-area-top))",
+        paddingTop: "var(--safe-area-top)",
         ...animStyle(animDir),
       }}
     >
@@ -878,7 +878,7 @@ export function GroupScreen({
     >
       <div
         className="min-h-0 flex-1 overflow-y-auto px-6"
-        style={{ paddingTop: "calc(48px + var(--safe-area-top))" }}
+        style={{ paddingTop: "var(--safe-area-top)" }}
       >
         <AuthHeader onBack={onBack} />
 
