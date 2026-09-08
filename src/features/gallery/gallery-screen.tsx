@@ -545,7 +545,7 @@ export function GalleryScreen({
               <PassportGrid
                 moments={page.items}
                 groupView={tab === "group"}
-                socialView={tab !== "public"}
+                socialView
                 onOpen={setSelected}
                 onChanged={() => setAttempt((value) => value + 1)}
               />
