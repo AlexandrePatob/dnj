@@ -654,7 +654,7 @@ export function VerifyScreen({
     >
       <AuthHeader onBack={onBack} />
 
-      <div className="mt-8 mb-6">
+      <div className="mt-2 mb-6">
         <h2
           className="text-2xl font-bold mb-2"
           style={{ color: "var(--foreground)" }}
@@ -827,6 +827,7 @@ export function GroupScreen({
   }, [query]);
 
   const filtered = apiGroups.map((group) => group.groupName);
+  const firstName = name.trim().split(/\s+/)[0];
 
   async function confirmGroup() {
     if (!selected || name.trim().length < 2 || document.replace(/\D/g, "").length !== 11 || mobilePhone.replace(/\D/g, "").length < 10 || confirming) return;
@@ -888,10 +889,10 @@ export function GroupScreen({
           className="text-2xl font-bold mb-1"
           style={{ color: "var(--foreground)" }}
         >
-          Complete seu cadastro
+          {firstName ? `${firstName}, precisamos de mais algumas informações!` : "Precisamos de mais algumas informações!"}
         </h2>
         <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-          {step === 1 ? "Informe seus dados para continuar." : "Agora escolha ou crie seu grupo de jovens."}
+          {step === 1 ? "É rapidinho: falta pouco para concluir seu cadastro." : "Agora escolha ou crie seu grupo de jovens."}
         </p>
       </div>
 
@@ -900,13 +901,13 @@ export function GroupScreen({
       </div>
 
       {step === 1 ? <div className="mb-4 flex flex-col gap-3">
-        <FieldInput
+        {!initialName && <FieldInput
           label="Nome completo"
           placeholder="Seu nome completo"
           value={name}
           onChange={(event) => setName(event.target.value)}
           error={name && name.trim().length < 2 ? "Informe seu nome completo." : ""}
-        />
+        />}
         <FieldInput
           label="CPF"
           placeholder="000.000.000-00"
