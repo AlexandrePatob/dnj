@@ -187,7 +187,9 @@ export function CreateAccountScreen({ onBack, onDone, animDir }: { onBack: () =>
 
   return <div key="create-account" className="flex min-h-dvh flex-col px-6 pb-10" style={{ background: "var(--background)", paddingTop: "var(--safe-area-top)", ...animStyle(animDir) }}>
     <header className="relative -mx-6 flex h-14 shrink-0 items-center justify-center border-b px-6" style={{ borderColor: "var(--border)" }}>
-      <BackButton onClick={onBack} />
+      <div className="absolute left-6">
+        <BackButton onClick={onBack} />
+      </div>
       <div className="absolute left-1/2 -translate-x-1/2">
         <BrandSticker className="h-8 w-auto" />
       </div>
