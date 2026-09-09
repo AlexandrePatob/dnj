@@ -2,6 +2,7 @@
   "name": "dnj-game-front",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.19.0",
   "engines": {
     "node": ">=24 <25"
   },
@@ -9,6 +10,7 @@
     "predev": "node scripts/build-service-worker.mjs",
     "dev": "next dev",
     "dev:local": "powershell -ExecutionPolicy Bypass -File scripts/local-stack.ps1",
+    "dev:local:debug": "powershell -ExecutionPolicy Bypass -File scripts/local-stack.ps1 -Mode Debug",
     "dev:local:stop": "powershell -ExecutionPolicy Bypass -File scripts/stop-local-stack.ps1",
     "prebuild": "node scripts/build-service-worker.mjs",
     "build": "next build",
@@ -16,10 +18,10 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
-    "test:pwa": "npm run build && playwright test tests/pwa --project=chromium",
-    "test:e2e": "npm run build && playwright test tests/e2e --project=chromium --project=webkit",
-    "test:visual": "npm run build && playwright test tests/visual --project=visual-chromium",
-    "validate": "npm run typecheck && npm run lint && npm run test:unit && npm run build && playwright test"
+    "test:pwa": "pnpm build && playwright test tests/pwa --project=chromium",
+    "test:e2e": "pnpm build && playwright test tests/e2e --project=chromium --project=webkit",
+    "test:visual": "pnpm build && playwright test tests/visual --project=visual-chromium",
+    "validate": "pnpm typecheck && pnpm lint && pnpm test:unit && pnpm build && playwright test"
   },
   "dependencies": {
     "@types/qrcode": "^1.5.6",

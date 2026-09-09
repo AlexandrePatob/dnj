@@ -5,6 +5,7 @@ export type QrActivityKind = "schedule" | "checkpoint" | "challenge" | "competit
 export type ValidateQrResponse = { participation: V2Participation; activityKind: QrActivityKind; action?: "joined" | "scored"; pointsAwarded?: number };
 export const gameApi = {
   overview: () => apiRequest<V2GameOverview>("/game/overview"),
+  scoringStatus: () => apiRequest<{ scoringClosed: boolean }>("/event-settings/scoring"),
   currentRun: async (runId?: string) => { try { return (await apiRequest<{ run: GameRun }>(`/activity-runs/current${runId ? `?runId=${encodeURIComponent(runId)}` : ""}`)).run; } catch (e) { if ((e as { status?: number }).status === 204) return null; throw e; } },
   currentParticipation: async () => { try { return (await apiRequest<{ participation: V2Participation }>("/participations/current")).participation; } catch (e) { if ((e as { status?: number }).status === 204) return null; throw e; } },
   validateQr: (qrToken: string, idempotencyKey = newIdempotencyKey()) => apiMutation<ValidateQrResponse>("/qr/validate", { method: "POST", body: { qrToken }, idempotencyKey }),

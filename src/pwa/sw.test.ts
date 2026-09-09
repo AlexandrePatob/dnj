@@ -99,6 +99,26 @@ describe("versioned service worker runtime", () => {
     expect(fetcher).toHaveBeenCalledOnce();
   });
 
+  it("serves fresh assets on HTTPS development tunnels and removes only DNJ caches", async () => {
+    await storage.open("dnj-pwa-static-old");
+    await storage.open("unrelated-cache");
+    const developmentRuntime = createServiceWorkerRuntime({
+      caches: storage as unknown as CacheStorage,
+      fetch: fetcher as typeof fetch,
+      clients: { claim }, skipWaiting,
+      origin: "https://local-session.trycloudflare.com", development: true,
+    }, "dev-tunnel");
+    await developmentRuntime.install();
+    await developmentRuntime.activate();
+    const css = new Request("https://local-session.trycloudflare.com/_next/static/app.css");
+    fetcher.mockResolvedValueOnce(new Response("old-css")).mockResolvedValueOnce(new Response("new-css"));
+    expect(await (await developmentRuntime.fetch(css)).text()).toBe("old-css");
+    expect(await (await developmentRuntime.fetch(css)).text()).toBe("new-css");
+    await developmentRuntime.message({ type: "CACHE_URLS", urls: [css.url] });
+    expect(await storage.keys()).toEqual(["unrelated-cache"]);
+    expect(skipWaiting).toHaveBeenCalledOnce();
+  });
+
   it("keeps successful shell entries when one asset fails", async () => {
     fetcher.mockImplementation(async (request: RequestInfo | URL) => {
       const url = new Request(request).url;
@@ -199,6 +219,13 @@ describe("versioned service worker runtime", () => {
 
     expect(postMessage).toHaveBeenCalledWith({ type: "CACHE_READY", revision: "rev-a" });
     expect(await (await storage.open("dnj-pwa-static-rev-a")).match(`${ORIGIN}/_next/static/chunks/app.js`)).toBeDefined();
+  });
+
+  it("warms approved public image URLs into the asset cache", async () => {
+    const postMessage = vi.fn();
+    await runtime.message({ type: "CACHE_URLS", urls: [`${ORIGIN}/images/participant/home.webp`] }, { postMessage });
+    expect(postMessage).toHaveBeenCalledWith({ type: "CACHE_READY", revision: "rev-a" });
+    expect(await (await storage.open("dnj-pwa-assets-rev-a")).match(`${ORIGIN}/images/participant/home.webp`)).toBeDefined();
   });
 
   it("rejects a forbidden warmup URL with a sanitized error", async () => {

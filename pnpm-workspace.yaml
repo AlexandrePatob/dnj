@@ -1,0 +1,13 @@
+allowBuilds:
+  '@firebase/util': true
+  '@tailwindcss/oxide': true
+  esbuild: true
+  protobufjs: true
+  unrs-resolver: true
+onlyBuiltDependencies:
+  - '@firebase/util'
+  - '@tailwindcss/oxide'
+  - esbuild
+  - protobufjs
+  - sharp
+  - unrs-resolver

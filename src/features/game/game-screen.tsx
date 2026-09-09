@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Award, Crown, QrCode } from "lucide-react";
+import { Award, BookOpen, Camera, Church, Crown, Footprints, Hammer, Info, LockKeyhole, MonitorPlay, QrCode, Send, Sprout, X } from "lucide-react";
 import gameLogoDark from "@/assets/brand/DNJGAME_DARK.png";
 import gameLogoLight from "@/assets/brand/DNJGAME_01.png";
 import { MedalBadge, PointIcon } from "@/components/ui/dnj-controls";
@@ -12,7 +12,8 @@ import type {
   RankingTab,
   UserData,
 } from "@/features/app/types";
-import { getDnjLevel } from "@/lib/levels";
+import { DNJ_LEVELS, getDnjLevel } from "@/lib/levels";
+import participantStyles from "@/components/layout/participant.module.css";
 import { MomentComposer } from "@/features/moments/moment-composer";
 import { MomentChallengeCard } from "@/features/moments/moment-challenge-card";
 import type { LiveMomentChallenge } from "@/components/live/live-status-stack";
@@ -47,6 +48,7 @@ type LiveRun = {
 };
 type MomentCelebration = { points: number; label: string; durationMs?: number };
 const LIVE_RUN_POLL_MS = 5_000;
+const levelIcons = [Sprout, Footprints, BookOpen, Send, Hammer, Church];
 
 const onboardingKey = (email: string) =>
   `dnj.game.onboarding.v1.${email || "anonymous"}`;
@@ -293,6 +295,7 @@ export function GameScreen({
   onPointsChange: (points: number) => void;
 }) {
   const [tab, setTab] = useState<GameTab>("overview");
+  const [pointsInfoOpen, setPointsInfoOpen] = useState(false);
   const [rankingTab, setRankingTab] = useState<RankingTab>("individual");
   const [qrOpen, setQrOpen] = useState(false);
   const [celebration, setCelebration] = useState<
@@ -456,21 +459,25 @@ export function GameScreen({
       <header
         className="px-5 pb-4"
         style={{
-          background: "var(--card)",
-          borderBottom: "1px solid var(--border)",
-          paddingTop: "calc(48px + var(--safe-area-top))",
+          background: "var(--background)",
+          paddingTop: "calc(var(--participant-header-height) + 0px + var(--safe-area-top))",
         }}
       >
-        <div className="mt-4 flex items-center justify-between">
+        <div className="relative mt-4 flex items-center justify-center">
           <img
             src={(theme === "light" ? gameLogoLight : gameLogoDark).src}
             alt="DNJ Game"
             className="h-auto w-36"
           />
-          <strong className="text-3xl" style={{ color: "var(--game)" }}>
-            {user.points}
-            <small className="ml-1 text-sm">pts</small>
-          </strong>
+          <button
+            type="button"
+            onClick={() => setPointsInfoOpen(true)}
+            className="absolute right-0 flex h-9 items-center gap-1 rounded-full px-3 text-xs font-black text-white"
+            style={{ background: "var(--primary)" }}
+            aria-label="Regras do DNJ Game"
+          >
+            <Info size={16} /> Regras
+          </button>
         </div>
         <div
           className="mt-4 flex rounded-xl p-1"
@@ -491,34 +498,20 @@ export function GameScreen({
           ))}
         </div>
       </header>
-      <main className="flex-1 overflow-y-auto px-5 py-5">
+      <main className="relative z-10 flex-1 overflow-y-auto px-5 py-5">
         {tab === "overview" ? (
           <div className="flex flex-col gap-4">
-            <section
-              className="rounded-2xl p-4"
-              style={{
-                background: "var(--card)",
-                boxShadow: "var(--shadow-card)",
-              }}
-            >
-              <div className="flex justify-between text-sm font-bold">
-                <span>Nível {level.name}</span>
-                <span>
-                  {level.nextPoints
-                    ? `${level.pointsToNext} pts para próximo`
-                    : "Nível máximo"}
-                </span>
-              </div>
-              <div
-                className="mt-3 h-2 overflow-hidden rounded-full"
-                style={{ background: "var(--muted)" }}
-              >
-                <motion.span
-                  className="block h-full rounded-full"
-                  animate={{ width: `${level.progress}%` }}
-                  style={{ background: "var(--game)" }}
-                />
-              </div>
+            <section className={`${participantStyles.journey} z-10`} style={{ marginTop: "-4px" }} aria-label="Minha jornada">
+              <ol className={participantStyles.trail} aria-label="Etapas da jornada">
+                {DNJ_LEVELS.map((stage, index) => {
+                  const reached = user.points >= stage.minPoints;
+                  const current = stage.name === level.name;
+                  const Icon = reached ? levelIcons[index] : LockKeyhole;
+                  return <li key={stage.name} className={`${participantStyles.step} ${reached ? participantStyles.done : ""} ${current ? participantStyles.current : ""}`} aria-current={current ? "step" : undefined} aria-label={`${stage.name}: ${current ? "nível atual" : reached ? "alcançado" : `bloqueado, ${stage.minPoints} pontos`}`}><span className={participantStyles.node}><Icon size={22} aria-hidden="true" /></span><strong>{stage.name}</strong></li>;
+                })}
+              </ol>
+              <div className={participantStyles.progressRow}><progress aria-label="Progresso da jornada" max={100} value={level.progress} /><span>{level.nextPoints ? `${user.points} / ${level.nextPoints} pts` : `${user.points} pts`}</span></div>
+              <p className={participantStyles.progressCaption}>Nível {level.name} · {level.nextPoints ? `faltam ${level.pointsToNext} pontos para a próxima etapa` : "Você completou todas as etapas!"}</p>
             </section>
             {momentChallenge &&
             momentChallenge.id !== completedMomentChallengeId ? (
@@ -668,7 +661,7 @@ export function GameScreen({
       {!onboarding && (
         <button
           onClick={openScanner}
-          className="absolute bottom-24 right-5 grid h-14 w-14 place-items-center rounded-full text-white"
+          className="absolute bottom-24 right-5 z-20 grid h-14 w-14 place-items-center rounded-full text-white"
           style={{
             background: "var(--primary)",
             boxShadow: "var(--shadow-card)",
@@ -677,6 +670,55 @@ export function GameScreen({
         >
           <QrCode />
         </button>
+      )}
+      {pointsInfoOpen && (
+        <div
+          className="absolute inset-0 z-30 flex items-end bg-black/40"
+          role="presentation"
+          onClick={() => setPointsInfoOpen(false)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="points-info-title"
+            className="w-full rounded-t-3xl p-5 pb-[calc(1.25rem+var(--safe-area-bottom))] shadow-2xl"
+            style={{ background: "var(--card)" }}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.12em]" style={{ color: "var(--game)" }}>DNJ Game</p>
+                <h2 id="points-info-title" className="mt-1 text-xl font-black">Regras do DNJ Game</h2>
+              </div>
+              <button type="button" onClick={() => setPointsInfoOpen(false)} className="grid h-9 w-9 place-items-center rounded-full" style={{ background: "var(--muted)" }} aria-label="Fechar informações">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="mt-5 space-y-4">
+              <div className="flex gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl" style={{ background: "var(--primary-alpha-15)", color: "var(--primary)" }}><QrCode size={20} /></span>
+                <p className="min-w-0 text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                  <strong className="flex items-center gap-2 text-[var(--foreground)]">Escanear QR Code <span className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white" style={{ background: "var(--primary)" }}>Pontua</span></strong>
+                  <span className="mt-1 block">Check-in, espaços, atividades dinâmicas e desafios especiais.</span>
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl" style={{ background: "var(--primary-alpha-15)", color: "var(--primary)" }}><Camera size={20} /></span>
+                <p className="min-w-0 text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                  <strong className="flex items-center gap-2 text-[var(--foreground)]">Desafio Momento <span className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white" style={{ background: "var(--primary)" }}>Pontua</span></strong>
+                  <span className="mt-1 block">Durante o dia você receberá uma notificação para tirar uma foto em algum lugar, com alguma pessoa, e ganhará pontos!</span>
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl" style={{ background: "var(--primary-alpha-15)", color: "var(--primary)" }}><MonitorPlay size={20} /></span>
+                <p className="min-w-0 text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                  <strong className="flex items-center gap-2 text-[var(--foreground)]">Desafios especiais <span className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white" style={{ background: "var(--primary)" }}>Vale mais</span></strong>
+                  <span className="mt-1 block">Fique esperto com as TVs e telões: a qualquer momento podem surgir desafios, e o QR Code vale muitos pontos!</span>
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
       )}
       <AnimatePresence>
         {onboarding && (

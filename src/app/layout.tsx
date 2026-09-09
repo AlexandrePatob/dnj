@@ -29,18 +29,15 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 5,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f8f6" },
-    { media: "(prefers-color-scheme: dark)", color: "#0d1a1a" },
-  ],
+  themeColor: "#243b17",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <body className={spaceGrotesk.variable}>
+    <html lang="pt-BR" className={spaceGrotesk.variable} suppressHydrationWarning>
+      <body className={spaceGrotesk.className}>
         <PwaRegistrar>{children}</PwaRegistrar>
         <Analytics />
         <SpeedInsights />

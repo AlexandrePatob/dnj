@@ -6,6 +6,7 @@ import {
 } from "./cache-policy";
 
 declare const __PWA_REVISION__: string;
+declare const __PWA_DEVELOPMENT__: boolean;
 
 const CACHE_PREFIX = "dnj-pwa-";
 const SHELL_URLS = [
@@ -17,6 +18,7 @@ const SHELL_URLS = [
 ];
 
 export interface WorkerEnvironment {
+  development?: boolean;
   caches: CacheStorage;
   fetch: typeof fetch;
   clients: { claim(): Promise<void> };
@@ -38,6 +40,7 @@ function cacheName(strategy: CacheStrategy, revision: string): string | null {
 }
 
 export function createServiceWorkerRuntime(environment: WorkerEnvironment, revision: string) {
+  const development = environment.development || isLocalDevelopmentOrigin(environment.origin);
   const names = {
     shell: `${CACHE_PREFIX}shell-${revision}`,
     static: `${CACHE_PREFIX}static-${revision}`,
@@ -52,7 +55,7 @@ export function createServiceWorkerRuntime(environment: WorkerEnvironment, revis
   }
 
   async function install(): Promise<void> {
-    if (isLocalDevelopmentOrigin(environment.origin)) {
+    if (development) {
       await environment.skipWaiting();
       return;
     }
@@ -76,7 +79,7 @@ export function createServiceWorkerRuntime(environment: WorkerEnvironment, revis
     const existing = await environment.caches.keys();
     await Promise.all(
       existing
-        .filter((name) => name.startsWith(CACHE_PREFIX) && !currentCaches.has(name))
+        .filter((name) => name.startsWith(CACHE_PREFIX) && (development || !currentCaches.has(name)))
         .map((name) => environment.caches.delete(name)),
     );
     await environment.clients.claim();
@@ -115,6 +118,7 @@ export function createServiceWorkerRuntime(environment: WorkerEnvironment, revis
   }
 
   async function handleFetch(request: Request): Promise<Response> {
+    if (development) return environment.fetch(request);
     const strategy = classifyRequest(request, environment.origin);
     if (strategy === "navigation-network-first") return networkFirst(request);
     if (strategy === "static-cache-first" || strategy === "asset-cache-first") {
@@ -135,7 +139,7 @@ export function createServiceWorkerRuntime(environment: WorkerEnvironment, revis
       }
 
       const strategy = classifyRequest(request, environment.origin);
-      if (strategy !== "static-cache-first") return "CACHE_URL_REJECTED";
+      if (strategy !== "static-cache-first" && strategy !== "asset-cache-first") return "CACHE_URL_REJECTED";
 
       try {
         await cacheFirst(request, strategy);
@@ -154,6 +158,10 @@ export function createServiceWorkerRuntime(environment: WorkerEnvironment, revis
     }
 
     if (data.type !== "CACHE_URLS") return;
+    if (development) {
+      source?.postMessage({ type: "CACHE_READY", revision });
+      return;
+    }
     if (!Array.isArray(data.urls) || !data.urls.every((url): url is string => typeof url === "string")) {
       source?.postMessage({ type: "CACHE_ERROR", reason: "CACHE_URL_REJECTED" });
       return;
@@ -209,12 +217,14 @@ export async function openPushTarget(clients: WorkerScopeLike["clients"], url: P
 const scope = globalThis as unknown as WorkerScopeLike;
 if (typeof scope.addEventListener === "function" && typeof scope.skipWaiting === "function" && scope.caches) {
   const revision = typeof __PWA_REVISION__ === "string" ? __PWA_REVISION__ : "development";
+  const development = typeof __PWA_DEVELOPMENT__ !== "undefined" && __PWA_DEVELOPMENT__;
   const runtime = createServiceWorkerRuntime(
     {
       caches: scope.caches,
       clients: scope.clients,
       fetch: globalThis.fetch.bind(globalThis),
       origin: scope.location.origin,
+      development,
       skipWaiting: scope.skipWaiting.bind(scope),
     },
     revision,
@@ -227,7 +237,7 @@ if (typeof scope.addEventListener === "function" && typeof scope.skipWaiting ===
     event.waitUntil(runtime.activate());
   }) as never);
   scope.addEventListener("fetch", ((event: { request: Request; respondWith(response: Promise<Response>): void }) => {
-    if (classifyRequest(event.request, scope.location.origin) === "network-only") return;
+    if (development || classifyRequest(event.request, scope.location.origin) === "network-only") return;
     event.respondWith(runtime.fetch(event.request));
   }) as never);
   scope.addEventListener(

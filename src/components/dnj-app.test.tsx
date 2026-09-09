@@ -48,6 +48,7 @@ describe("DnjApp session restoration", () => {
       if (url.includes("/groups")) return { ok: true, headers, json: async () => [{ id: "group-1", groupName: "Grupo Chama Viva — Bairro Alto" }] } as Response;
       if (url.includes("/auth/register")) return { ok: true, headers, json: async () => ({ id: "user-maria", email: "maria@example.com", name: "Maria Lima", mobilePhone: "41999990000", document: "", role: "DEFAULT", group: { id: "group-1", groupName: "Grupo Chama Viva — Bairro Alto" }, points: 0, rankPosition: 0, createdAt: "2026-10-01T00:00:00.000Z", updatedAt: "2026-10-01T00:00:00.000Z", identityToken: "session-maria" }) } as Response;
       if (url.includes("/schedule")) return { ok: true, headers, json: async () => ({ items: [], generatedAt: "2026-10-01T00:00:00.000Z" }) } as Response;
+      if (url.includes("/game/overview")) return { ok: true, headers, json: async () => ({ current: { points: 320, rankPosition: 4 } }) } as Response;
       return { ok: true, status: 204, headers, json: async () => null } as Response;
     }));
   });
@@ -60,6 +61,8 @@ describe("DnjApp session restoration", () => {
     expect(await screen.findByText(/Ana!/)).toBeInTheDocument();
     expect(screen.queryByText("Dia Nacional da Juventude")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Entrar" })).not.toBeInTheDocument();
+    expect(await screen.findByText("320 / 350 pts")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "320 pontos. Abrir DNJ Game" })).toBeInTheDocument();
   });
 
   it("uses the server onboarding state instead of persisted identity", async () => {
