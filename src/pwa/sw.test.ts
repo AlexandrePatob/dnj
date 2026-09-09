@@ -221,6 +221,13 @@ describe("versioned service worker runtime", () => {
     expect(await (await storage.open("dnj-pwa-static-rev-a")).match(`${ORIGIN}/_next/static/chunks/app.js`)).toBeDefined();
   });
 
+  it("warms approved public image URLs into the asset cache", async () => {
+    const postMessage = vi.fn();
+    await runtime.message({ type: "CACHE_URLS", urls: [`${ORIGIN}/images/participant/home.webp`] }, { postMessage });
+    expect(postMessage).toHaveBeenCalledWith({ type: "CACHE_READY", revision: "rev-a" });
+    expect(await (await storage.open("dnj-pwa-assets-rev-a")).match(`${ORIGIN}/images/participant/home.webp`)).toBeDefined();
+  });
+
   it("rejects a forbidden warmup URL with a sanitized error", async () => {
     const postMessage = vi.fn();
 

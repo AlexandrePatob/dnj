@@ -31,12 +31,41 @@ function MomentImage({
     ? "aspect-[3/4] w-full rounded-[7px] object-cover"
     : "aspect-[4/5] w-full rounded-[22px] object-cover";
   const alt = `Momento em ${moment.placeName}`;
-  let localStorageUrl = source.startsWith("data:");
-  try {
-    const hostname = new URL(source).hostname;
-    localStorageUrl ||= hostname === "localhost" || hostname === "127.0.0.1";
-  } catch {
-    // Relative URLs are safe for next/image.
+  let hasValidImage = false;
+  let localStorageUrl = false;
+  if (source) {
+    try {
+      const url = new URL(source, window.location.origin);
+      hasValidImage = true;
+      localStorageUrl = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    } catch {
+      // Invalid URL
+      hasValidImage = false;
+    }
+  }
+  if (!hasValidImage) {
+    return (
+      <div
+        className={classes}
+        style={{
+          background: "var(--muted)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--muted-foreground)",
+        }}
+        aria-label={alt}
+      >
+        <span className="text-center px-2">
+          <span className="block text-xs font-semibold">Foto indisponível</span>
+          {moment.moderationMessage && (
+            <span className="block text-[0.6rem] mt-1" style={{ color: "var(--destructive)" }}>
+              {moment.moderationMessage}
+            </span>
+          )}
+        </span>
+      </div>
+    );
   }
   return localStorageUrl ? (
     <img src={source} alt={alt} className={classes} />
@@ -104,7 +133,10 @@ async function createWatermarkedShareFile(moment: Moment) {
 function ShareButton({ moment }: { moment: Moment }) {
   const [message, setMessage] = useState("");
   async function share() {
-    const text = `Um momento especial do DNJ em ${moment.placeName}. #DNJ2026`;
+    const context = moment.placeName || moment.groupName;
+    const text = context
+      ? `Um momento especial do DNJ em ${context}. #DNJ2026`
+      : "Um momento especial do DNJ. #DNJ2026";
     try {
       if (navigator.share) {
         let data: ShareData = { title: "DNJ 2K26", text };
@@ -155,11 +187,27 @@ function LikeButton({
   onChanged: () => void;
 }) {
   const [sending, setSending] = useState(false);
+  const [burst, setBurst] = useState(false);
+  const [optimisticLiked, setOptimisticLiked] = useState(moment.likedByCurrentUser);
+  const [optimisticLikesCount, setOptimisticLikesCount] = useState(moment.likesCount);
   async function toggleLike() {
+    if (sending) return;
     setSending(true);
+    const newLiked = !optimisticLiked;
+    const newLikesCount = newLiked ? optimisticLikesCount + 1 : optimisticLikesCount - 1;
+    setOptimisticLiked(newLiked);
+    setOptimisticLikesCount(newLikesCount);
     try {
-      await momentsApi.like(moment.id);
+      const result = await momentsApi.like(moment.id);
+      if (result.liked) {
+        setBurst(true);
+        window.setTimeout(() => setBurst(false), 650);
+      }
       onChanged();
+    } catch {
+      // Revert on error
+      setOptimisticLiked(optimisticLiked);
+      setOptimisticLikesCount(optimisticLikesCount);
     } finally {
       setSending(false);
     }
@@ -170,19 +218,22 @@ function LikeButton({
       onClick={() => void toggleLike()}
       disabled={sending}
       aria-label="Curtir momento"
-      aria-pressed={moment.likedByCurrentUser}
+      aria-pressed={optimisticLiked}
       className="flex items-center gap-2 text-sm font-bold disabled:opacity-50"
       style={{
-        color: moment.likedByCurrentUser
+        color: optimisticLiked
           ? "var(--secondary)"
           : "var(--foreground)",
       }}
     >
-      <Heart
-        size={20}
-        fill={moment.likedByCurrentUser ? "currentColor" : "none"}
-      />
-      {moment.likesCount ?? 0}
+      <span className="relative inline-flex">
+        <Heart
+          size={20}
+          fill={optimisticLiked ? "currentColor" : "none"}
+        />
+        {burst ? <span className="moment-like-burst" aria-hidden="true">{Array.from({ length: 6 }, (_, index) => <i key={index} />)}</span> : null}
+      </span>
+      {optimisticLikesCount}
     </button>
   );
 }
@@ -231,7 +282,7 @@ function FeedCard({
         <span className="flex-1">
           <strong className="block text-sm">{moment.authorName}</strong>
           <small style={{ color: "var(--muted-foreground)" }}>
-            Juventude DNJ
+            {moment.groupName || "Juventude DNJ"}
           </small>
         </span>
       </header>
@@ -269,42 +320,52 @@ function FeedCard({
 
 function PassportGrid({
   moments,
+  groupView = false,
+  socialView = false,
   onOpen,
+  onChanged,
 }: {
   moments: Moment[];
+  groupView?: boolean;
+  socialView?: boolean;
   onOpen: (value: Moment) => void;
+  onChanged?: () => void;
 }) {
   return (
     <div
-      className="passport-grid grid grid-cols-3 gap-2.5 rounded-[20px] p-2.5"
+      className={`passport-grid grid ${socialView ? "grid-cols-2 gap-3" : "grid-cols-3 gap-2.5"} rounded-[20px] p-2.5`}
       style={{ background: "var(--muted)", border: "1px solid var(--border)" }}
     >
       {moments.map((moment) => (
-        <button
+        <div
           key={moment.id}
-          type="button"
-          onClick={() => onOpen(moment)}
-          aria-label={`Abrir momento em ${moment.placeName}`}
-          className="min-w-0 rounded-[10px] p-1.5 pb-2 text-left transition-transform active:scale-[.97]"
+          className="min-w-0 rounded-[10px] p-1.5 pb-2"
           style={{
             background: "var(--card)",
             boxShadow: "0 5px 10px rgba(11, 35, 37, .10)",
           }}
         >
-          <span className="relative block">
-            <MomentImage moment={moment} compact />
-            <BrandSticker
-              variant="watermark"
-              decorative
-              className="absolute bottom-1 right-1 scale-[.42] origin-bottom-right drop-shadow-sm"
-            />
-          </span>
-          <span
-            className="mt-1.5 block truncate px-0.5 text-[.58rem] font-bold uppercase tracking-[.04em]"
-            style={{ color: "var(--muted-foreground)" }}
-          >
-            {moment.placeName}
-          </span>
+          {groupView && (
+            <div className="mb-2 flex min-w-0 items-center gap-1.5 px-0.5">
+              <AuthorAvatar moment={moment} />
+              <span className="truncate text-[.68rem] font-bold" title={moment.authorName}>{moment.authorName}</span>
+            </div>
+          )}
+          <button type="button" onClick={() => onOpen(moment)} aria-label={`Abrir momento em ${moment.placeName}`} className="block w-full text-left transition-transform active:scale-[.97]">
+            <span className="relative block">
+              <MomentImage moment={moment} compact />
+              <BrandSticker variant="watermark" decorative className="absolute bottom-1 right-1 scale-[.42] origin-bottom-right drop-shadow-sm" />
+            </span>
+            <span className="mt-1.5 block truncate px-0.5 text-[.58rem] font-bold uppercase tracking-[.04em]" style={{ color: "var(--muted-foreground)" }}>
+              {moment.placeName}
+            </span>
+          </button>
+          {socialView && onChanged && !moment.moderationMessage && (
+            <div className="mt-2 flex items-center justify-between border-t pt-2" style={{ borderColor: "var(--border)" }}>
+              <LikeButton moment={moment} onChanged={onChanged} />
+              <ShareButton moment={moment} />
+            </div>
+          )}
           {moment.moderationMessage && (
             <span
               className="mt-1 block px-0.5 text-[.6rem] font-semibold leading-tight"
@@ -313,7 +374,7 @@ function PassportGrid({
               {moment.moderationMessage}
             </span>
           )}
-        </button>
+        </div>
       ))}
     </div>
   );
@@ -408,7 +469,7 @@ export function GalleryScreen({
         className="absolute inset-0 overflow-y-auto pb-[calc(var(--bottom-nav-total-height)+1rem)]"
         style={{
           background: "var(--background)",
-          paddingTop: "calc(var(--participant-header-height) + 16px + var(--safe-area-top))",
+          paddingTop: "calc(var(--participant-header-height) + var(--safe-area-top))",
         }}
       >
         <div style={motion(animDir)}>
@@ -441,7 +502,7 @@ export function GalleryScreen({
               ))}
             </div>
           </header>
-          <main className="px-4 py-4">
+          <main className="px-4 pb-4 pt-1">
             {loadState === "loading" ? (
               <p className="py-10 text-center text-sm">
                 Carregando momentos...
@@ -481,7 +542,13 @@ export function GalleryScreen({
                 ))}
               </div>
             ) : (
-              <PassportGrid moments={page.items} onOpen={setSelected} />
+              <PassportGrid
+                moments={page.items}
+                groupView={tab === "group"}
+                socialView
+                onOpen={setSelected}
+                onChanged={() => setAttempt((value) => value + 1)}
+              />
             )}
           </main>
         </div>
@@ -538,12 +605,15 @@ export function GalleryScreen({
               />
             </div>
             <div className="flex items-center justify-between gap-4 px-2 pt-3">
-              <strong>{selected.placeName}</strong>
+              <div>
+                <strong className="block">{selected.placeName}</strong>
+                {selected.groupName && (
+                  <small style={{ color: "var(--muted-foreground)" }}>
+                    {selected.groupName}
+                  </small>
+                )}
+              </div>
               <div className="flex items-center gap-5">
-                <LikeButton
-                  moment={selected}
-                  onChanged={() => setAttempt((value) => value + 1)}
-                />
                 {(tab !== "public" ||
                   canShareFeedMoment(
                     selected,

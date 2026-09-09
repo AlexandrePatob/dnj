@@ -14,6 +14,8 @@
   --color-red: #db3a2e;
   --color-lime: #b2d64d;
   --color-teal: #34d1d1;
+  --color-queue-purple: #b719aa;
+  --queue-confession: var(--color-queue-purple);
   --color-game-green: #b2d64d;
   --game: var(--color-game-green);
   --space-1: 0.25rem;
@@ -328,6 +330,16 @@
 
 @keyframes atmosphereDrift { to { transform: translate3d(25px, 35px, 0) scale(1.15); } }
 @keyframes livePulse { 70% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+@keyframes likeBurst { 0% { opacity: 1; transform: rotate(var(--burst-angle)) translateY(0) scale(.7); } 70% { opacity: .9; } 100% { opacity: 0; transform: rotate(var(--burst-angle)) translateY(-17px) scale(1); } }
+.moment-like-burst { position: absolute; inset: 50% auto auto 50%; width: 4px; height: 4px; pointer-events: none; }
+.moment-like-burst i { position: absolute; display: block; width: 4px; height: 9px; border-radius: 999px; background: var(--secondary); transform-origin: 50% 0; animation: likeBurst 550ms cubic-bezier(.22,1,.36,1) both; }
+.moment-like-burst i:nth-child(1) { --burst-angle: 0deg; }
+.moment-like-burst i:nth-child(2) { --burst-angle: 60deg; }
+.moment-like-burst i:nth-child(3) { --burst-angle: 120deg; }
+.moment-like-burst i:nth-child(4) { --burst-angle: 180deg; }
+.moment-like-burst i:nth-child(5) { --burst-angle: 240deg; }
+.moment-like-burst i:nth-child(6) { --burst-angle: 300deg; }
+@media (prefers-reduced-motion: reduce) { .moment-like-burst { display: none; } }
 
 @media (max-width: 360px) {
   .mission-pulse { grid-template-columns: 1fr; }

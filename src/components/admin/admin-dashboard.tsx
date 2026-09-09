@@ -96,6 +96,7 @@ const navigation: Array<{
   { label: "Moderação", icon: ShieldCheck },
   { label: "Notificações", icon: Bell },
   { label: "Filas pastorais", icon: Clock3 },
+  { label: "Pontuação", icon: BarChart3 },
 ];
 const managerScopes = [
   { value: "actions", label: "Radicalidade" },
@@ -329,6 +330,7 @@ export function AdminDashboard({
         {panel === "Moderação" && <ModerationList />}
         {panel === "Notificações" && <Notifications />}
         {panel === "Filas pastorais" && <PastoralQueueOverview />}
+        {panel === "Pontuação" && <ScoringPanel />}
       </section>
     </main>
   );
@@ -1694,10 +1696,7 @@ function ModerationList() {
     [page, queue],
   );
   useEffect(load, [load]);
-  async function decide(
-    momentId: string,
-    action: Moderation["availableActions"][number],
-  ) {
+  async function decide(momentId: string, action: Moderation["availableActions"][number]) {
     try {
       setSubmitting(true);
       await api(`/admin/moments/${momentId}/moderation`, {
@@ -1981,4 +1980,160 @@ function slugify(value: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 120);
+}
+
+function ScoringPanel() {
+  const [scoringClosed, setScoringClosed] = useState(false);
+  const [closedAt, setClosedAt] = useState<string | null>(null);
+  const [auditNote, setAuditNote] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [confirming, setConfirming] = useState(false);
+
+  const loadStatus = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const status = await api<{ scoringClosed: boolean; closedAt?: string; auditNote?: string }>(
+        "/admin/event-settings/scoring",
+      );
+      setScoringClosed(status.scoringClosed);
+      setClosedAt(status.closedAt ?? null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao carregar status.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadStatus();
+  }, [loadStatus]);
+
+  const handleToggle = useCallback(async () => {
+    if (scoringClosed) {
+      try {
+        setLoading(true);
+        setError("");
+        const status = await api<{ scoringClosed: boolean; closedAt?: string }>(
+          "/admin/event-settings/scoring/open",
+          { method: "POST", body: { auditNote } },
+        );
+        setScoringClosed(status.scoringClosed);
+        setClosedAt(status.closedAt ?? null);
+        setAuditNote("");
+        setConfirming(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erro ao abrir pontuação.");
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setConfirming(true);
+    }
+  }, [scoringClosed, auditNote]);
+
+  const handleConfirmClose = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const status = await api<{ scoringClosed: boolean; closedAt?: string }>(
+        "/admin/event-settings/scoring/close",
+        { method: "POST", body: { auditNote } },
+      );
+      setScoringClosed(status.scoringClosed);
+      setClosedAt(status.closedAt ?? null);
+      setAuditNote("");
+      setConfirming(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao fechar pontuação.");
+    } finally {
+      setLoading(false);
+    }
+  }, [auditNote]);
+
+  if (loading && !confirming) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return <Failure message={error} />;
+  }
+
+  return (
+    <section className={styles.panel}>
+      <SectionTitle kicker="Admin" title="Controle de Pontuação" />
+      <div className={styles.card}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+          <div
+            style={{
+              width: "12px",
+              height: "12px",
+              borderRadius: "50%",
+              backgroundColor: scoringClosed ? "#ef4444" : "#22c55e",
+            }}
+          />
+          <span style={{ fontSize: "14px", fontWeight: 500 }}>
+            {scoringClosed ? "Pontuação fechada" : "Pontuação aberta"}
+          </span>
+        </div>
+        {closedAt && (
+          <p style={{ fontSize: "13px", color: "#6b7280", marginBottom: "16px" }}>
+            Fechada em: {formatDate(closedAt)}
+          </p>
+        )}
+        <p style={{ fontSize: "13px", color: "#6b7280", marginBottom: "16px" }}>
+          {scoringClosed
+            ? "QR Code, check-in e desafios normais não pontuam. Momentos livres continuam sendo publicados sem pontos. Desafio especial é a única exceção."
+            : "Todos os fluxos de pontuação estão ativos."}
+        </p>
+        {!confirming ? (
+          <button
+            className={scoringClosed ? styles.primaryButton : styles.dangerButton}
+            onClick={handleToggle}
+            disabled={loading}
+          >
+            {scoringClosed ? "Reabrir pontuação" : "Fechar pontuação"}
+          </button>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <p style={{ fontSize: "14px", fontWeight: 500, color: "#dc2626" }}>
+              Tem certeza que deseja fechar a pontuação?
+            </p>
+            <p style={{ fontSize: "13px", color: "#6b7280" }}>
+              Esta ação é atômica e imediata. QR Code, check-in e desafios normais deixarão de pontuar.
+            </p>
+            <input
+              type="text"
+              placeholder="Motivo (opcional)"
+              value={auditNote}
+              onChange={(e) => setAuditNote(e.target.value)}
+              style={{
+                padding: "8px 12px",
+                border: "1px solid #d1d5db",
+                borderRadius: "6px",
+                fontSize: "13px",
+              }}
+            />
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                className={styles.dangerButton}
+                onClick={handleConfirmClose}
+                disabled={loading}
+              >
+                Confirmar fechamento
+              </button>
+              <button
+                className={styles.ghostButton}
+                onClick={() => setConfirming(false)}
+                disabled={loading}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }

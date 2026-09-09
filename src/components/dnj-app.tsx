@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { authApi } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
@@ -60,12 +61,12 @@ function getAnimDir(from: Screen, to: Screen): AnimDir {
 
 import { AccountScreen } from "@/features/account/account-screen";
 import { CreateAccountScreen, GroupScreen, LoginScreen, VerifyScreen } from "@/features/auth/auth-screens";
-import { GameScreen } from "@/features/game/game-screen";
-import { GalleryScreen } from "@/features/gallery/gallery-screen";
 import { HomeScreen } from "@/features/home/home-screen";
 import { EventScheduleScreen } from "@/features/schedule/schedule-screen";
-import { EventMapScreen } from "@/features/map/map-screen";
-import { QueueScreen } from "@/features/queue/queue-screen";
+const GameScreen = dynamic(() => import("@/features/game/game-screen").then((module) => module.GameScreen), { ssr: false });
+const GalleryScreen = dynamic(() => import("@/features/gallery/gallery-screen").then((module) => module.GalleryScreen), { ssr: false });
+const EventMapScreen = dynamic(() => import("@/features/map/map-screen").then((module) => module.EventMapScreen), { ssr: false });
+const QueueScreen = dynamic(() => import("@/features/queue/queue-screen").then((module) => module.QueueScreen), { ssr: false });
 import { AppShell, BottomNav } from "@/components/layout/dnj-layout";
 import { ParticipantHeader } from "@/components/layout/participant-header";
 import { gameApi } from "@/lib/api/game";
@@ -107,7 +108,8 @@ export function DnjApp() {
     points: 150, rankPosition: 9,
   });
   const [offlineSnapshotCapturedAt, setOfflineSnapshotCapturedAt] = useState<string | null>(null);
-  const [sessionReady, setSessionReady] = useState(false);
+  // Render the login immediately; restoring an optional session must never blank the app.
+  const [sessionReady, setSessionReady] = useState(true);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [pushPromptOpen, setPushPromptOpen] = useState(false);
   const [specialEvent, setSpecialEvent] = useState<LiveSpecialEvent | null>(null);
@@ -359,10 +361,6 @@ export function DnjApp() {
     return () => { active = false; window.clearInterval(timer); };
   }, [sessionReady, isMain, network.isOnline, screen]);
 
-  if (!sessionReady) {
-    return <div className="min-h-dvh" style={{ background: "var(--background)" }} aria-label="Carregando sessao" />;
-  }
-
   return (
     <AppShell theme={theme}>
         <AnimatePresence mode="wait">
@@ -379,7 +377,7 @@ export function DnjApp() {
             {screen === "register-verify" && <VerifyScreen  email={registration?.email ?? ""} onNext={handleRegistrationVerification} onBack={() => navigate("register")} animDir={animDir} homologationCode={emailVerificationCode} />}
             {screen === "verify"          && <VerifyScreen  email={emailVal} onNext={handleVerification} onResend={handleResendVerification} onBack={() => navigate("login")}  animDir={animDir} homologationCode={emailVerificationCode} />}
             {screen === "group"   && <GroupScreen   onNext={handleGroupConfirm} onBack={() => navigate("login")} animDir={animDir} initialName={registration?.name ?? ""} initialGroup={user.group} initialDocument={user.cpf} initialMobilePhone={user.mobilePhone || registration?.mobilePhone} />}
-            {screen === "home"    && <HomeScreen user={user} animDir={animDir} onOpenSchedule={() => navigate("schedule")} onOpenMap={() => navigate("map")} onOpenGame={() => navigate("game")} onOpenAccount={() => navigate("account")} />}
+            {screen === "home"    && <HomeScreen user={user} animDir={animDir} onOpenSchedule={() => navigate("schedule")} onOpenMap={() => navigate("map")} onOpenGame={() => navigate("game")} onOpenAccount={() => navigate("account")} onOpenHome={() => navigate("home")} />}
             {screen === "schedule" && <EventScheduleScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "map" && <EventMapScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "game"    && <GameScreen user={user} theme={theme} animDir={animDir} momentChallenge={momentChallenge} onMomentCompleted={(challengeId) => completeMomentChallenge(challengeId)} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
@@ -400,7 +398,7 @@ export function DnjApp() {
           </motion.div>
         </AnimatePresence>
 
-        {isMain && screen !== "home" && <ParticipantHeader user={user} onAccount={() => navigate("account")} onGame={() => navigate("game")} />}
+        {isMain && screen !== "home" && <ParticipantHeader user={user} showAvatar={screen !== "account"} onHome={() => navigate("home")} onAccount={() => navigate("account")} onGame={() => navigate("game")} />}
         {isMain && <LiveStatusStack special={specialEvent} momentChallenge={momentChallenge} queueNotification={queueNotification} adminNotification={adminNotification} onOpenGame={() => navigate("game")} onOpenQueue={() => navigate("queue")} onReadAdmin={handleReadAdminNotification} />}
         {!network.isOnline && offlineSnapshotCapturedAt && (
           <p
