@@ -121,14 +121,18 @@ export function LoginScreen({
     >
       {/* Official DNJ welcome artwork */}
       <div className="relative shrink-0 overflow-hidden bg-[var(--primary)] pt-[var(--safe-area-top)]">
-        <img
-          src="/images/Topo_Inicio_App.png"
-          alt="DNJ 2K26 em Curitiba"
-          className="block h-auto w-full max-[420px]:max-h-[205px] max-[420px]:object-cover max-[420px]:object-center"
-          width={900}
-          height={566}
-          fetchPriority="high"
-        />
+        <picture>
+          <source media="(max-width: 420px)" srcSet="/images/Topo_Inicio_App-mobile.webp" type="image/webp" />
+          <source srcSet="/images/Topo_Inicio_App.webp" type="image/webp" />
+          <img
+            src="/images/Topo_Inicio_App.png"
+            alt="DNJ 2K26 em Curitiba"
+            className="block h-auto w-full max-[420px]:max-h-[205px] max-[420px]:object-cover max-[420px]:object-center"
+            width={900}
+            height={566}
+            fetchPriority="high"
+          />
+        </picture>
       </div>
 
       {/* Form */}

@@ -14,16 +14,16 @@ Aplicação mobile-first do DNJ Game, migrada para Next.js a partir do protótip
 ## Começando
 
 ```bash
-npm install
+pnpm install
 copy .env.example .env.local
-npm run dev
+pnpm dev
 ```
 
 Abra `http://localhost:3000`.
 
 Para subir também a API, PostgreSQL, MinIO e túneis Cloudflare temporários em
 um único comando, consulte [docs/local-development.md](docs/local-development.md)
-e execute `npm run dev:local`.
+e execute `pnpm dev:local`.
 
 Os scripts `predev` e `prebuild` geram `public/sw.js` automaticamente. Para testar instalação, cache e atualização como em produção, use uma build local (`npm run build` e `npm run start`) ou uma URL HTTPS da Vercel; o modo de desenvolvimento não substitui esse teste.
 
@@ -76,17 +76,17 @@ As cópias utilizadas pela aplicação ficam em `src/assets/brand`; os arquivos 
 ## Validação
 
 ```bash
-npm run typecheck
-npm run lint
-npm run test:unit
-npm run test:pwa
-npm run test:e2e
-npm run test:visual
-npm run build
-npm run validate
+pnpm typecheck
+pnpm lint
+pnpm test:unit
+pnpm test:pwa
+pnpm test:e2e
+pnpm test:visual
+pnpm build
+pnpm validate
 ```
 
-`npm run validate` é o gate completo: tipos, lint, testes unitários, build e toda a matriz Playwright. Os testes visuais usam snapshots versionados e não devem ser atualizados sem revisão deliberada do design.
+`pnpm validate` é o gate completo: tipos, lint, testes unitários, build e toda a matriz Playwright. Os testes visuais usam snapshots versionados e não devem ser atualizados sem revisão deliberada do design.
 
 ## Operação PWA
 

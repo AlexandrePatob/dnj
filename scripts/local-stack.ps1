@@ -1,5 +1,8 @@
 [CmdletBinding()]
-param()
+param(
+  [ValidateSet("Goahead", "Debug")]
+  [string]$Mode = "Goahead"
+)
 
 $ErrorActionPreference = "Stop"
 
@@ -8,6 +11,7 @@ $apiRoot = Join-Path (Split-Path -Parent $frontRoot) "dnj-game-api"
 $stateDir = Join-Path $frontRoot ".local"
 $stateFile = Join-Path $stateDir "dev-stack.json"
 $logsDir = Join-Path $stateDir "logs"
+$debugTerminal = $null
 $minioPort = if ($env:DNJ_LOCAL_MINIO_PORT) { [int]$env:DNJ_LOCAL_MINIO_PORT } else { 59000 }
 $minioConsolePort = if ($env:DNJ_LOCAL_MINIO_CONSOLE_PORT) { [int]$env:DNJ_LOCAL_MINIO_CONSOLE_PORT } else { 59001 }
 $startedPids = @()
@@ -70,12 +74,17 @@ function Wait-TryCloudflareUrl([string]$logPrefix, [string]$name) {
   throw "O túnel $name não informou uma URL trycloudflare. Consulte $logFile."
 }
 
-foreach ($command in "docker", "go", "npm", "cloudflared") { Require-Command $command }
+foreach ($command in "docker", "go", "pnpm", "cloudflared") { Require-Command $command }
 if (-not (Test-Path (Join-Path $apiRoot "docker-compose.yml"))) { throw "Backend não encontrado em $apiRoot." }
+if (-not (Test-Path (Join-Path $frontRoot "node_modules\.pnpm"))) {
+  Write-Host "Dependências do Front ausentes; executando pnpm install..."
+  Push-Location $frontRoot
+  try { & pnpm install --frozen-lockfile --prefer-offline } finally { Pop-Location }
+}
 if (Test-Path $stateFile) {
   $oldState = Get-Content -Raw $stateFile | ConvertFrom-Json
   if (@($oldState.pids | Where-Object { Test-ProcessAlive $_ }).Count -gt 0) {
-    throw "O ambiente local já está em execução. Use 'npm run dev:local:stop' antes de iniciá-lo novamente."
+    throw "O ambiente local já está em execução. Use 'pnpm dev:local:stop' antes de iniciá-lo novamente."
   }
 }
 
@@ -97,7 +106,7 @@ try { & docker compose up -d --wait db s3 s3-init } finally {
 
 $previousUpstream = $env:DNJ_V2_UPSTREAM_URL
 $env:DNJ_V2_UPSTREAM_URL = "http://localhost:8081/v2"
-$frontCommand = if ($env:DNJ_FRONT_COMMAND) { $env:DNJ_FRONT_COMMAND } else { "npm run dev" }
+$frontCommand = if ($env:DNJ_FRONT_COMMAND) { $env:DNJ_FRONT_COMMAND } else { "pnpm dev" }
 $front = Start-LoggedProcess "front" $frontRoot @("/c", $frontCommand)
 $startedPids += $front.Id
 if ($null -eq $previousUpstream) { Remove-Item Env:DNJ_V2_UPSTREAM_URL -ErrorAction SilentlyContinue } else { $env:DNJ_V2_UPSTREAM_URL = $previousUpstream }
@@ -147,4 +156,13 @@ Write-Host "  API:      $frontUrl/api/v2 (proxy para http://localhost:8081/v2)"
 Write-Host "  MinIO:    $minioUrl"
 Write-Host "  Console:  http://localhost:$minioConsolePort"
 Write-Host "\nLogs: $logsDir"
-Write-Host "Para parar: npm run dev:local:stop"
+Write-Host "Para parar: pnpm dev:local:stop"
+
+if ($Mode -eq "Debug") {
+  $debugCommand = "Get-ChildItem -Path '$logsDir\*.log' | ForEach-Object { Write-Host ('=== ' + `$_.Name + ' ===') -ForegroundColor Cyan; Get-Content `$_.FullName -Wait }"
+  $debugTerminal = Start-Process powershell.exe -ArgumentList @("-NoExit", "-NoProfile", "-Command", $debugCommand) -PassThru
+  $state = Get-Content -Raw $stateFile | ConvertFrom-Json
+  $state.pids = @($state.pids) + $debugTerminal.Id
+  $state | ConvertTo-Json | Set-Content -Encoding utf8 $stateFile
+  Write-Host "Terminal de Debug aberto com os logs consolidados."
+}
