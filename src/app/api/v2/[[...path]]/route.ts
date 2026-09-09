@@ -2,7 +2,10 @@ const defaultUpstream = "https://ttwkfudhvvhuhp5yvsoydxggum0ictpg.lambda-url.sa-
 const upstream = () => (process.env.DNJ_V2_UPSTREAM_URL ?? defaultUpstream).replace(/\/$/, "");
 
 function rewriteCookiePath(cookie: string) {
-  return cookie.replace(/;\s*Path=\/v2\/auth(?=;|$)/i, "; Path=/api/v2/auth");
+  const rewritten = cookie.replace(/;\s*Path=\/v2\/auth(?=;|$)/i, "; Path=/api/v2/auth");
+  return /^csrf_token=/i.test(cookie)
+    ? rewritten.replace(/;\s*Path=\/api\/v2\/auth(?=;|$)/i, "; Path=/")
+    : rewritten;
 }
 
 async function proxy(request: Request, context: { params: Promise<{ path?: string[] }> }) {
