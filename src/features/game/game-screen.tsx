@@ -38,7 +38,7 @@ type GroupEntry = { id: string; name: string; points: number; members: number };
 type GameOverview = {
   individual: RankingEntry[];
   groups: GroupEntry[];
-  pointEntries: { id: string; label: string; points: number; icon: string }[];
+  pointEntries: { id: string; label: string; points: number; icon: string; removalReason?: string }[];
   current: { groupId: string | null; rankPosition: number; points?: number };
 };
 type LiveRun = {
@@ -540,15 +540,25 @@ export function GameScreen({
                   overview.pointEntries.map((entry) => (
                     <div
                       key={entry.id}
-                      className="flex items-center gap-3 border-b px-4 py-3 last:border-0"
+                      className="border-b px-4 py-3 last:border-0"
                       style={{ borderColor: "var(--border)" }}
                     >
-                      <PointIcon type={entry.icon} />
-                      <span className="flex-1 text-sm">{entry.label}</span>
-                      <strong style={{ color: "var(--game)" }}>
-                        {entry.points >= 0 ? "+" : ""}
-                        {entry.points}
-                      </strong>
+                      <div className="flex items-center gap-3">
+                        <PointIcon type={entry.icon} />
+                        <span className="flex-1 text-sm">{entry.label}</span>
+                        <strong style={{ color: "var(--game)" }}>
+                          {entry.points >= 0 ? "+" : ""}
+                          {entry.points}
+                        </strong>
+                      </div>
+                      {entry.removalReason && (
+                        <p
+                          className="mt-1 text-[.65rem] font-semibold leading-tight"
+                          style={{ color: "var(--destructive)" }}
+                        >
+                          Motivo: {entry.removalReason}
+                        </p>
+                      )}
                     </div>
                   ))
                 ) : (
