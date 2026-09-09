@@ -295,9 +295,7 @@ export function QrScannerModal({
               background:
                 status === "success"
                   ? "color-mix(in srgb, var(--game) 15%, transparent)"
-                  : status === "error"
-                    ? "color-mix(in srgb, var(--destructive) 10%, transparent)"
-                    : "color-mix(in srgb, var(--background) 82%, transparent)",
+                  : "color-mix(in srgb, var(--background) 82%, transparent)",
             }}
           >
             {status === "success" ? (
