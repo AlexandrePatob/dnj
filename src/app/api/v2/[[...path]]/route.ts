@@ -10,6 +10,10 @@ async function proxy(request: Request, context: { params: Promise<{ path?: strin
   const url = new URL(request.url);
   const headers = new Headers(request.headers);
   headers.delete("host");
+  // The browser talks to this same-origin proxy; do not make the upstream API
+  // validate the temporary tunnel origin as a cross-origin request.
+  headers.delete("origin");
+  headers.delete("referer");
   const response = await fetch(`${upstream()}/${path.join("/")}${url.search}`, {
     method: request.method,
     headers,

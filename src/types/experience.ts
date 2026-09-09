@@ -52,6 +52,7 @@ export interface Moment {
   likedByCurrentUser: boolean;
   comments: GalleryComment[];
   groupId?: string;
+  groupName?: string;
 }
 
 export interface GalleryComment {
