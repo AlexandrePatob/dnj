@@ -90,11 +90,14 @@ describe("GalleryScreen", () => {
     expect(await screen.findByAltText("Momento em Capela")).toHaveClass(
       "aspect-[3/4]",
     );
+    expect(document.querySelector(".passport-grid")).toHaveClass("grid-cols-2");
     expect(document.querySelector(".passport-grid")).toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "Abrir momento em Capela" }),
     );
-    expect(await screen.findByRole("button", { name: "Compartilhar momento" })).toBeInTheDocument();
+    expect(
+      await screen.findAllByRole("button", { name: "Compartilhar momento" }),
+    ).toHaveLength(2);
     await user.click(screen.getByRole("button", { name: "Grupo" }));
     expect(
       await screen.findByRole("heading", {
@@ -133,13 +136,8 @@ describe("GalleryScreen", () => {
       screen.getByRole("button", { name: "Abrir momento em Palco" }),
     );
     expect(await screen.findByRole("dialog", { name: "Detalhe do momento" })).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Curtir momento" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Curtir momento" })).toHaveLength(1);
     expect(screen.queryByRole("button", { name: "Compartilhar momento" })).not.toBeInTheDocument();
-    const detailLike = screen.getAllByRole("button", {
-      name: "Curtir momento",
-    })[1];
-    await user.click(detailLike);
-    expect(detailLike).not.toBeDisabled();
   });
 
   it("shows feed sharing only for personal and group moments", async () => {
@@ -148,7 +146,7 @@ describe("GalleryScreen", () => {
       json: async () => ({
         items: [
           { id: "mine", authorName: "Alex", groupId: "other", placeName: "Capela", imageUrl: "/mock/moments/dnj-feed-01.png" },
-          { id: "group", authorName: "Outra pessoa", groupId: "group-1", placeName: "Palco", imageUrl: "/mock/moments/dnj-feed-01.png" },
+          { id: "group", authorName: "Outra pessoa", groupId: "group-1", groupName: "Cursilho", placeName: "Palco", imageUrl: "/mock/moments/dnj-feed-01.png" },
           { id: "other", authorName: "Outra pessoa", groupId: "group-2", placeName: "Quadra", imageUrl: "/mock/moments/dnj-feed-01.png" },
         ],
         nextCursor: null,
@@ -167,6 +165,7 @@ describe("GalleryScreen", () => {
       await screen.findAllByRole("button", { name: "Compartilhar momento" }),
     ).toHaveLength(2);
     expect(screen.getAllByText("DNJ")).toHaveLength(3);
+    expect(screen.getByText("Cursilho")).toBeInTheDocument();
   });
 
   it("shows the author's profile photo when the feed provides one", async () => {

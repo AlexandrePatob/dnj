@@ -26,6 +26,14 @@ function Test-ProcessAlive([int]$id) {
   return $null -ne (Get-Process -Id $id -ErrorAction SilentlyContinue)
 }
 
+function Assert-PortFree([int]$port, [string]$name) {
+  $listener = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($null -eq $listener) { return }
+  $process = Get-CimInstance Win32_Process -Filter "ProcessId=$($listener.OwningProcess)" -ErrorAction SilentlyContinue
+  $command = if ($process) { $process.CommandLine } else { "PID $($listener.OwningProcess)" }
+  throw "$name já está ocupando a porta $port ($command). Execute 'npm run dev:local:stop' ou encerre esse processo antes de iniciar."
+}
+
 function Stop-ProcessTree([int]$processId) {
   Get-CimInstance Win32_Process -Filter "ParentProcessId=$processId" |
     ForEach-Object { Stop-ProcessTree $_.ProcessId }
