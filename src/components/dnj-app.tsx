@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { authApi } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
@@ -60,12 +61,12 @@ function getAnimDir(from: Screen, to: Screen): AnimDir {
 
 import { AccountScreen } from "@/features/account/account-screen";
 import { CreateAccountScreen, GroupScreen, LoginScreen, VerifyScreen } from "@/features/auth/auth-screens";
-import { GameScreen } from "@/features/game/game-screen";
-import { GalleryScreen } from "@/features/gallery/gallery-screen";
 import { HomeScreen } from "@/features/home/home-screen";
 import { EventScheduleScreen } from "@/features/schedule/schedule-screen";
-import { EventMapScreen } from "@/features/map/map-screen";
-import { QueueScreen } from "@/features/queue/queue-screen";
+const GameScreen = dynamic(() => import("@/features/game/game-screen").then((module) => module.GameScreen), { ssr: false });
+const GalleryScreen = dynamic(() => import("@/features/gallery/gallery-screen").then((module) => module.GalleryScreen), { ssr: false });
+const EventMapScreen = dynamic(() => import("@/features/map/map-screen").then((module) => module.EventMapScreen), { ssr: false });
+const QueueScreen = dynamic(() => import("@/features/queue/queue-screen").then((module) => module.QueueScreen), { ssr: false });
 import { AppShell, BottomNav } from "@/components/layout/dnj-layout";
 import { ParticipantHeader } from "@/components/layout/participant-header";
 import { gameApi } from "@/lib/api/game";
@@ -107,7 +108,8 @@ export function DnjApp() {
     points: 150, rankPosition: 9,
   });
   const [offlineSnapshotCapturedAt, setOfflineSnapshotCapturedAt] = useState<string | null>(null);
-  const [sessionReady, setSessionReady] = useState(false);
+  // Render the login immediately; restoring an optional session must never blank the app.
+  const [sessionReady, setSessionReady] = useState(true);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [pushPromptOpen, setPushPromptOpen] = useState(false);
   const [specialEvent, setSpecialEvent] = useState<LiveSpecialEvent | null>(null);
@@ -358,10 +360,6 @@ export function DnjApp() {
     const timer = window.setInterval(() => void refresh(), 15_000);
     return () => { active = false; window.clearInterval(timer); };
   }, [sessionReady, isMain, network.isOnline, screen]);
-
-  if (!sessionReady) {
-    return <div className="min-h-dvh" style={{ background: "var(--background)" }} aria-label="Carregando sessao" />;
-  }
 
   return (
     <AppShell theme={theme}>
