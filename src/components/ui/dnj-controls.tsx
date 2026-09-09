@@ -77,12 +77,12 @@ export function PrimaryButton({
   );
 }
 
-export function BackButton({ onClick }: { onClick: () => void }) {
+export function BackButton({ onClick, className = "", style }: { onClick: () => void; className?: string; style?: React.CSSProperties }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-1.5 w-fit transition-opacity hover:opacity-70 active:opacity-50"
-      style={{ color: "var(--muted-foreground)" }}
+      className={`flex items-center gap-1.5 w-fit transition-opacity hover:opacity-70 active:opacity-50 ${className}`}
+      style={{ color: "var(--muted-foreground)", ...style }}
     >
       <ArrowLeft size={18} />
       <span className="text-sm font-medium">Voltar</span>

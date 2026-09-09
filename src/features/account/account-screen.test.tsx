@@ -43,9 +43,8 @@ describe("AccountScreen", () => {
   it("uses the shared DNJ level rules instead of a fixed account level", () => {
     render(<AccountScreen user={{ ...user, points: 350 }} onAvatarChange={vi.fn()} onLogout={vi.fn()} theme="light" onToggleTheme={vi.fn()} animDir="up" />);
 
-    expect(screen.getByText("Nível Missionário")).toBeInTheDocument();
-    expect(screen.getByText("200 pts para próximo")).toBeInTheDocument();
-    expect(screen.getByText("350/550 pontos")).toBeInTheDocument();
+    expect(screen.getByText(/Nível Missionário · faltam 200 pontos/)).toBeInTheDocument();
+    expect(screen.getByText("350 / 550 pts")).toBeInTheDocument();
     expect(screen.queryByText(/Nível Peregrino/)).not.toBeInTheDocument();
   });
 

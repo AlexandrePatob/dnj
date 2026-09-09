@@ -58,7 +58,8 @@ export async function buildServiceWorker({
   }
 
   const inputs = await Promise.all([readFile(entry, "utf8"), readFile(policy, "utf8")]);
-  const revision = resolveRevision(env, inputs);
+  const development = env.npm_lifecycle_event === "predev" || env.NODE_ENV === "development";
+  const revision = resolveRevision(env, [...inputs, development ? "development" : "production"]);
   const result = await build({
     absWorkingDir: root,
     stdin: {
@@ -89,7 +90,7 @@ export async function buildServiceWorker({
     charset: "utf8",
     legalComments: "none",
     sourcemap: false,
-    define: { __PWA_REVISION__: JSON.stringify(revision) },
+    define: { __PWA_REVISION__: JSON.stringify(revision), __PWA_DEVELOPMENT__: JSON.stringify(development) },
   });
 
   if (result.outputFiles.length !== 1) throw new Error("Service worker bundle must produce exactly one file");

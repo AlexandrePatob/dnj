@@ -85,7 +85,7 @@ export function LiveStatusStack({
   return (
     <aside
       className="absolute left-3 right-3 z-[45] grid gap-2"
-      style={{ top: "calc(48px + var(--safe-area-top) + 8px)" }}
+      style={{ top: "calc(var(--participant-header-height) + 0px + var(--safe-area-top) + 8px)" }}
       aria-label="Atualizações ao vivo"
     >
       {visibleSpecial && (

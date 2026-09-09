@@ -23,7 +23,7 @@ describe("PWA manifest and platform metadata", () => {
       display: "standalone",
       orientation: "portrait-primary",
       background_color: "#f7f8f6",
-      theme_color: "#e87425",
+      theme_color: "#243b17",
     });
   });
 
@@ -60,10 +60,8 @@ describe("PWA manifest and platform metadata", () => {
         statusBarStyle: "black-translucent",
       },
     });
-    expect(viewport.themeColor).toEqual([
-      { media: "(prefers-color-scheme: light)", color: "#f7f8f6" },
-      { media: "(prefers-color-scheme: dark)", color: "#0d1a1a" },
-    ]);
+    expect(viewport.themeColor).toBe("#243b17");
+    expect(viewport.themeColor).toBe(appManifest.theme_color);
   });
 
   it("references only install icon files that exist", async () => {
