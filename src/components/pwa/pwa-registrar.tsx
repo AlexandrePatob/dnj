@@ -86,7 +86,7 @@ function loadedStaticUrls(): string[] {
         .filter((value) => {
           try {
             const url = new URL(value, origin);
-            return url.origin === origin && url.pathname.startsWith("/_next/static/");
+            return url.origin === origin && (url.pathname.startsWith("/_next/static/") || [".avif", ".ico", ".jpeg", ".jpg", ".png", ".svg", ".webp", ".woff", ".woff2", ".webmanifest"].some((extension) => url.pathname.endsWith(extension)));
           } catch {
             return false;
           }
@@ -94,6 +94,15 @@ function loadedStaticUrls(): string[] {
     ),
   );
 }
+
+const PREFETCH_ASSETS = [
+  "/images/Topo_Inicio_App.webp",
+  "/images/Topo_Inicio_App-mobile.webp",
+  "/images/participant/home.webp",
+  "/images/participant/top.webp",
+  "/images/queue/CRUZ.png",
+  "/images/queue/MAOS.png",
+];
 
 export function usePwa(): PwaContextValue {
   return useContext(PwaContext);
@@ -285,7 +294,9 @@ export function PwaRegistrar({
           setStatus("error");
           return;
         }
-        worker.postMessage({ type: "CACHE_URLS", urls: loadedStaticUrls() });
+        const warm = () => worker.postMessage({ type: "CACHE_URLS", urls: Array.from(new Set([...loadedStaticUrls(), ...PREFETCH_ASSETS])) });
+        if ("requestIdleCallback" in window) window.requestIdleCallback(warm, { timeout: 2_000 });
+        else globalThis.setTimeout(warm, 1_000);
       })
       .catch(() => {
         if (disposed) return;

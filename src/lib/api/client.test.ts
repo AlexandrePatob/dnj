@@ -114,6 +114,12 @@ describe("apiRequest offline behavior", () => {
     expect(vi.mocked(fetch).mock.calls.filter(([url]) => url === "/api/v2/auth/refresh")).toHaveLength(1);
   });
 
+  it("does not refresh an unauthenticated session probe", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(response({ code: "AUTH_REQUIRED", message: "login required" }, { status: 401 }));
+    await expect(apiRequest("/auth/session", { refreshOnUnauthorized: false })).rejects.toMatchObject({ status: 401 });
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
   it("preserves the complete V2 error envelope", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(response({ code: "BAD_INPUT", message: "Campo inválido", details: { field: "name" }, requestId: "req-1" }, { status: 422 }));
     await expect(apiRequest("/profile")).rejects.toMatchObject({ code: "BAD_INPUT", message: "Campo inválido", details: { field: "name" }, requestId: "req-1", status: 422 });

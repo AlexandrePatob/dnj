@@ -139,7 +139,7 @@ export function createServiceWorkerRuntime(environment: WorkerEnvironment, revis
       }
 
       const strategy = classifyRequest(request, environment.origin);
-      if (strategy !== "static-cache-first") return "CACHE_URL_REJECTED";
+      if (strategy !== "static-cache-first" && strategy !== "asset-cache-first") return "CACHE_URL_REJECTED";
 
       try {
         await cacheFirst(request, strategy);
