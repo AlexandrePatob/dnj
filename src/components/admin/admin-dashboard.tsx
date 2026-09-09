@@ -1252,9 +1252,6 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
                     Excluir
                   </button>
                 </div>
-                {kind !== "competitive" && (
-                  <ManagerAssignments activityId={activity.id} />
-                )}
               </article>
             ))}
           </div>
@@ -1726,107 +1723,6 @@ function SpecialEventsPanel() {
           )}
         </div>
       </section>
-    </div>
-  );
-}
-
-function ManagerAssignments({ activityId }: { activityId: string }) {
-  const [managers, setManagers] = useState<Staff[]>([]);
-  const [assigned, setAssigned] = useState<Staff[]>([]);
-  const [selected, setSelected] = useState("");
-  const [error, setError] = useState("");
-  const load = useCallback(async () => {
-    try {
-      const [available, current] = await Promise.all([
-        loadAllPages<Staff>("/admin/staff?role=EVENT_MANAGER"),
-        loadAllPages<Staff>(`/admin/activities/${activityId}/managers`),
-      ]);
-      setManagers(available);
-      setAssigned(current);
-    } catch {
-      setError("Não foi possível carregar os vínculos.");
-    }
-  }, [activityId]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  async function assign() {
-    if (!selected) return;
-    try {
-      await api(`/admin/activities/${activityId}/managers/${selected}`, {
-        method: "PUT",
-      });
-      setSelected("");
-      await load();
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "Não foi possível vincular o gestor.",
-      );
-    }
-  }
-  async function remove(userId: string) {
-    try {
-      await api(`/admin/activities/${activityId}/managers/${userId}`, {
-        method: "DELETE",
-      });
-      await load();
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "Não foi possível remover o vínculo.",
-      );
-    }
-  }
-  return (
-    <div className={styles.help}>
-      <strong>Gestores:</strong>{" "}
-      {assigned.length
-        ? assigned.map((manager) => (
-            <span key={manager.id}>
-              {" "}
-              {manager.email || manager.name}{" "}
-              <button
-                type="button"
-                className={styles.ghostButton}
-                onClick={() => void remove(String(manager.id))}
-              >
-                remover
-              </button>
-            </span>
-          ))
-        : " nenhum"}{" "}
-      {managers.length > assigned.length && (
-        <span>
-          <select
-            aria-label={`E-mail do gestor da atividade ${activityId}`}
-            value={selected}
-            onChange={(event) => setSelected(event.target.value)}
-          >
-            <option value="">Vincular e-mail…</option>
-            {managers
-              .filter(
-                (manager) => !assigned.some((item) => item.id === manager.id),
-              )
-              .map((manager) => (
-                <option key={manager.id} value={manager.id}>
-                  {manager.email || manager.name}
-                </option>
-              ))}
-          </select>
-          <button
-            type="button"
-            className={styles.primaryButton}
-            disabled={!selected}
-            onClick={() => void assign()}
-          >
-            Vincular
-          </button>
-        </span>
-      )}{" "}
-      {error && <span role="alert"> {error}</span>}
     </div>
   );
 }
