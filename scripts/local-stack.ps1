@@ -104,6 +104,9 @@ try { & docker compose up -d --wait db s3 s3-init } finally {
   if ($null -eq $previousS3ConsolePort) { Remove-Item Env:S3_CONSOLE_PORT -ErrorAction SilentlyContinue } else { $env:S3_CONSOLE_PORT = $previousS3ConsolePort }
 }
 
+Push-Location $apiRoot
+try { & go run cmd/migrate/main.go } finally { Pop-Location }
+
 $previousUpstream = $env:DNJ_V2_UPSTREAM_URL
 $env:DNJ_V2_UPSTREAM_URL = "http://localhost:8081/v2"
 $frontCommand = if ($env:DNJ_FRONT_COMMAND) { $env:DNJ_FRONT_COMMAND } else { "pnpm dev" }
