@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, MapPin, Plus, Search } from "lucide-react";
-import { BrandSticker } from "@/components/brand/brand-sticker";
 import {
   BackButton,
   FieldInput,
@@ -27,6 +26,13 @@ function animStyle(dir: AnimDir): React.CSSProperties {
     up: "fadeUp       220ms cubic-bezier(0.22,1,0.36,1) both",
   };
   return { animation: map[dir] };
+}
+function AuthHeader({ onBack }: { onBack: () => void }) {
+  return <header className="relative -mx-6 flex h-24 shrink-0 items-center px-6" style={{ background: "linear-gradient(to bottom, transparent 74%, var(--background) 100%), url('/images/participant/top.webp') center / 100% 100% no-repeat" }}>
+    <div className="-translate-y-3">
+      <BackButton onClick={onBack} className="rounded-full bg-white/20 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm" style={{ color: "white" }} />
+    </div>
+  </header>;
 }
 function requestErrorMessage(error: unknown) {
   return error instanceof Error
@@ -110,42 +116,27 @@ export function LoginScreen({
   return (
     <div
       key="login"
-      className="flex flex-col min-h-dvh"
+      className="flex min-h-dvh flex-col overflow-y-auto"
       style={{ background: "var(--background)", ...animStyle(animDir) }}
     >
-      {/* Orange hero with official logo */}
-      <div
-        className="relative flex flex-col items-center justify-center overflow-hidden"
-        style={{
-          background: "var(--primary)",
-          paddingTop: "calc(56px + var(--safe-area-top))",
-          paddingBottom: "32px",
-        }}
-      >
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(0,0,0,0.08) 1px, transparent 1px)",
-            backgroundSize: "24px 24px",
-          }}
-        />
-        <div
-          className="relative z-10"
-          style={{ width: "72%", maxWidth: "280px" }}
-        >
-          <BrandSticker variant="intro" className="w-full" />
-        </div>
-        <p
-          className="text-sm text-center relative z-10 mt-4 font-medium"
-          style={{ color: "rgba(0,0,0,0.55)" }}
-        >
-          Curitiba · 2026
-        </p>
+      {/* Official DNJ welcome artwork */}
+      <div className="relative shrink-0 overflow-hidden bg-[var(--primary)] pt-[var(--safe-area-top)]">
+        <picture>
+          <source media="(max-width: 420px)" srcSet="/images/Topo_Inicio_App-mobile.webp" type="image/webp" />
+          <source srcSet="/images/Topo_Inicio_App.webp" type="image/webp" />
+          <img
+            src="/images/Topo_Inicio_App.png"
+            alt="DNJ 2K26 em Curitiba"
+            className="block h-auto w-full max-[420px]:max-h-[205px] max-[420px]:object-cover max-[420px]:object-center"
+            width={900}
+            height={566}
+            fetchPriority="high"
+          />
+        </picture>
       </div>
 
       {/* Form */}
-      <div className="flex flex-col flex-1 px-6 pt-6 pb-10 gap-5">
+      <div className="flex flex-col gap-5 px-5 pb-[calc(28px+var(--safe-area-bottom))] pt-6 max-[420px]:gap-3 max-[420px]:pt-4 sm:px-6">
         <div>
           <h2
             className="text-xl font-bold mb-1"
@@ -159,7 +150,7 @@ export function LoginScreen({
         </div>
 
         <div
-          className="rounded-2xl p-6 flex flex-col gap-4"
+          className="flex flex-col gap-4 rounded-2xl p-4 max-[420px]:gap-3 max-[420px]:p-3 sm:p-6"
           style={{
             background: "var(--card)",
             border: "1px solid var(--border)",
@@ -188,18 +179,10 @@ export function LoginScreen({
           </PrimaryButton>
         </div>
 
-        <p
-          className="text-center text-xs"
-          style={{ color: "var(--muted-foreground)" }}
-        >
-          Ao entrar, você concorda com os{" "}
-          <span className="underline" style={{ color: "var(--primary)" }}>
-            termos de uso
-          </span>{" "}
-          do evento.
-        </p>
-
-        <p className="text-center text-sm" style={{ color: "var(--muted-foreground)" }}>Já tem um código? Use seu e-mail acima. É seu primeiro acesso? <button type="button" onClick={onRegister} className="inline-flex items-center gap-1 font-semibold underline underline-offset-2" style={{ color: "var(--primary)" }}><Plus size={15} />Criar conta</button></p>
+        <div className="text-center text-sm leading-relaxed max-[420px]:text-xs" style={{ color: "var(--muted-foreground)" }}>
+          <p>Já tem um código? Use seu e-mail acima.</p>
+          <p className="mt-1">Primeiro acesso? <button type="button" onClick={onRegister} className="inline font-semibold underline underline-offset-2" style={{ color: "var(--primary)" }}>Criar conta</button></p>
+        </div>
       </div>
     </div>
   );
@@ -212,9 +195,9 @@ export function CreateAccountScreen({ onBack, onDone, animDir }: { onBack: () =>
   const [email, setEmail] = useState("");
   const valid = name.trim().length >= 2 && email.includes("@");
 
-  return <div key="create-account" className="flex min-h-dvh flex-col px-6 pb-10" style={{ background: "var(--background)", paddingTop: "calc(48px + var(--safe-area-top))", ...animStyle(animDir) }}>
-    <BackButton onClick={onBack} />
-    <div className="mb-6 mt-6"><h2 className="mb-1 text-2xl font-bold" style={{ color: "var(--foreground)" }}>Criar conta</h2><p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Comece com seu nome e e-mail. Os demais dados serão pedidos após a validação.</p></div>
+  return <div key="create-account" className="flex min-h-dvh flex-col px-6 pb-10" style={{ background: "var(--background)", paddingTop: "var(--safe-area-top)", ...animStyle(animDir) }}>
+    <AuthHeader onBack={onBack} />
+    <div className="mb-6 mt-2"><h2 className="mb-1 text-2xl font-bold" style={{ color: "var(--foreground)" }}>Criar conta</h2><p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Comece com seu nome e e-mail. Os demais dados serão pedidos após a validação.</p></div>
     <div className="mb-5 flex flex-col gap-4 rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><FieldInput label="Nome completo" placeholder="Seu nome" value={name} onChange={(event) => setName(event.target.value)} error={name && name.trim().length < 2 ? "Informe seu nome completo." : ""} /><FieldInput label="E-mail" type="email" placeholder="seu@email.com" value={email} onChange={(event) => setEmail(event.target.value)} error={email && !email.includes("@") ? "Informe um e-mail válido." : ""} /></div>
     <PrimaryButton onClick={() => onDone({ name: name.trim(), email, mobilePhone: "", group: "" })} disabled={!valid}>Enviar código</PrimaryButton>
   </div>;
@@ -289,7 +272,7 @@ export function RegisterScreen({
       className="flex flex-col min-h-dvh px-6 pb-10 overflow-y-auto"
       style={{
         background: "var(--background)",
-        paddingTop: "calc(48px + var(--safe-area-top))",
+        paddingTop: "var(--safe-area-top)",
         ...animStyle(animDir),
       }}
     >
@@ -614,6 +597,7 @@ export function VerifyScreen({
   const [allFilled, setAllFilled] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState("");
+  const autoSubmitted = useRef(false);
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -622,7 +606,21 @@ export function VerifyScreen({
     return () => clearInterval(id);
   }, [timer]);
 
+  useEffect(() => {
+    if (!allFilled) {
+      autoSubmitted.current = false;
+      return;
+    }
+    if (!autoSubmitted.current) {
+      autoSubmitted.current = true;
+      void submitCode();
+    }
+  // submitCode is intentionally called only when the six-digit state becomes complete.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allFilled]);
+
   function handleChange(index: number, value: string) {
+    autoSubmitted.current = false;
     const digit = value.replace(/\D/g, "").slice(-1);
     const next = [...digits];
     next[index] = digit;
@@ -644,6 +642,7 @@ export function VerifyScreen({
       .slice(0, 6);
     if (!pasted) return;
     e.preventDefault();
+    autoSubmitted.current = false;
     const next = [...pasted, "", "", "", "", ""].slice(0, 6);
     setDigits(next);
     setAllFilled(pasted.length === 6);
@@ -666,16 +665,16 @@ export function VerifyScreen({
   return (
     <div
       key="verify"
-      className="flex flex-col min-h-dvh px-6 pb-10"
+      className="flex min-h-dvh flex-col overflow-y-auto px-6 pb-10"
       style={{
         background: "var(--background)",
-        paddingTop: "calc(48px + var(--safe-area-top))",
+        paddingTop: "var(--safe-area-top)",
         ...animStyle(animDir),
       }}
     >
-      <BackButton onClick={onBack} />
+      <AuthHeader onBack={onBack} />
 
-      <div className="mt-8 mb-6">
+      <div className="mt-2 mb-6">
         <h2
           className="text-2xl font-bold mb-2"
           style={{ color: "var(--foreground)" }}
@@ -811,6 +810,7 @@ export function GroupScreen({
   const [groupsError, setGroupsError] = useState("");
   const [searchingGroups, setSearchingGroups] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
 
   useEffect(() => {
     const search = query.trim();
@@ -847,6 +847,7 @@ export function GroupScreen({
   }, [query]);
 
   const filtered = apiGroups.map((group) => group.groupName);
+  const firstName = name.trim().split(/\s+/)[0];
 
   async function confirmGroup() {
     if (!selected || name.trim().length < 2 || document.replace(/\D/g, "").length !== 11 || mobilePhone.replace(/\D/g, "").length < 10 || confirming) return;
@@ -899,30 +900,34 @@ export function GroupScreen({
     >
       <div
         className="min-h-0 flex-1 overflow-y-auto px-6"
-        style={{ paddingTop: "calc(48px + var(--safe-area-top))" }}
+        style={{ paddingTop: "var(--safe-area-top)" }}
       >
-        <BackButton onClick={onBack} />
+        <AuthHeader onBack={onBack} />
 
-      <div className="mt-6 mb-5">
+      <div className="mt-2 mb-4">
         <h2
           className="text-2xl font-bold mb-1"
           style={{ color: "var(--foreground)" }}
         >
-          Seu grupo jovem
+          {firstName ? `${firstName}, precisamos de mais algumas informações!` : "Precisamos de mais algumas informações!"}
         </h2>
         <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-          Complete seus dados e confirme seu grupo de juventude
+          {step === 1 ? "É rapidinho: falta pouco para concluir seu cadastro." : "Agora escolha ou crie seu grupo de jovens."}
         </p>
       </div>
 
-      <div className="mb-4 flex flex-col gap-3">
-        <FieldInput
+      <div className="mb-5 grid grid-cols-2 gap-2 rounded-xl p-1" style={{ background: "var(--muted)" }}>
+        {[{ id: 1, label: "Dados" }, { id: 2, label: "Grupo" }].map((tab) => <button key={tab.id} type="button" onClick={() => tab.id === 1 || name.trim().length >= 2 ? setStep(tab.id as 1 | 2) : undefined} className="rounded-lg py-2.5 text-xs font-bold transition-colors" style={{ background: step === tab.id ? "var(--card)" : "transparent", color: step === tab.id ? "var(--primary)" : "var(--muted-foreground)", boxShadow: step === tab.id ? "0 2px 8px rgb(0 0 0 / .08)" : "none" }}>{tab.label}</button>)}
+      </div>
+
+      {step === 1 ? <div className="mb-4 flex flex-col gap-3">
+        {!initialName && <FieldInput
           label="Nome completo"
           placeholder="Seu nome completo"
           value={name}
           onChange={(event) => setName(event.target.value)}
           error={name && name.trim().length < 2 ? "Informe seu nome completo." : ""}
-        />
+        />}
         <FieldInput
           label="CPF"
           placeholder="000.000.000-00"
@@ -935,9 +940,9 @@ export function GroupScreen({
           value={mobilePhone}
           onChange={(event) => setMobilePhone(formatWhatsApp(event.target.value))}
         />
-      </div>
+      </div> : null}
 
-      <AnimatePresence>
+      {step === 2 ? <><AnimatePresence>
         {selected && !adding && (
           <motion.div
             className="rounded-xl p-3 mb-4 flex items-center gap-3"
@@ -1148,6 +1153,7 @@ export function GroupScreen({
           </button>
         </div>
       )}
+      </> : null}
 
       </div>
 
@@ -1159,8 +1165,8 @@ export function GroupScreen({
           paddingBottom: "calc(16px + var(--safe-area-bottom))",
         }}
       >
-        <PrimaryButton onClick={confirmGroup} disabled={!selected || document.replace(/\D/g, "").length !== 11 || mobilePhone.replace(/\D/g, "").length < 10 || confirming}>
-          {confirming ? "Salvando..." : "Continuar"}
+        <PrimaryButton onClick={() => step === 1 ? setStep(2) : void confirmGroup()} disabled={step === 1 ? name.trim().length < 2 || document.replace(/\D/g, "").length !== 11 || mobilePhone.replace(/\D/g, "").length < 10 : !selected || confirming}>
+          {step === 1 ? "Continuar para grupo" : confirming ? "Salvando..." : "Confirmar grupo"}
         </PrimaryButton>
       </div>
     </div>

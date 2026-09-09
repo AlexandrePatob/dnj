@@ -8,7 +8,8 @@ export type AdminPanel =
   | "Atividades"
   | "Espaços"
   | "Moderação"
-  | "Notificações";
+  | "Notificações"
+  | "Pontuação";
 
 export interface AdminMoment {
   id: string;

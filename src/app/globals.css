@@ -2,3 +2,7 @@
 @import 'tailwindcss' source(none);
 @source '../**/*.{js,ts,jsx,tsx}';
 @import 'tw-animate-css';
+
+/* Keep native touch/wheel scrolling without desktop scrollbar chrome in the PWA. */
+.game-shell, .game-shell * { scrollbar-width: none; }
+.game-shell::-webkit-scrollbar, .game-shell *::-webkit-scrollbar { display: none; }

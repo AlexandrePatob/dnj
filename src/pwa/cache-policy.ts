@@ -21,10 +21,12 @@ function extensionOf(pathname: string): string {
 
 function isApprovedAsset(request: Request, pathname: string): boolean {
   const extension = extensionOf(pathname);
+  const destination = request.destination as string;
 
-  if (request.destination === "image") return IMAGE_EXTENSIONS.has(extension);
-  if (request.destination === "font") return FONT_EXTENSIONS.has(extension);
-  if (request.destination === "manifest") return MANIFEST_EXTENSIONS.has(extension);
+  if (destination === "") return IMAGE_EXTENSIONS.has(extension) || FONT_EXTENSIONS.has(extension) || MANIFEST_EXTENSIONS.has(extension);
+  if (destination === "image") return IMAGE_EXTENSIONS.has(extension);
+  if (destination === "font") return FONT_EXTENSIONS.has(extension);
+  if (destination === "manifest") return MANIFEST_EXTENSIONS.has(extension);
 
   return false;
 }

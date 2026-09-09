@@ -1,0 +1,44 @@
+/* THESIS: a jornada DNJ no gramado oficial, com identidade e progresso reais.
+ * OWN-WORLD: grama, papel, laranja, avatar circular e trilha de seis etapas.
+ * STORY: reconhecer o perfil, acompanhar evolução e entrar nas atividades.
+ * FIRST VIEWPORT: foto/marca/pontos; saudação à esquerda; jornada sobre o mapa.
+ * FORM: composição explicitamente escolhida pelo usuário nas referências. */
+.top { position: absolute; inset: 0 0 auto; z-index: 50; height: calc(96px + var(--safe-area-top)); padding: calc(10px + var(--safe-area-top)) 20px 26px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(to bottom, transparent calc(100% - 24px), var(--background) 100%), url('/images/participant/top.webp') center top / 100% 110% no-repeat; }
+.homeTop { background: transparent; padding-top: 10px; height: 96px; }
+.avatar { width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%; border: 3px solid white; outline: 2px solid var(--primary); background: #fff4e8; color: #813900; font-weight: 700; overflow: hidden; box-shadow: 0 3px 8px #10290040; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.logo { position: absolute; left: 50%; transform: translateX(-50%); height: auto !important; width: 82px !important; max-width: 82px !important; }
+.points { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; max-width: 43%; padding: 8px 12px; border-radius: 28px; background: color-mix(in srgb, var(--primary) 88%, transparent); color: #fff; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; box-shadow: 0 3px 8px #10290030; }
+.points span { overflow-wrap: anywhere; }
+.points svg { flex-shrink: 0; color: #fff0a8; }
+.points small { font-size: .8em; }
+.hero { position: relative; aspect-ratio: 900 / 530; margin-top: var(--safe-area-top); background-image: url('/images/participant/home.webp'), url('/images/participant/home.webp'); background-size: 100% auto; background-position: center calc(24px - clamp(14px, 4.6vw, 20px)), center top; background-repeat: no-repeat; color: white; }
+.greeting { position: relative; width: 54%; padding-top: calc(26.5% - 16px); padding-bottom: calc(10.5% + 20px); margin-left: 5.5%; text-shadow: 0 2px 8px #102900, 0 1px 3px #102900; }
+.greeting h1 { font-size: clamp(22px, 6.8vw, 30px); font-weight: 700; line-height: 1.1; letter-spacing: -.03em; overflow-wrap: anywhere; }
+.greeting blockquote { margin-top: 10px; font-size: clamp(10px, 3.1vw, 14px); line-height: 1.25; font-weight: 600; text-wrap: pretty; }
+.greeting cite { display: block; margin-top: 2px; font-size: .9em; font-style: normal; }
+.journey { position: relative; margin: -10.5% 12px 0; padding: 16px 14px 18px; background: var(--card); color: var(--foreground); border-radius: 24px; box-shadow: 0 10px 22px #1725181c, 0 3px 0 var(--border); }
+.journeyHeading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.journeyHeading h2 { font-size: 19px; font-weight: 700; letter-spacing: -.03em; }
+.evolution { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; color: var(--primary); font-size: 12px; font-weight: 700; }
+.trail { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin: 16px -5px 18px; padding: 0; list-style: none; }
+.step { position: relative; text-align: center; min-width: 0; color: var(--muted-foreground); }
+.step:not(:last-child)::after { content: ''; position: absolute; left: 50%; top: 24px; width: 100%; height: 4px; background: var(--border); }
+.done:not(:last-child)::after { background: color-mix(in srgb, var(--primary) 40%, var(--card)); }
+.node { position: relative; z-index: 1; margin: 0 auto 9px; width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; background: var(--muted); color: var(--muted-foreground); }
+.done .node { background: color-mix(in srgb, var(--primary) 20%, var(--card)); color: var(--primary); }
+.current .node { background: var(--primary); color: white; outline: 5px solid var(--primary-alpha-10); }
+.step strong { display: block; font-size: 9px; line-height: 1.35; font-weight: 500; letter-spacing: -.03em; white-space: nowrap; }
+.current strong { color: var(--primary); font-weight: 700; }
+.progressRow { display: flex; align-items: center; gap: 14px; }
+.progressRow progress { appearance: none; width: 100%; min-width: 0; height: 9px; overflow: hidden; border: 0; border-radius: 10px; background: var(--primary-alpha-15); }
+.progressRow progress::-webkit-progress-bar { background: var(--primary-alpha-15); border-radius: 10px; }
+.progressRow progress::-webkit-progress-value { background: var(--primary); border-radius: 10px; transition: width .3s ease; }
+.progressRow progress::-moz-progress-bar { background: var(--primary); border-radius: 10px; }
+.progressRow span { flex-shrink: 0; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.progressCaption { margin-top: 12px; font-size: 11px; color: var(--muted-foreground); }
+.top button:focus-visible, .evolution:focus-visible { outline: 3px solid var(--foreground); outline-offset: 4px; }
+.points:hover { background: var(--primary); }
+.evolution:hover { text-decoration: underline; }
+@media (max-width: 360px) { .top { padding-left: 16px; padding-right: 16px; } .avatar { width: 44px; height: 44px; } .logo { width: 68px !important; } .points { font-size: 14px; padding: 8px; gap: 4px; } .greeting blockquote { margin-top: 8px; } .node { width: 40px; height: 40px; } .step:not(:last-child)::after { top: 20px; } .step strong { font-size: 8px; } .journeyHeading h2 { font-size: 17px; } }
+@media (prefers-reduced-motion: reduce) { .progressRow progress::-webkit-progress-value { transition: none; } }

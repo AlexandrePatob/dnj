@@ -6,8 +6,9 @@ import { motion } from "motion/react";
 import type { IScannerControls } from "@zxing/browser";
 import type { ExperienceError, Participation } from "@/types/experience";
 import { gameApi, type QrActivityKind } from "@/lib/api/game";
+import { QrSuccessCelebration } from "@/features/scanner/qr-success-celebration";
 
-type ScannerStatus = "starting" | "reading" | "error" | "success";
+type ScannerStatus = "starting" | "reading" | "error" | "warning" | "success";
 type CameraFacing = "environment" | "user";
 type ZoomRange = { min: number; max: number; step: number } | null;
 export type QrValidation = Participation & { activityKind: QrActivityKind; qrAction: "joined" | "scored"; qrPoints: number };
@@ -32,10 +33,10 @@ function scannerMessage(error: unknown) {
 }
 
 function scannerSuccessMessage(kind: QrActivityKind, action: "joined" | "scored") {
-  if (kind === "competitive") return "Entrada na partida confirmada.";
-  if (kind === "challenge") return "Entrada no desafio confirmada. Preparando a câmera.";
-  if (action === "joined") return "Você já pontuou nessa atividade! Preparando sua confirmação.";
-  return action === "scored" ? "Pontos creditados. Preparando a celebração." : "Participação confirmada.";
+  if (kind === "competitive") return "Entrada na partida confirmada!";
+  if (kind === "challenge") return "Entrada no desafio confirmada!";
+  if (action === "joined") return "Você já pontuou nesta atividade!";
+  return action === "scored" ? "Pontos creditados com sucesso!" : "Participação confirmada!";
 }
 
 export function QrScannerModal({
@@ -48,11 +49,20 @@ export function QrScannerModal({
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
   const busyRef = useRef(false);
+  const cooldownRef = useRef(false);
+  const onValidatedRef = useRef(onValidated);
+  const onCloseRef = useRef(onClose);
   const [status, setStatus] = useState<ScannerStatus>("starting");
   const [message, setMessage] = useState("Preparando câmera...");
+  const [warningTitle, setWarningTitle] = useState("Aguarde 10 minutos");
   const [facingMode, setFacingMode] = useState<CameraFacing>("environment");
   const [zoomRange, setZoomRange] = useState<ZoomRange>(null);
   const [zoom, setZoom] = useState(1);
+
+  useEffect(() => {
+    onValidatedRef.current = onValidated;
+    onCloseRef.current = onClose;
+  }, [onClose, onValidated]);
 
   const stopScanner = useCallback(() => {
     controlsRef.current?.stop();
@@ -87,26 +97,58 @@ export function QrScannerModal({
 
   const validate = useCallback(
     async (qrToken: string) => {
-      if (busyRef.current) return;
+      if (busyRef.current || cooldownRef.current) return;
       busyRef.current = true;
-      stopScanner();
       setStatus("starting");
       setMessage("Validando participação...");
       try {
         const body = await gameApi.validateQr(qrToken);
+        stopScanner();
         setStatus("success");
         const qrAction = body.action === "scored" ? "scored" : "joined";
         setMessage(scannerSuccessMessage(body.activityKind, qrAction));
         window.setTimeout(() => {
-          void onValidated({ ...(body.participation as unknown as Participation), activityKind: body.activityKind, qrAction, qrPoints: body.pointsAwarded ?? 0 });
+          void onValidatedRef.current({ ...(body.participation as unknown as Participation), activityKind: body.activityKind, qrAction, qrPoints: body.pointsAwarded ?? 0 });
         }, 450);
       } catch (error) {
-        setStatus("error");
-        setMessage(scannerMessage(error));
+        const typed = error as Partial<ExperienceError>;
+        const cooldownMessage = typed.message ?? "";
+        const nestedCode = (typed.details as { code?: string } | undefined)?.code;
+        const scoringClosed = String(typed.code) === "SCORING_CLOSED" || nestedCode === "SCORING_CLOSED" || /pontuação está fechada/i.test(cooldownMessage);
+        if (scoringClosed) {
+          cooldownRef.current = false;
+          stopScanner();
+          setStatus("warning");
+          setWarningTitle("Pontuação fechada");
+          setMessage("A pontuação está fechada no momento. O Desafio Especial continua disponível pela TV ou telão.");
+        } else if (typed.code?.toLowerCase() === "cooldown_active" || /10 minutos|outro qr/i.test(cooldownMessage)) {
+          try {
+            const scoring = await gameApi.scoringStatus();
+            if (scoring.scoringClosed) {
+              cooldownRef.current = false;
+              stopScanner();
+              setStatus("warning");
+              setWarningTitle("Pontuação fechada");
+              setMessage("A pontuação está fechada no momento. O Desafio Especial continua disponível pela TV ou telão.");
+              busyRef.current = false;
+              return;
+            }
+          } catch {
+            /* Keep the cooldown fallback when the status cannot be checked. */
+          }
+          cooldownRef.current = true;
+          stopScanner();
+          setStatus("warning");
+          setWarningTitle("Aguarde 10 minutos");
+          setMessage("Aguarde 10 minutos para poder escanear outro QR Code!");
+        } else {
+          setStatus("error");
+          setMessage(scannerMessage(error));
+        }
         busyRef.current = false;
       }
     },
-    [onValidated, stopScanner],
+    [stopScanner],
   );
 
   const startScanner = useCallback(async () => {
@@ -127,7 +169,7 @@ export function QrScannerModal({
           { video: { facingMode: { ideal: facingMode } }, audio: false },
           videoRef.current,
           (result) => {
-            if (result) void validate(result.getText());
+            if (result && !cooldownRef.current) void validate(result.getText());
           },
         ),
         new Promise<IScannerControls>((_, reject) =>
@@ -180,8 +222,8 @@ export function QrScannerModal({
 
   return (
     <motion.section
-      className="qr-modal absolute inset-0 z-50 flex flex-col items-center justify-center overflow-y-auto px-6"
-      style={{ background: "var(--background)" }}
+      className="qr-modal absolute inset-0 z-30 flex min-h-0 flex-col items-center overflow-hidden px-0"
+      style={{ background: "var(--background)", paddingTop: "calc(var(--participant-header-height) + var(--safe-area-top))" }}
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}
@@ -194,16 +236,17 @@ export function QrScannerModal({
           stopScanner();
           onClose();
         }}
-        className="absolute right-6 flex h-10 w-10 items-center justify-center rounded-xl"
+        className="absolute right-5 z-10 flex h-10 w-10 items-center justify-center rounded-full border-2"
         style={{
-          top: "calc(48px + var(--safe-area-top))",
+          top: "calc(var(--participant-header-height) + 8px + var(--safe-area-top))",
           background: "var(--muted)",
+          borderColor: "var(--primary)",
         }}
         aria-label="Fechar scanner"
       >
         <X size={18} />
       </button>
-      <div className="mb-7 text-center">
+      <div className="hidden text-center">
         <span
           className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
           style={{ background: "var(--primary-alpha-15)" }}
@@ -216,9 +259,18 @@ export function QrScannerModal({
         </p>
       </div>
       <div
-        className="qr-frame relative mb-4 aspect-square w-[min(80vw,34rem)] max-w-full overflow-hidden rounded-3xl"
-        style={{ background: "var(--muted)" }}
+        className="qr-frame relative mt-0 h-[calc((100dvh-var(--participant-header-height)-var(--safe-area-top))*0.88)] min-h-0 w-full shrink-0 overflow-hidden rounded-[2rem] border-2"
+        style={{ background: "#101010", borderColor: "var(--primary)" }}
       >
+        <h2
+          className="absolute left-1/2 top-2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border-2 px-5 py-2 text-sm font-bold leading-5 shadow-lg"
+          style={{ background: "rgb(239 115 24 / 0.82)", borderColor: "rgb(255 255 255 / 0.8)", color: "white" }}
+        >
+          Escanear QR Code DNJ
+        </h2>
+        <p className="absolute left-1/2 top-16 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/60 px-4 py-1.5 text-xs text-white backdrop-blur-sm">
+          Participe de uma atividade do DNJ.
+        </p>
         <video
           ref={videoRef}
           muted
@@ -236,43 +288,25 @@ export function QrScannerModal({
             }}
           />
         )}
-        {status !== "reading" && (
+        {(status === "starting" || status === "success") && (
           <span
             className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-5 text-center"
             style={{
               background:
-                "color-mix(in srgb, var(--background) 82%, transparent)",
+                status === "success"
+                  ? "color-mix(in srgb, var(--game) 15%, transparent)"
+                  : "color-mix(in srgb, var(--background) 82%, transparent)",
             }}
           >
             {status === "success" ? (
-              <QrCode size={36} style={{ color: "var(--primary)" }} />
+              <QrCode size={36} style={{ color: "var(--game)" }} />
             ) : (
               <Camera size={36} style={{ color: "var(--muted-foreground)" }} />
             )}
           </span>
         )}
-        <span
-          aria-hidden="true"
-          className="absolute left-0 top-0 h-12 w-12 rounded-tl-3xl border-l-4 border-t-4"
-          style={{ borderColor: "var(--primary)" }}
-        />
-        <span
-          aria-hidden="true"
-          className="absolute right-0 top-0 h-12 w-12 rounded-tr-3xl border-r-4 border-t-4"
-          style={{ borderColor: "var(--primary)" }}
-        />
-        <span
-          aria-hidden="true"
-          className="absolute bottom-0 left-0 h-12 w-12 rounded-bl-3xl border-b-4 border-l-4"
-          style={{ borderColor: "var(--primary)" }}
-        />
-        <span
-          aria-hidden="true"
-          className="absolute bottom-0 right-0 h-12 w-12 rounded-br-3xl border-b-4 border-r-4"
-          style={{ borderColor: "var(--primary)" }}
-        />
       </div>
-      <div className="mb-5 flex items-center gap-2">
+      <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-2xl bg-black/65 px-3 py-2 backdrop-blur-sm">
         <button
           type="button"
           onClick={() =>
@@ -312,12 +346,18 @@ export function QrScannerModal({
         )}
       </div>
       <p
-        className="mb-5 max-w-xs text-center text-sm leading-relaxed"
+        className="absolute bottom-28 left-1/2 z-10 w-[calc(100%-2rem)] -translate-x-1/2 rounded-2xl bg-black/65 px-4 py-2 text-center text-sm leading-relaxed text-white backdrop-blur-sm"
         style={{
           color:
             status === "error"
               ? "var(--destructive)"
-              : "var(--muted-foreground)",
+              : status === "warning"
+                ? "var(--primary)"
+                : status === "success"
+                  ? "var(--game)"
+                  : "rgb(255 255 255 / 0.85)",
+          background: status === "warning" ? "var(--primary-alpha-15)" : undefined,
+          border: status === "warning" ? "1px solid var(--primary)" : undefined,
         }}
       >
         {message}
@@ -326,11 +366,21 @@ export function QrScannerModal({
         <button
           type="button"
           onClick={() => void startScanner()}
-          className="rounded-xl px-4 py-2 text-sm font-bold"
+          className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-xl px-4 py-2 text-sm font-bold"
           style={{ background: "var(--primary)", color: "white" }}
         >
           Tentar câmera
         </button>
+      )}
+      {status === "warning" && (
+        <QrSuccessCelebration
+          points={0}
+          label="Você poderá escanear outro QR Code quando o período de espera terminar."
+          warningTitle={warningTitle}
+          warning
+          durationMs={3_000}
+          onDone={() => onCloseRef.current()}
+        />
       )}
     </motion.section>
   );
