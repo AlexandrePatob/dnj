@@ -1,6 +1,6 @@
 import { apiMutation, apiRequest, newIdempotencyKey } from "@/lib/api/client";
 
-export interface V2Notification { id: string; title: string; body: string; state: string; createdAt: string }
+export interface V2Notification { id: string; category: string; title: string; body: string; state: string; createdAt: string }
 export interface NotificationPreferences { announcementEnabled: boolean; pointsEnabled: boolean; momentModerationEnabled?: boolean; updatedAt?: string }
 export interface PushSubscriptionInput {
   endpoint: string;
