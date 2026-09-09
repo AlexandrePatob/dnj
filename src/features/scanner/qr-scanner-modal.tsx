@@ -288,7 +288,7 @@ export function QrScannerModal({
             }}
           />
         )}
-        {(status === "starting" || status === "success" || status === "error") && (
+        {(status === "starting" || status === "success") && (
           <span
             className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-5 text-center"
             style={{
