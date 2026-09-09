@@ -29,6 +29,13 @@ export type LiveAdminNotification = {
   body: string;
 };
 
+const dismissedMomentChallengeKey = (challengeId: string) =>
+  `dnj.dismissed-moment-challenge.${challengeId}`;
+const isDismissedMomentChallenge = (challengeId: string, dismissedId: string | null) => {
+  if (dismissedId === challengeId) return true;
+  try { return localStorage.getItem(dismissedMomentChallengeKey(challengeId)) === "1"; } catch { return false; }
+};
+
 function countdown(iso: string) {
   const seconds = Math.max(
     0,
@@ -56,6 +63,7 @@ export function LiveStatusStack({
 }) {
   const [now, setNow] = useState(() => Date.now());
   const [showMomentNotice, setShowMomentNotice] = useState(false);
+  const [dismissedMomentChallengeId, setDismissedMomentChallengeId] = useState<string | null>(null);
   const [dismissedSpecialKey, setDismissedSpecialKey] = useState<string | null>(null);
   const announcedChallenge = useRef<string | null>(null);
   const specialKey = special ? special.id ?? `${special.title}-${special.startsAt}` : null;
@@ -68,11 +76,11 @@ export function LiveStatusStack({
     return () => window.clearInterval(interval);
   }, [activeMomentChallenge, visibleSpecial?.status]);
   useEffect(() => {
-    if (!activeMomentChallenge || announcedChallenge.current === activeMomentChallenge.id) return;
+    if (!activeMomentChallenge || isDismissedMomentChallenge(activeMomentChallenge.id, dismissedMomentChallengeId) || announcedChallenge.current === activeMomentChallenge.id) return;
     announcedChallenge.current = activeMomentChallenge.id;
     setShowMomentNotice(true);
-  }, [activeMomentChallenge]);
-  if (!visibleSpecial && !showMomentNotice && !queueNotification && !adminNotification) return null;
+  }, [activeMomentChallenge, dismissedMomentChallengeId]);
+  if (!visibleSpecial && (!showMomentNotice || !activeMomentChallenge || isDismissedMomentChallenge(activeMomentChallenge.id, dismissedMomentChallengeId)) && !queueNotification && !adminNotification) return null;
   const detail =
     visibleSpecial?.status === "active" ? (
       <><Timer className="mr-1 inline" size={12} /> Encerra em {countdown(visibleSpecial.endsAt)}</>
@@ -113,7 +121,7 @@ export function LiveStatusStack({
           <p className="mt-1 text-xs text-white/75">{visibleSpecial.title} · {detail}</p>
         </motion.section>
       )}
-      {showMomentNotice && activeMomentChallenge && (
+      {showMomentNotice && activeMomentChallenge && !isDismissedMomentChallenge(activeMomentChallenge.id, dismissedMomentChallengeId) && (
         <motion.section
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -133,6 +141,18 @@ export function LiveStatusStack({
             >
               {activeMomentChallenge.points} pontos
             </span>
+            <button
+              type="button"
+              aria-label="Fechar aviso do desafio"
+              className="grid h-7 w-7 place-items-center rounded-full text-white/80 hover:bg-white/10"
+              onClick={() => {
+                setShowMomentNotice(false);
+                setDismissedMomentChallengeId(activeMomentChallenge.id);
+                try { localStorage.setItem(dismissedMomentChallengeKey(activeMomentChallenge.id), "1"); } catch { /* noop */ }
+              }}
+            >
+              <X size={15} />
+            </button>
           </div>
           <p className="mt-1 text-xs text-white/85">{activeMomentChallenge.title}. Abra o DNJ Game para participar.</p>
           {onOpenGame && <button type="button" className="mt-3 inline-flex items-center gap-1 rounded-lg bg-white/20 px-3 py-2 text-xs font-bold" onClick={() => { setShowMomentNotice(false); onOpenGame(); }}>Ver desafio <ArrowRight size={14} /></button>}

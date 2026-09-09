@@ -320,7 +320,7 @@ export function DnjApp() {
     const load = async () => {
       try {
         const data = await notificationsApi.list();
-        const unread = data.data.find((item) => item.state.toLowerCase() === "unread");
+        const unread = data.data.find((item) => item.state.toLowerCase() === "unread" && item.category !== "moment_challenge");
         if (active) setAdminNotification(unread ?? null);
       } catch { /* Notifications are additive; the app remains usable if unavailable. */ }
     };
