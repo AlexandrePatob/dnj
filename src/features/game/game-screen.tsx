@@ -556,7 +556,7 @@ export function GameScreen({
                           className="mt-1 text-[.65rem] font-semibold leading-tight"
                           style={{ color: "var(--destructive)" }}
                         >
-                          Motivo: {entry.removalReason}
+                          {entry.removalReason}
                         </p>
                       )}
                     </div>
