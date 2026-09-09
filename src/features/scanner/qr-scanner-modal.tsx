@@ -33,10 +33,10 @@ function scannerMessage(error: unknown) {
 }
 
 function scannerSuccessMessage(kind: QrActivityKind, action: "joined" | "scored") {
-  if (kind === "competitive") return "Entrada na partida confirmada.";
-  if (kind === "challenge") return "Entrada no desafio confirmada. Preparando a câmera.";
-  if (action === "joined") return "Você já pontuou nessa atividade! Preparando sua confirmação.";
-  return action === "scored" ? "Pontos creditados. Preparando a celebração." : "Participação confirmada.";
+  if (kind === "competitive") return "Entrada na partida confirmada!";
+  if (kind === "challenge") return "Entrada no desafio confirmada!";
+  if (action === "joined") return "Você já pontuou nesta atividade!";
+  return action === "scored" ? "Pontos creditados com sucesso!" : "Participação confirmada!";
 }
 
 export function QrScannerModal({
@@ -54,6 +54,7 @@ export function QrScannerModal({
   const onCloseRef = useRef(onClose);
   const [status, setStatus] = useState<ScannerStatus>("starting");
   const [message, setMessage] = useState("Preparando câmera...");
+  const [warningTitle, setWarningTitle] = useState("Aguarde 10 minutos");
   const [facingMode, setFacingMode] = useState<CameraFacing>("environment");
   const [zoomRange, setZoomRange] = useState<ZoomRange>(null);
   const [zoom, setZoom] = useState(1);
@@ -112,10 +113,33 @@ export function QrScannerModal({
       } catch (error) {
         const typed = error as Partial<ExperienceError>;
         const cooldownMessage = typed.message ?? "";
-        if (typed.code?.toLowerCase() === "cooldown_active" || /10 minutos|outro qr/i.test(cooldownMessage)) {
+        const nestedCode = (typed.details as { code?: string } | undefined)?.code;
+        const scoringClosed = String(typed.code) === "SCORING_CLOSED" || nestedCode === "SCORING_CLOSED" || /pontuação está fechada/i.test(cooldownMessage);
+        if (scoringClosed) {
+          cooldownRef.current = false;
+          stopScanner();
+          setStatus("warning");
+          setWarningTitle("Pontuação fechada");
+          setMessage("A pontuação está fechada no momento. O Desafio Especial continua disponível pela TV ou telão.");
+        } else if (typed.code?.toLowerCase() === "cooldown_active" || /10 minutos|outro qr/i.test(cooldownMessage)) {
+          try {
+            const scoring = await gameApi.scoringStatus();
+            if (scoring.scoringClosed) {
+              cooldownRef.current = false;
+              stopScanner();
+              setStatus("warning");
+              setWarningTitle("Pontuação fechada");
+              setMessage("A pontuação está fechada no momento. O Desafio Especial continua disponível pela TV ou telão.");
+              busyRef.current = false;
+              return;
+            }
+          } catch {
+            /* Keep the cooldown fallback when the status cannot be checked. */
+          }
           cooldownRef.current = true;
           stopScanner();
           setStatus("warning");
+          setWarningTitle("Aguarde 10 minutos");
           setMessage("Aguarde 10 minutos para poder escanear outro QR Code!");
         } else {
           setStatus("error");
@@ -269,11 +293,13 @@ export function QrScannerModal({
             className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-5 text-center"
             style={{
               background:
-                "color-mix(in srgb, var(--background) 82%, transparent)",
+                status === "success"
+                  ? "color-mix(in srgb, var(--game) 15%, transparent)"
+                  : "color-mix(in srgb, var(--background) 82%, transparent)",
             }}
           >
             {status === "success" ? (
-              <QrCode size={36} style={{ color: "var(--primary)" }} />
+              <QrCode size={36} style={{ color: "var(--game)" }} />
             ) : (
               <Camera size={36} style={{ color: "var(--muted-foreground)" }} />
             )}
@@ -327,7 +353,9 @@ export function QrScannerModal({
               ? "var(--destructive)"
               : status === "warning"
                 ? "var(--primary)"
-                : "rgb(255 255 255 / 0.85)",
+                : status === "success"
+                  ? "var(--game)"
+                  : "rgb(255 255 255 / 0.85)",
           background: status === "warning" ? "var(--primary-alpha-15)" : undefined,
           border: status === "warning" ? "1px solid var(--primary)" : undefined,
         }}
@@ -348,6 +376,7 @@ export function QrScannerModal({
         <QrSuccessCelebration
           points={0}
           label="Você poderá escanear outro QR Code quando o período de espera terminar."
+          warningTitle={warningTitle}
           warning
           durationMs={3_000}
           onDone={() => onCloseRef.current()}
