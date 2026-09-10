@@ -679,16 +679,6 @@ function RunConsole({
       refresh,
       setError,
     );
-  async function renewQr() {
-    try {
-      const created = (await api(`/manager/runs/${run.id}/qr`, {
-        method: "POST",
-      })) as { qrToken: string };
-      setQrImageUrl(await toDataURL(created.qrToken));
-    } catch (error) {
-      setError((error as Error).message);
-    }
-  }
   const label =
     run.status === "running"
       ? "Partida em andamento"
@@ -748,9 +738,6 @@ function RunConsole({
             >
               <Play size={16} />
               Iniciar jogo
-            </button>
-            <button className={styles.secondary} onClick={() => void renewQr()}>
-              <TimerReset size={16} /> Novo QR
             </button>
             <button
               className={styles.danger}
