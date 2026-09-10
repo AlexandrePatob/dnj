@@ -1,9 +1,14 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, Clock3, MapPin, Sparkles, X } from "lucide-react";
+import { CheckCircle2, Clock3, Sparkles, X } from "lucide-react";
 import { CONFESSION_FAQ, SPIRITUAL_FAQ } from "@/features/app/fixtures";
 import type { AnimDir, QueueType } from "@/features/app/types";
 import { pastoralFirestore } from "@/lib/pastoral-queue/firebase";
+import { CONFESSION_PREPARATION } from "@/features/queue/confession-preparation";
+import {
+  SPIRITUAL_PREPARATION,
+  SPIRITUAL_PREPARATION_INTRO,
+} from "@/features/queue/spiritual-preparation";
 import {
   getActiveQueue,
   joinQueue,
@@ -84,6 +89,7 @@ export function QueueScreen({
     };
   }, [user.id]);
   const tracking = stage === "tracking";
+  const queueAccent = type === "confession" ? "var(--queue-confession)" : "var(--game)";
   useEffect(() => {
     const db = pastoralFirestore;
     if (!tracking || !type || !db) return;
@@ -286,6 +292,7 @@ export function QueueScreen({
                       : "Tenha um diálogo de fé e confiança sobre sua vida e discernimento à luz de Deus!"}
                   </p>
                   <button
+                    aria-label={`Preparar para ${label(item)}`}
                     className="mt-4 w-full rounded-full py-3 text-sm font-bold text-white"
                     style={{
                       background:
@@ -441,25 +448,19 @@ export function QueueScreen({
         <>
           <header>
             <button
-              className="float-right rounded-full p-2"
+              className="float-right rounded-full p-2 transition-opacity hover:opacity-70"
               onClick={() => setConfirmingExit(true)}
-              aria-label="Fechar acompanhamento"
+              aria-label="Sair da fila"
+              title="Sair da fila"
             >
               <X />
             </button>
             <h1 className="text-2xl font-black">{label(type)}</h1>
-            <p className="mt-1 text-sm">
-              <MapPin className="mr-1 inline" size={14} />
-              Espaço Esperança
-            </p>
           </header>
           <section
-            className="mt-6 rounded-3xl p-6 text-white"
+            className="mt-4 rounded-3xl p-4 text-center text-white"
             style={{
-              background:
-                position <= 3 || position === 0
-                  ? "var(--game)"
-                  : "var(--primary)",
+              background: queueAccent,
             }}
           >
             <span className="text-sm text-white/80">
@@ -467,60 +468,78 @@ export function QueueScreen({
                 ? "Chamado para atendimento"
                 : "Sua posição na fila"}
             </span>
-            <strong className="mt-2 block text-5xl">
+            <strong className="mt-1 block text-4xl">
               {position === 0 ? "Sua vez!" : `${position}º`}
             </strong>
-            <p className="mt-5 flex items-center gap-2 text-sm">
+            <p className="mt-3 flex items-center justify-center gap-2 text-sm">
               <Clock3 size={17} />
               {state}
             </p>
           </section>
-          <p className="mt-3 text-xs">Atualizado em tempo real.</p>
-          <button
-            disabled={operation === "exit"}
-            className="mt-4 w-full rounded-2xl py-3 font-bold disabled:cursor-not-allowed disabled:opacity-50"
-            onClick={() => setConfirmingExit(true)}
-          >
-            Sair da fila
-          </button>
+          <p className="mt-2 text-center text-xs">Atualizado em tempo real.</p>
           {confirmingExit && (
-            <section
+            <div
               role="dialog"
               aria-label="Confirmar saída da fila"
-              className="mt-4 rounded-2xl p-4"
-              style={{ background: "var(--card)" }}
+              aria-modal="true"
+              className="fixed inset-0 z-[80] flex items-end justify-center bg-black/45 p-4"
             >
-              <p className="text-sm font-bold">Sair da fila?</p>
-              <div className="mt-3 flex gap-3">
+              <section className="w-full max-w-md rounded-3xl p-5" style={{ background: "var(--card)" }}>
+                <p className="text-lg font-black" style={{ color: queueAccent }}>Sair da fila?</p>
+                <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
+                  Você perderá sua posição atual e precisará entrar novamente se quiser continuar aguardando.
+                </p>
+                <div className="mt-5 grid grid-cols-2 gap-3">
                 <button
                   disabled={operation === "exit"}
+                  className="rounded-xl py-3 text-sm font-bold"
+                  style={{ background: "var(--muted)", color: "var(--foreground)" }}
                   onClick={() => setConfirmingExit(false)}
                 >
                   Cancelar
                 </button>
                 <button
                   disabled={operation === "exit"}
+                  className="rounded-xl py-3 text-sm font-bold text-white disabled:opacity-50"
+                  style={{ background: queueAccent }}
                   onClick={() => void exit()}
                 >
                   {operation === "exit" ? "Saindo…" : "Confirmar saída"}
                 </button>
-              </div>
-            </section>
+                </div>
+              </section>
+            </div>
           )}
           <section className="mt-6">
             <h2 className="text-lg font-black">
-              Preparação para {label(type)}
+              {type === "confession" ? "Preparação para a Confissão" : "Preparação para Direção Espiritual"}
             </h2>
-            <div
-              className="mt-3 overflow-hidden rounded-2xl"
-              style={{ background: "var(--card)" }}
-            >
-              {faq.slice(0, 4).map((i) => (
-                <details key={i.q} className="border-b p-4">
-                  <summary className="cursor-pointer text-sm font-bold">
-                    {i.q}
+            {type === "spiritual" && (
+              <p className="mt-3 rounded-2xl px-4 py-4 text-sm leading-7" style={{ background: "var(--card)" }}>
+                {SPIRITUAL_PREPARATION_INTRO}
+              </p>
+            )}
+            <div className="mt-3 space-y-2">
+              {(type === "confession" ? CONFESSION_PREPARATION : SPIRITUAL_PREPARATION).map((section) => (
+                <details key={section.title} className="overflow-hidden rounded-2xl" style={{ background: "var(--card)" }}>
+                  <summary className="cursor-pointer px-4 py-4 text-sm font-black" style={{ color: queueAccent }}>
+                    {section.title}
                   </summary>
-                  <p className="mt-3 text-sm">{i.a}</p>
+                  <div className="max-w-prose space-y-4 border-t px-4 py-4 text-sm leading-7" style={{ borderColor: "var(--border)" }}>
+                    {section.paragraphs?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                    {section.items && (section.itemHeadingIndexes ? (
+                      <div className="space-y-3">
+                        {section.items.map((item, itemIndex) => section.itemHeadingIndexes?.includes(itemIndex) ? (
+                          <p key={item} className="pt-2 font-black" style={{ color: queueAccent }}>{item}</p>
+                        ) : (
+                          <p key={item} className="pl-4 before:mr-2 before:content-['•']">{item}</p>
+                        ))}
+                      </div>
+                    ) : (
+                      <ol className="list-decimal space-y-2 pl-5">{section.items.map((item) => <li key={item}>{item}</li>)}</ol>
+                    ))}
+                    {section.afterItems?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                  </div>
                 </details>
               ))}
             </div>
