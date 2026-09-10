@@ -123,7 +123,7 @@ describe("ManagerDashboard", () => {
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ scope: "actions", actions: { games: [] } })),
       );
-    await user.click(screen.getByRole("button", { name: "Abrir partida" }));
+    await user.click(screen.getByRole("button", { name: "Iniciar partida" }));
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
         "/api/v2/manager/runs",
@@ -158,8 +158,8 @@ describe("ManagerDashboard", () => {
 
     expect(await screen.findByText("Corrida do saco")).toBeInTheDocument();
     expect(screen.getByText("Cabo de guerra")).toBeInTheDocument();
-    expect(screen.getByText("Disponível para abrir")).toBeInTheDocument();
-    expect(screen.getByText("Partida aberta")).toBeInTheDocument();
+    expect(screen.getByText("Disponível")).toBeInTheDocument();
+    expect(screen.getByText("Aberta")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Gerenciar partida" }));
     expect(screen.queryByRole("heading", { name: "Abrir Radicalidade" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Voltar para atividades" })).toBeInTheDocument();

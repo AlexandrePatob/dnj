@@ -595,8 +595,8 @@ function GameCard({
 }) {
   const run = game.run ?? null;
   const runLabel = run
-    ? "Partida aberta"
-    : "Disponível para abrir";
+    ? "Aberta"
+    : "Disponível";
   return (
     <article className={`${styles.gameCard} ${run ? styles.gameCardLive : ""}`} role="row">
       <div className={styles.gameCardInfo}>
@@ -617,8 +617,8 @@ function GameCard({
             <Gamepad2 size={16} /> Gerenciar
           </button>
         ) : (
-          <button className={styles.button} aria-label={mode === "special_events" ? "Liberar QR" : "Abrir partida"} onClick={() => void openRun(game.id)}>
-            <QrCode size={16} /> {mode === "special_events" ? "Liberar QR" : "Abrir"}
+          <button className={styles.button} aria-label={mode === "special_events" ? "Liberar QR" : "Iniciar partida"} onClick={() => void openRun(game.id)}>
+            <QrCode size={16} /> {mode === "special_events" ? "Liberar QR" : "Iniciar"}
           </button>
         )}
         <button className={styles.secondary} aria-label="Editar nome" onClick={() => setEditor({ id: game.id, name: game.name })}>
