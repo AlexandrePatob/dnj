@@ -95,15 +95,15 @@ function RankRows({
   );
 
   return (
-    <div
-      className={`mx-auto w-full ${
-        isBackdrop ? "mt-5 grid max-w-none grid-cols-1 gap-5 lg:grid-cols-[1.05fr_1fr] lg:items-end" : "mt-8 max-w-7xl"
-      }`}
-    >
+    <div className={`mx-auto w-full ${isBackdrop ? "mt-5" : "mt-8 max-w-7xl"}`}>
       <section
         aria-label="Pódio"
         className={`mx-auto grid w-full grid-cols-3 items-end px-2 text-center ${
-          isBackdrop ? "max-w-none gap-3" : isSide ? "max-w-3xl gap-4 md:gap-7" : "max-w-4xl gap-3 md:gap-6"
+          isBackdrop
+            ? "max-w-[1120px] gap-5"
+            : isSide
+              ? "max-w-5xl gap-5 md:gap-8"
+              : "max-w-4xl gap-3 md:gap-6"
         }`}
       >
         {podium.map(({ entry, position, tone, height }) => (
@@ -127,11 +127,11 @@ function RankRows({
                 : `${entry.members ?? 0} participantes`}
             </p>
             <div
-              className={`mt-3 flex flex-col justify-end rounded-t-[2rem] border border-b-0 px-2 md:px-5 ${isBackdrop ? "pb-2 pt-3" : "pb-4 pt-5"}`}
+              className={`relative mt-3 flex flex-col justify-end overflow-hidden rounded-t-[2rem] border border-b-0 px-2 md:px-5 ${isBackdrop ? "pb-2 pt-3" : "pb-4 pt-5"}`}
               style={{
                 minHeight: height,
                 borderColor: `${tone}88`,
-                background: `linear-gradient(180deg, ${tone}40, ${tone}16)`,
+                background: `linear-gradient(180deg, ${tone}42, ${tone}12)`,
               }}
             >
               <span
@@ -308,10 +308,11 @@ export function LiveRankingDisplay({
     board === "individual" ? "Ranking individual" : "Ranking dos grupos";
   const format = target === "tv" ? "tv" : screenFormat ?? "side";
   const isBackdrop = format === "backdrop";
+  const clock = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(now);
 
   return (
     <main
-      className={`relative min-h-screen overflow-hidden bg-[#0b3028] text-white ${
+      className={`relative min-h-screen overflow-hidden bg-[#031c16] text-white ${
         format === "side"
           ? "mx-auto max-w-[1440px] px-8 py-10 md:px-14"
           : isBackdrop
@@ -320,6 +321,9 @@ export function LiveRankingDisplay({
       }`}
       style={format === "side" ? { aspectRatio: "3 / 4" } : isBackdrop ? { aspectRatio: "5 / 2" } : undefined}
     >
+      <span aria-hidden className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_18%_12%,#0e654a_0,transparent_29%),radial-gradient(circle_at_86%_92%,#0b553f_0,transparent_36%),linear-gradient(118deg,transparent_0_28%,#0a392c_28%_34%,transparent_34%_58%,#0a382b_58%_65%,transparent_65%)]" />
+      <span aria-hidden className="pointer-events-none absolute -left-16 bottom-[-4%] h-[34%] w-[32%] rotate-[-12deg] bg-[#07140f] opacity-80 [clip-path:polygon(0_16%,100%_0,76%_100%,0_100%)]" />
+      <span aria-hidden className="pointer-events-none absolute -right-16 top-[28%] h-[45%] w-[28%] rotate-[14deg] bg-[#0c4b36] opacity-70 [clip-path:polygon(30%_0,100%_12%,78%_100%,0_80%)]" />
       <span
         aria-hidden
         className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-[#f37822] via-[#d7ef74] to-[#f37822]"
@@ -327,29 +331,29 @@ export function LiveRankingDisplay({
       {data?.specialEvent ? (
         <SpecialEventOverlay event={data.specialEvent} now={now} />
       ) : null}
-      <header className={`relative z-0 mx-auto flex items-center justify-between gap-8 border-b border-white/15 ${isBackdrop ? "max-w-none pb-5" : "max-w-7xl pb-7"}`}>
+      <header className={`relative z-0 mx-auto flex items-center justify-between gap-8 ${isBackdrop ? "max-w-none pb-4" : "max-w-7xl pb-6"}`}>
         <BrandSticker
           decorative
           variant="header"
-          className="h-14 max-w-[9rem]"
+          className="h-16 max-w-[10rem]"
         />
-        <div className="text-right">
-          <p className="text-sm font-bold uppercase tracking-[0.22em] text-[#d7ef74]">
-            DNJ Game ao vivo
-          </p>
-          <p className="mt-1 text-lg text-white/65">
-            {target === "tv" ? "TV" : isBackdrop ? "Telão · Fundo" : "Telão · Lateral"}
-          </p>
+        <div className="flex items-center gap-5 text-right">
+          <span className="hidden h-3 w-3 rounded-full bg-[#f3f51b] shadow-[0_0_18px_#f3f51b] sm:block" />
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/90">DNJ Game ao vivo</p>
+            <p className="sr-only">{target === "tv" ? "TV" : isBackdrop ? "Telão · Fundo" : "Telão · Lateral"}</p>
+            <p className="mt-1 text-2xl font-bold tabular-nums text-white">{clock}</p>
+          </div>
         </div>
       </header>
       <section
         className={`relative z-0 mx-auto ${isBackdrop ? "max-w-none py-6" : "max-w-7xl py-12"}`}
         aria-live="polite"
       >
-        <p className="text-center text-sm font-bold uppercase tracking-[0.28em] text-[#d7ef74]">
+        <p className="text-center text-sm font-bold uppercase tracking-[0.42em] text-white/90">
           DNJ 2K26
         </p>
-        <h1 className={`mt-3 flex items-center justify-center gap-4 text-center font-bold tracking-[-0.06em] ${isBackdrop ? "text-4xl md:text-6xl" : "text-5xl md:text-7xl"}`}>
+        <h1 className={`mt-2 flex items-center justify-center gap-4 text-center font-bold tracking-[-0.06em] ${isBackdrop ? "text-4xl md:text-6xl" : "text-5xl md:text-7xl"}`}>
           <Trophy
             aria-hidden
             className="hidden text-[#f6c945] md:block"
@@ -357,6 +361,7 @@ export function LiveRankingDisplay({
           />
           {title}
         </h1>
+        <div className="mx-auto mt-3 h-1 w-28 rounded-full bg-[#f3f51b] shadow-[0_0_16px_#f3f51b]" />
         {data ? (
           <RankRows entries={entries} board={board} format={format} />
         ) : (
@@ -370,6 +375,10 @@ export function LiveRankingDisplay({
           </p>
         ) : null}
       </section>
+      <footer className={`relative z-0 mx-auto mt-auto flex items-center justify-between border-t border-white/15 pt-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/60 ${isBackdrop ? "max-w-none" : "max-w-7xl"}`}>
+        <span>Mais que pontos</span>
+        <span className="text-[#f3f51b]">Uma geração para Deus</span>
+      </footer>
     </main>
   );
 }
