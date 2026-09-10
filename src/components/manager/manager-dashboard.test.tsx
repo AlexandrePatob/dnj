@@ -111,7 +111,7 @@ describe("ManagerDashboard", () => {
         ),
       );
     render(<ManagerDashboard />);
-    await screen.findByText("Abrir Radicalidade");
+    await screen.findByRole("heading", { name: "Partidas" });
     fetchMock
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: "run-1" })))
       .mockResolvedValueOnce(
@@ -220,6 +220,46 @@ describe("ManagerDashboard", () => {
     );
   });
 
+  it("keeps podium positions unique while allowing repeated participation", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce(new Response(JSON.stringify({ name: "Bia", scope: "actions" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        scope: "actions", actions: { games: [{ id: "g1", name: "Corrida do saco", run: {
+          id: "run-1", status: "results", participants: [
+            { id: "p1", name: "Ana" },
+            { id: "p2", name: "Bruno" },
+            { id: "p3", name: "Carla" },
+          ],
+        } }] },
+      })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: "run-1", status: "completed" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ scope: "actions", actions: { games: [] } })));
+
+    render(<ManagerDashboard />);
+    await user.click(await screen.findByRole("button", { name: "Gerenciar partida" }));
+    const firstPlaceButtons = screen.getAllByRole("radio", { name: "1º" });
+    const participationButtons = screen.getAllByRole("radio", { name: "Participa" });
+
+    await user.click(firstPlaceButtons[0]);
+    expect(firstPlaceButtons[1]).toBeDisabled();
+    expect(participationButtons[1]).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "Confirmar pontuação e encerrar" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v2/manager/runs/run-1/results",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ results: [
+          { participantId: "p1", result: "first" },
+          { participantId: "p2", result: "participation" },
+          { participantId: "p3", result: "participation" },
+        ] }),
+      }),
+    ));
+  });
+
   it("edits games in a modal instead of a selector flow", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
@@ -235,7 +275,7 @@ describe("ManagerDashboard", () => {
         ),
       );
     render(<ManagerDashboard />);
-    await screen.findByText("Abrir Radicalidade");
+    await screen.findByRole("heading", { name: "Partidas" });
     await user.click(screen.getByRole("button", { name: "Editar nome" }));
     expect(
       screen.getByRole("dialog", { name: "Editar jogo" }),

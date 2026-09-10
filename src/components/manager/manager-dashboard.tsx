@@ -287,7 +287,7 @@ export function ManagerDashboard() {
               {scope === "space"
                 ? "Acompanhe todos os espaços, registre o horário real e mantenha a programação atualizada."
                 : scope === "actions"
-                  ? "Abra partidas, acompanhe os scans e confirme a pontuação de cada participante."
+                  ? "Gerencie partidas e pontuação."
                 : scope === "pastoral_queue"
                   ? "Acompanhe e opere as filas de Confissão e Direção Espiritual."
                   : "Prepare o anúncio, libere o QR no momento certo e acompanhe a experiência."}
@@ -513,8 +513,8 @@ function ActionConsole({
       <section className={styles.panel}>
         <header className={styles.panelHeader}>
           <div>
-            <p className={styles.kicker}>{mode === "special_events" ? "Evento pronto" : "Nova partida"}</p>
-            <h2>{mode === "special_events" ? "Eventos especiais" : "Abrir Radicalidade"}</h2>
+            {mode === "special_events" ? <p className={styles.kicker}>Evento pronto</p> : null}
+            <h2>{mode === "special_events" ? "Eventos especiais" : "Partidas"}</h2>
           </div>
           <Gamepad2 size={21} />
         </header>
@@ -595,15 +595,17 @@ function GameCard({
     : "Disponível para abrir";
   return (
     <article className={`${styles.gameCard} ${run ? styles.gameCardLive : ""}`}>
-      <div className={styles.gameCardHeader}>
-        <span>
-          <span className={styles.kicker}>{mode === "actions" ? "Radicalidade" : "Evento"}</span>
-          <strong>{game.name}</strong>
-        </span>
-        <span className={styles.gameState}>{runLabel}</span>
-      </div>
-      <div className={styles.gameCardMeta}>
-        <span>{run ? "Sala pronta para gerenciar" : "Nenhuma partida aberta"}</span>
+      <div className={styles.gameCardInfo}>
+        <div className={styles.gameCardHeader}>
+          <span>
+            <span className={styles.kicker}>{mode === "actions" ? "Radicalidade" : "Evento"}</span>
+            <strong>{game.name}</strong>
+          </span>
+          <span className={styles.gameState}>{runLabel}</span>
+        </div>
+        <div className={styles.gameCardMeta}>
+          <span>{run ? "Sala pronta para gerenciar" : "Nenhuma partida aberta"}</span>
+        </div>
       </div>
       <div className={styles.cardActions}>
         {run ? (
@@ -865,14 +867,25 @@ function ParticipantList({
               <div className={styles.resultOptions} role="radiogroup" aria-label={`Resultado de ${person.name}`}>
                 {([["first", "1º"], ["second", "2º"], ["third", "3º"], ["participation", "Participa"]] as const).map(([value, label]) => {
                   const selected = (results[person.id] ?? person.result ?? "participation") === value;
+                  const takenByOther = value !== "participation" && people.some((other) => other.id !== person.id && (results[other.id] ?? other.result ?? "participation") === value);
                   return (
                     <button
                       key={value}
                       type="button"
                       role="radio"
                       aria-checked={selected}
+                      aria-label={`${label}${takenByOther && !selected ? " indisponível" : ""}`}
+                      disabled={takenByOther && !selected}
                       className={selected ? styles.resultOptionSelected : styles.resultOption}
-                      onClick={() => onResult((current) => ({ ...current, [person.id]: value }))}
+                      onClick={() => onResult((current) => {
+                        const next = { ...current, [person.id]: value };
+                        if (value !== "participation") {
+                          people.forEach((other) => {
+                            if (other.id !== person.id && (next[other.id] ?? other.result ?? "participation") === value) next[other.id] = "participation";
+                          });
+                        }
+                        return next;
+                      })}
                     >
                       {label}
                     </button>

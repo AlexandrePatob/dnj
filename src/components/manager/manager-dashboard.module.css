@@ -422,6 +422,9 @@
   background: #fbfef9;
   overflow: hidden;
 }
+.gameCardInfo {
+  min-width: 0;
+}
 .gameCardLive {
   border-color: #9ecb5d;
   box-shadow: 0 8px 20px rgba(74, 125, 43, 0.12);
@@ -432,7 +435,7 @@
   justify-content: space-between;
   gap: 12px;
   width: 100%;
-  min-height: 72px;
+  min-height: 62px;
   border: 0;
   padding: 15px;
   background: transparent;
@@ -464,7 +467,7 @@
   justify-content: space-between;
   gap: 10px;
   border-top: 1px solid #e5eee5;
-  padding: 10px 15px;
+  padding: 8px 15px;
   color: #68867b;
   font-size: 0.72rem;
 }
@@ -474,6 +477,16 @@
 }
 .gameCard .cardActions {
   padding: 0 15px 15px;
+}
+@media (min-width: 640px) {
+  .gameCard {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+  .gameCard .cardActions {
+    min-width: 190px;
+    padding: 15px;
+  }
 }
 .managerConsole {
   display: grid;
@@ -695,6 +708,10 @@
   border-color: #167c56;
   background: #167c56;
   color: #fff;
+}
+.resultOption:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
 }
 .notice {
   margin: 0 18px 18px;
