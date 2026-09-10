@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, Clock3, MapPin, Sparkles, X } from "lucide-react";
+import { CheckCircle2, Clock3, Sparkles, X } from "lucide-react";
 import { CONFESSION_FAQ, SPIRITUAL_FAQ } from "@/features/app/fixtures";
 import type { AnimDir, QueueType } from "@/features/app/types";
 import { pastoralFirestore } from "@/lib/pastoral-queue/firebase";
@@ -452,10 +452,6 @@ export function QueueScreen({
               <X />
             </button>
             <h1 className="text-2xl font-black">{label(type)}</h1>
-            <p className="mt-1 text-sm">
-              <MapPin className="mr-1 inline" size={14} />
-              Espaço Esperança
-            </p>
           </header>
           <section
             className="mt-4 rounded-3xl p-4 text-center text-white"
