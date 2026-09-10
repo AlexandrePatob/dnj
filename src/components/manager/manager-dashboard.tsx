@@ -12,9 +12,12 @@ import {
 } from "react";
 import {
   AlertCircle,
+  CalendarDays,
+  CheckCircle2,
   Clock3,
   Gamepad2,
   LogOut,
+  MapPin,
   Pause,
   Pencil,
   Play,
@@ -33,6 +36,7 @@ import styles from "./manager-dashboard.module.css";
 import { PastoralQueueConsole } from "./pastoral-queue-console";
 
 const MANAGER_RUN_POLL_MS = 15_000;
+const MANAGER_SPACE_POLL_MS = 15_000;
 
 type Scope = "space" | "actions" | "special_events" | "pastoral_queue";
 type Session = {
@@ -52,6 +56,7 @@ type Item = {
   id: string;
   title: string;
   startsAt?: string;
+  endsAt?: string;
   startedAt?: string;
   status?: string;
   flexMinutes?: number;
@@ -89,7 +94,7 @@ type SpecialEvent = {
 };
 type Overview = {
   scope?: Scope;
-  space?: { current?: Item; upcoming?: Item[] };
+  space?: { now?: Item[]; upcoming?: Item[] };
   actions?: { games?: Game[]; run?: Run | null };
   specialEvents?: { events?: SpecialEvent[] };
 };
@@ -203,6 +208,24 @@ export function ManagerDashboard() {
       window.clearInterval(timer);
     };
   }, [activeRunId, managerScope]);
+  useEffect(() => {
+    if (managerScope !== "space") return;
+    let active = true;
+    const refreshSchedule = async () => {
+      if (overviewPollInFlight.current || document.visibilityState !== "visible") return;
+      overviewPollInFlight.current = true;
+      try {
+        const data = await api("/manager/game-overview");
+        if (active) setOverview(data as Overview);
+      } catch {
+        // A leitura automática não interfere nas ações do gestor.
+      } finally {
+        overviewPollInFlight.current = false;
+      }
+    };
+    const timer = window.setInterval(refreshSchedule, MANAGER_SPACE_POLL_MS);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [managerScope]);
   async function signOut() {
     await fetch("/api/manager/session", { method: "DELETE" }).catch(() => null);
     router.replace("/manager/login");
@@ -251,7 +274,7 @@ export function ManagerDashboard() {
             </h1>
             <p>
               {scope === "space"
-                ? "Registre o horário real e mantenha a programação do seu espaço atualizada."
+                ? "Acompanhe todos os espaços, registre o horário real e mantenha a programação atualizada."
                 : scope === "actions"
                   ? "Abra partidas, acompanhe os scans e confirme a pontuação de cada participante."
                 : scope === "pastoral_queue"
@@ -308,128 +331,91 @@ function SpaceConsole({
   refresh: () => Promise<void>;
   setError: (value: string) => void;
 }) {
-  const current = data?.current;
-  if (!current)
-    return (
-      <Empty
-        icon={<Clock3 size={28} />}
-        title="Nenhum item em andamento"
-        text="Quando uma atividade do seu espaço estiver disponível, ela aparecerá aqui para você iniciar no horário real."
-      />
-    );
+  const now = data?.now ?? [];
+  const upcoming = data?.upcoming ?? [];
+  const [manualItem, setManualItem] = useState<Item | null>(null);
+  const [manualValue, setManualValue] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const grouped = upcoming.reduce<Record<string, Item[]>>((groups, item) => {
+    const key = item.spaceName ?? "Espaço a confirmar";
+    (groups[key] ??= []).push(item);
+    return groups;
+  }, {});
+  const operate = async (path: string, item: Item, body?: object) => {
+    setBusyId(item.id);
+    try {
+      await api(path, { method: "POST", body: JSON.stringify({ itemId: item.id, ...body }) });
+      await refresh();
+    } catch (error) {
+      setError((error as Error).message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+  const openManual = (item: Item) => {
+    const initial = item.startedAt ? new Date(item.startedAt) : new Date();
+    initial.setSeconds(0, 0);
+    setManualValue(localDateTimeValue(initial));
+    setManualItem(item);
+  };
+  const saveManual = async () => {
+    if (!manualItem || !manualValue) return;
+    await operate("/manager/space/start", manualItem, { startedAt: new Date(manualValue).toISOString() });
+    setManualItem(null);
+  };
   return (
     <div className={styles.stack}>
       <section className={styles.panel}>
         <header className={styles.panelHeader}>
           <div>
-            <p className={styles.kicker}>
-              {current.spaceName ?? "Espaço atribuído"}
-            </p>
-            <h2>{current.title}</h2>
+            <p className={styles.kicker}><CalendarDays size={14} /> Operação ao vivo</p>
+            <h2>Acontecendo agora</h2>
           </div>
-          <span className={styles.timer}>
-            {current.flexMinutes
-              ? `+${current.flexMinutes} min`
-              : time(current.startedAt)}
-          </span>
+          <span className={styles.scope}>{now.length} {now.length === 1 ? "atividade" : "atividades"}</span>
         </header>
-        <ul className={styles.details}>
-          <li>
-            <span>Previsto</span>
-            <strong>{time(current.startsAt)}</strong>
-          </li>
-          <li>
-            <span>Início real</span>
-            <strong>{time(current.startedAt)}</strong>
-          </li>
-          <li>
-            <span>Tolerância</span>
-            <strong>15 minutos</strong>
-          </li>
-        </ul>
-        <div className={styles.actions}>
-          {!current.startedAt ? (
-            <button
-              className={styles.button}
-              onClick={() =>
-                void call(
-                  "/manager/space/start",
-                  { itemId: current.id },
-                  refresh,
-                  setError,
-                )
-              }
-            >
-              <Play size={16} />
-              Marcar início real
-            </button>
-          ) : (
-            <button
-              className={styles.secondary}
-              onClick={() =>
-                void call(
-                  "/manager/space/flex",
-                  { itemId: current.id },
-                  refresh,
-                  setError,
-                )
-              }
-            >
-              <TimerReset size={16} />
-              Aplicar Flex time
-            </button>
-          )}
-          <button
-            className={styles.button}
-            onClick={() =>
-              void call(
-                "/manager/space/advance",
-                { itemId: current.id },
-                refresh,
-                setError,
-              )
-            }
-          >
-            <Clock3 size={16} />
-            Avançar programação
-          </button>
-        </div>
+        {now.length ? <div className={styles.scheduleCards}>{now.map((item) => <ScheduleCard key={item.id} item={item} nowMs={nowMs} busy={busyId === item.id} operate={operate} openManual={openManual} />)}</div> : <p className={styles.empty}><Clock3 size={28} /><strong>Nenhuma atividade acontecendo agora</strong><span>As atividades em andamento aparecerão aqui agrupadas por espaço.</span></p>}
       </section>
-      <Schedule items={data?.upcoming ?? []} />
+      <Schedule groups={grouped} nowMs={nowMs} busyId={busyId} operate={operate} openManual={openManual} />
+      {manualItem ? <div className={styles.dialogBackdrop} role="presentation"><section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="manual-start-title"><div><p className={styles.kicker}>Ajuste operacional</p><h2 id="manual-start-title">Início real</h2><p>Informe quando “{manualItem.title}” começou. O horário não pode estar no futuro.</p></div><label>Data e hora<input type="datetime-local" value={manualValue} max={localDateTimeValue(new Date())} onChange={(event) => setManualValue(event.target.value)} /></label><div className={styles.dialogActions}><button className={styles.secondary} onClick={() => setManualItem(null)}>Cancelar</button><button className={styles.button} onClick={() => void saveManual()} disabled={!manualValue || busyId === manualItem.id}>Salvar início</button></div></section></div> : null}
     </div>
   );
 }
+function localDateTimeValue(value: Date) {
+  const local = new Date(value.getTime() - value.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
 
-function Schedule({ items }: { items: Item[] }) {
+function ScheduleCard({ item, nowMs, busy, operate, openManual }: { item: Item; nowMs: number; busy: boolean; operate: (path: string, item: Item, body?: object) => Promise<void>; openManual: (item: Item) => void }) {
+  const started = Boolean(item.startedAt);
+  const canOperate = item.status === "active" || item.status === "paused";
+  const canStartNow = !started && (!item.startsAt || new Date(item.startsAt).getTime() > nowMs);
+  const skip = () => { if (window.confirm(`Pular a atividade “${item.title}”?`)) void operate("/manager/space/advance", item); };
+  return <article className={styles.scheduleCard}><div className={styles.scheduleCardHeader}><div><p className={styles.kicker}><MapPin size={13} /> {item.spaceName ?? "Espaço a confirmar"}</p><h3>{item.title}</h3></div><span className={styles.timer}>{started ? `Início ${time(item.startedAt)}` : time(item.startsAt)}</span></div><div className={styles.scheduleMeta}><span>Previsto {time(item.startsAt)}–{time(item.endsAt)}</span>{item.flexMinutes ? <span>+{item.flexMinutes} min</span> : null}{!canOperate ? <span>Aguardando ativação</span> : null}</div>{canOperate ? <div className={styles.cardActions}>{!started ? <>{canStartNow ? <button className={styles.button} disabled={busy} onClick={() => void operate("/manager/space/start", item)}><Play size={15} /> Iniciar agora</button> : null}<button className={styles.secondary} disabled={busy} onClick={() => openManual(item)}><Pencil size={15} /> Ajustar início</button></> : <button className={styles.secondary} disabled={busy} onClick={() => void operate("/manager/space/flex", item)}><TimerReset size={15} /> Aplicar Flex time</button>}<button className={styles.danger} disabled={busy} onClick={skip}><CheckCircle2 size={15} /> Pular atividade</button></div> : null}</article>;
+}
+
+function Schedule({ groups, nowMs, busyId, operate, openManual }: { groups: Record<string, Item[]>; nowMs: number; busyId: string | null; operate: (path: string, item: Item, body?: object) => Promise<void>; openManual: (item: Item) => void }) {
+  const spaces = Object.entries(groups);
   return (
-    <section className={styles.panel}>
-      <header className={styles.panelHeader}>
+    <details className={styles.panel}>
+      <summary className={`${styles.panelHeader} ${styles.accordionHeader}`}>
         <div>
           <p className={styles.kicker}>A seguir</p>
-          <h2>Próximas atividades</h2>
+          <h2>Próximas atividades por espaço</h2>
         </div>
-      </header>
-      {items.length ? (
-        <ul className={styles.eventList}>
-          {items.map((item) => (
-            <li key={item.id}>
-              <span className={styles.eventIcon}>
-                <Clock3 size={16} />
-              </span>
-              <span>
-                <strong>{item.title}</strong>
-                <small>{item.spaceName ?? "Seu espaço"}</small>
-              </span>
-              <time>{time(item.startsAt)}</time>
-            </li>
-          ))}
-        </ul>
+      </summary>
+      {spaces.length ? (
+        <div className={styles.spaceGroups}>{spaces.map(([space, items]) => <section key={space} className={styles.spaceGroup}><h3><MapPin size={15} />{space}<small>{items.length} {items.length === 1 ? "atividade" : "atividades"}</small></h3>{items.map((item) => <ScheduleCard key={item.id} item={item} nowMs={nowMs} busy={busyId === item.id} operate={operate} openManual={openManual} />)}</section>)}</div>
       ) : (
         <p className={styles.empty}>
-          Não há outra atividade programada para este espaço.
+          <CheckCircle2 size={28} /><strong>Programação em dia</strong><span>Não há outras atividades pendentes.</span>
         </p>
       )}
-    </section>
+    </details>
   );
 }
 
@@ -620,11 +606,7 @@ function RunConsole({
   const [reviewingResults, setReviewingResults] = useState(false);
   const [qrImageUrl, setQrImageUrl] = useState(run.qrImageUrl);
   const people = run.participants ?? [];
-  useEffect(() => {
-    if (["checkin", "completed", "cancelled"].includes(run.status ?? "")) {
-      setReviewingResults(false);
-    }
-  }, [run.status]);
+  const canReviewResults = !["checkin", "completed", "cancelled"].includes(run.status ?? "");
   const saveResults = () =>
     call(
       `/manager/runs/${run.id}/results`,
@@ -734,7 +716,7 @@ function RunConsole({
             </button>
           </div>
         </>
-      ) : (run.status === "running" || run.status === "paused") && !reviewingResults ? (
+      ) : (run.status === "running" || run.status === "paused") && !reviewingResults && canReviewResults ? (
         <>
           <ParticipantList
             people={people}

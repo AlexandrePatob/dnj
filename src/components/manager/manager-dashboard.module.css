@@ -129,6 +129,20 @@
   font-size: 1.08rem;
   letter-spacing: -0.03em;
 }
+.accordionHeader {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.accordionHeader::-webkit-details-marker { display: none; }
+.accordionHeader::after {
+  content: "+";
+  color: #1f7659;
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1;
+}
+.panel[open] > .accordionHeader::after { content: "−"; }
 .kicker {
   margin: 0;
   color: #588173;
@@ -137,6 +151,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+.kicker svg { display: inline-block; margin-right: 4px; vertical-align: -2px; }
 .timer {
   font-variant-numeric: tabular-nums;
   color: #1a5039;
@@ -250,6 +265,34 @@
   display: grid;
   gap: 14px;
 }
+.scheduleCards,
+.spaceGroups {
+  display: grid;
+  gap: 12px;
+  padding: 0 18px 18px;
+}
+.scheduleCard {
+  display: grid;
+  gap: 12px;
+  border: 1px solid #d7e7da;
+  border-radius: 14px;
+  padding: 14px;
+  background: #fbfef9;
+}
+.scheduleCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.scheduleCardHeader h3 { margin: 4px 0 0; font-size: 1rem; letter-spacing: -0.025em; }
+.scheduleMeta { display: flex; flex-wrap: wrap; gap: 7px; color: #5f7d70; font-size: 0.74rem; }
+.scheduleMeta span { border-radius: 8px; padding: 6px 8px; background: #e9f3e8; }
+.cardActions { display: grid; gap: 8px; }
+.cardActions button { min-height: 40px; }
+.spaceGroup { display: grid; gap: 10px; }
+.spaceGroup > h3 { display: flex; align-items: center; gap: 6px; margin: 4px 0 0; color: #1f583f; font-size: 0.9rem; }
+.spaceGroup > h3 small { margin-left: auto; color: #6a887b; font-size: 0.7rem; font-weight: 700; }
 .eventList {
   display: grid;
   gap: 0;
@@ -618,6 +661,9 @@
   .notice {
     margin: 0 22px 22px;
   }
+  .scheduleCards,
+  .spaceGroups { padding-right: 22px; padding-left: 22px; }
+  .cardActions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (prefers-reduced-motion: reduce) {
   .button,

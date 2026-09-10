@@ -53,10 +53,48 @@ describe("ManagerDashboard", () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock
       .mockResolvedValueOnce(new Response(JSON.stringify({ manager: { name: "Lia", scope: "space" }, name: "Lia", scope: "space" })))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ scope: "space", space: { current: { id: "item-1", title: "Abertura", startsAt: "2026-10-18T14:00:00Z" }, upcoming: [] } })));
+      .mockResolvedValueOnce(new Response(JSON.stringify({ scope: "space", space: { now: [], upcoming: [{ id: "item-1", title: "Abertura", startsAt: "2999-10-18T14:00:00Z", endsAt: "2999-10-18T15:00:00Z", status: "active", spaceName: "Palco Juventude" }] } })));
     render(<ManagerDashboard />);
-    await user.click(await screen.findByRole("button", { name: "Marcar início real" }));
+    await user.click(await screen.findByRole("button", { name: "Iniciar agora" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/space/start", expect.objectContaining({ method: "POST", body: JSON.stringify({ itemId: "item-1" }) })));
+  });
+  it("shows simultaneous activities and adjusts a real start time", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce(new Response(JSON.stringify({ name: "Lia", scope: "space" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        scope: "space",
+        space: {
+          now: [
+            { id: "now-a", title: "Abertura", status: "active", spaceName: "Palco A", startsAt: "2026-10-18T14:00:00Z", endsAt: "2026-10-18T15:00:00Z" },
+            { id: "now-b", title: "Recepção", status: "paused", spaceName: "Palco B", startsAt: "2026-10-18T14:00:00Z", endsAt: "2026-10-18T15:00:00Z", startedAt: "2026-10-18T14:05:00Z" },
+          ],
+          upcoming: [{ id: "next-a", title: "Adoração", status: "active", spaceName: "Palco A", startsAt: "2026-10-18T15:00:00Z", endsAt: "2026-10-18T16:00:00Z" }],
+        },
+      })))
+      .mockResolvedValue(new Response(JSON.stringify({ scope: "space", space: { now: [], upcoming: [] } })));
+    render(<ManagerDashboard />);
+    expect(await screen.findByText("Abertura")).toBeInTheDocument();
+    expect(screen.getByText("Recepção")).toBeInTheDocument();
+    expect(screen.getByText("Próximas atividades por espaço")).toBeInTheDocument();
+    await user.click(screen.getAllByRole("button", { name: "Ajustar início" })[0]);
+    expect(screen.getByRole("dialog", { name: "Início real" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Salvar início" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/space/start", expect.objectContaining({ method: "POST" })));
+    const request = fetchMock.mock.calls.find(([path]) => path === "/api/v2/manager/space/start");
+    expect(request?.[1]?.body).toMatch(/"itemId":"now-a"/);
+    expect(request?.[1]?.body).toMatch(/"startedAt":"/);
+  });
+  it("only offers manual adjustment after the planned start time", async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce(new Response(JSON.stringify({ name: "Lia", scope: "space" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ scope: "space", space: { now: [{ id: "late", title: "Atrasada", status: "active", spaceName: "Palco A", startsAt: "2020-10-18T14:00:00Z", endsAt: "2999-10-18T15:00:00Z" }], upcoming: [] } })));
+    render(<ManagerDashboard />);
+    expect(await screen.findByText("Atrasada")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Iniciar agora" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ajustar início" })).toBeInTheDocument();
   });
   it("starts a Radicalidade run through the API", async () => {
     const user = userEvent.setup();
