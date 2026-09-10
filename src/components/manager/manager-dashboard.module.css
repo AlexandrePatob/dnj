@@ -483,17 +483,50 @@
   background: #f4fae9;
 }
 .managerConsoleHeader {
-  display: flex;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
 }
 .managerConsoleHeader h2 {
   margin: 3px 0 0;
   font-size: 1.2rem;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
-.managerConsoleHeader .secondary {
-  flex: none;
+.managerConsoleHeader .iconButton {
+  width: 44px;
+  height: 44px;
+}
+.managerConsole .qr {
+  padding: 10px;
+}
+.runQrImage {
+  display: block;
+  width: min(100%, 320px);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+.managerConsole .participants {
+  max-height: 280px;
+  overflow-y: auto;
+}
+.runControls {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 1fr);
+  align-items: center;
+  max-width: 620px;
+  margin: 0 auto;
+  width: 100%;
+}
+.runControls .secondary { grid-column: 1; grid-row: 1; }
+.runControls .button { grid-column: 2; grid-row: 1; }
+.runControls .danger { grid-column: 3; grid-row: 1; }
+.runControls button {
+  min-width: 0;
+  padding-right: 7px;
+  padding-left: 7px;
+  font-size: 0.72rem;
 }
 .gameCardBody {
   display: grid;
@@ -809,8 +842,6 @@
   }
 }
 @media (max-width: 639px) {
-  .managerConsoleHeader { align-items: stretch; flex-direction: column; }
-  .managerConsoleHeader .secondary { width: 100%; }
   .eventList li {
     grid-template-columns: auto minmax(0, 1fr);
     align-items: start;

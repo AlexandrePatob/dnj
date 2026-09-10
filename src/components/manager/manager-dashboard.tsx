@@ -13,6 +13,7 @@ import {
 } from "react";
 import {
   AlertCircle,
+  ArrowLeft,
   CalendarDays,
   CheckCircle2,
   Clock3,
@@ -489,13 +490,11 @@ function ActionConsole({
     return (
       <section className={styles.managerConsole} aria-label={`Gerenciar ${selectedGame.name}`}>
         <div className={styles.managerConsoleHeader}>
-          <div>
-            <p className={styles.kicker}>Partida selecionada</p>
-            <h2>Gerenciar {selectedGame.name}</h2>
-          </div>
-          <button className={styles.secondary} onClick={() => setSelectedGameId(null)}>
-            Voltar para atividades
+          <button className={styles.iconButton} aria-label="Voltar para atividades" onClick={() => setSelectedGameId(null)}>
+            <ArrowLeft size={20} />
           </button>
+          <h2>{selectedGame.name}</h2>
+          <span aria-hidden="true" />
         </div>
         {mode === "special_events" ? (
           <SpecialEventRunConsole run={selectedGame.run} refresh={refresh} setError={setError} />
@@ -714,9 +713,8 @@ function RunConsole({
               <img
                 src={qrImageUrl}
                 alt="QR Code da partida"
+                className={styles.runQrImage}
                 style={{
-                    width: 280,
-                    height: 280,
                   borderRadius: 12,
                   background: "white",
                   padding: 10,
@@ -736,13 +734,7 @@ function RunConsole({
                 : "Gere um QR novo para receber participantes nesta partida."}
             </p>
           </div>
-          <ParticipantList
-            people={people}
-            results={results}
-            onResult={setResults}
-            readonly
-          />
-          <div className={styles.actions}>
+          <div className={`${styles.actions} ${styles.runControls}`}>
             <button
               className={styles.button}
               onClick={() =>
@@ -758,8 +750,7 @@ function RunConsole({
               Iniciar jogo
             </button>
             <button className={styles.secondary} onClick={() => void renewQr()}>
-              <TimerReset size={16} />
-              Novo QR
+              <TimerReset size={16} /> Novo QR
             </button>
             <button
               className={styles.danger}
@@ -772,10 +763,15 @@ function RunConsole({
                 )
               }
             >
-              <Square size={16} />
-              Cancelar partida
+              <Square size={16} /> Cancelar partida
             </button>
           </div>
+          <ParticipantList
+            people={people}
+            results={results}
+            onResult={setResults}
+            readonly
+          />
         </>
       ) : (run.status === "running" || run.status === "paused") && !reviewingResults && canReviewResults ? (
         <>
