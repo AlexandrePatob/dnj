@@ -442,6 +442,7 @@ function ActionConsole({
   const [editor, setEditor] = useState<{ id?: string; name: string } | null>(
     null,
   );
+  const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
   async function saveGame(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!editor?.name.trim()) return;
@@ -470,11 +471,13 @@ function ActionConsole({
         method: "POST",
       });
       await refresh();
+      setSelectedGameId(gameId);
     } catch (error) {
       setError((error as Error).message);
     }
   }
   const games = data?.games ?? [];
+  const selectedGame = games.find((game) => game.id === selectedGameId);
   return (
     <div className={styles.stack}>
       <section className={styles.panel}>
@@ -487,7 +490,7 @@ function ActionConsole({
         </header>
         {games.length ? (
           <div className={styles.gameGrid}>
-            {games.map((game) => <GameCard key={game.id} game={game} mode={mode} openRun={openRun} refresh={refresh} setError={setError} setEditor={setEditor} />)}
+            {games.map((game) => <GameCard key={game.id} game={game} mode={mode} openRun={openRun} manageGame={setSelectedGameId} refresh={refresh} setError={setError} setEditor={setEditor} />)}
           </div>
         ) : (
           <Empty
@@ -501,6 +504,24 @@ function ActionConsole({
         <Plus size={16} />
         {mode === "special_events" ? "Novo evento" : "Novo jogo"}
       </button>
+      {selectedGame?.run ? (
+        <section className={styles.managerConsole} aria-label={`Gerenciar ${selectedGame.name}`}>
+          <div className={styles.managerConsoleHeader}>
+            <div>
+              <p className={styles.kicker}>Partida selecionada</p>
+              <h2>Gerenciar {selectedGame.name}</h2>
+            </div>
+            <button className={styles.secondary} onClick={() => setSelectedGameId(null)}>
+              Voltar para atividades
+            </button>
+          </div>
+          {mode === "special_events" ? (
+            <SpecialEventRunConsole run={selectedGame.run} refresh={refresh} setError={setError} />
+          ) : (
+            <RunConsole run={selectedGame.run} refresh={refresh} setError={setError} />
+          )}
+        </section>
+      ) : null}
       {editor ? (
         <div className={styles.dialogBackdrop} role="presentation">
           <form
@@ -547,6 +568,7 @@ function GameCard({
   game,
   mode,
   openRun,
+  manageGame,
   refresh,
   setError,
   setEditor,
@@ -554,11 +576,11 @@ function GameCard({
   game: Game;
   mode: "actions" | "special_events";
   openRun: (gameId: string) => Promise<void>;
+  manageGame: (gameId: string) => void;
   refresh: () => Promise<void>;
   setError: (value: string) => void;
   setEditor: Dispatch<SetStateAction<{ id?: string; name: string } | null>>;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const run = game.run ?? null;
   const runLabel = run
     ? ({
@@ -570,49 +592,35 @@ function GameCard({
     : "Disponível para abrir";
   return (
     <article className={`${styles.gameCard} ${run ? styles.gameCardLive : ""}`}>
-      <button
-        className={styles.gameCardHeader}
-        onClick={() => setExpanded((value) => !value)}
-        aria-expanded={expanded}
-      >
+      <div className={styles.gameCardHeader}>
         <span>
           <span className={styles.kicker}>{mode === "actions" ? "Radicalidade" : "Evento"}</span>
           <strong>{game.name}</strong>
         </span>
         <span className={styles.gameState}>{runLabel}</span>
-      </button>
+      </div>
       <div className={styles.gameCardMeta}>
         <span>{run ? `${run.participants?.length ?? 0} participantes` : "Nenhuma partida aberta"}</span>
-        <span>{expanded ? "Fechar detalhes" : "Abrir detalhes"}</span>
       </div>
-      {expanded ? (
-        <div className={styles.gameCardBody}>
-          {run ? (
-            mode === "special_events" ? (
-              <SpecialEventRunConsole run={run} refresh={refresh} setError={setError} />
-            ) : (
-              <RunConsole run={run} refresh={refresh} setError={setError} />
-            )
-          ) : (
-            <button className={styles.button} onClick={() => void openRun(game.id)}>
-              <QrCode size={16} />
-              {mode === "special_events" ? "Liberar QR" : "Abrir partida"}
-            </button>
-          )}
-          {!run ? (
-            <div className={styles.cardActions}>
-              <button className={styles.secondary} onClick={() => setEditor({ id: game.id, name: game.name })}>
-                <Pencil size={16} /> Editar
-              </button>
-              {mode === "actions" ? (
-                <button className={styles.danger} onClick={() => void call(`/manager/activities/${game.id}/conclude`, undefined, refresh, setError)}>
-                  <Square size={16} /> Encerrar atividade
-                </button>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+      <div className={styles.cardActions}>
+        {run ? (
+          <button className={styles.button} onClick={() => manageGame(game.id)}>
+            <Gamepad2 size={16} /> Gerenciar partida
+          </button>
+        ) : (
+          <button className={styles.button} onClick={() => void openRun(game.id)}>
+            <QrCode size={16} /> {mode === "special_events" ? "Liberar QR" : "Abrir partida"}
+          </button>
+        )}
+        <button className={styles.secondary} onClick={() => setEditor({ id: game.id, name: game.name })}>
+          <Pencil size={16} /> Editar nome
+        </button>
+        {!run && mode === "actions" ? (
+          <button className={styles.danger} onClick={() => void call(`/manager/activities/${game.id}/conclude`, undefined, refresh, setError)}>
+            <Square size={16} /> Encerrar atividade
+          </button>
+        ) : null}
+      </div>
     </article>
   );
 }
@@ -703,8 +711,8 @@ function RunConsole({
                 src={qrImageUrl}
                 alt="QR Code da partida"
                 style={{
-                  width: 178,
-                  height: 178,
+                    width: 240,
+                    height: 240,
                   borderRadius: 12,
                   background: "white",
                   padding: 10,

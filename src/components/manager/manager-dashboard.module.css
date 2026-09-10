@@ -438,7 +438,6 @@
   color: inherit;
   text-align: left;
   font: inherit;
-  cursor: pointer;
 }
 .gameCardHeader > span:first-child {
   display: grid;
@@ -471,6 +470,30 @@
 .gameCardMeta span:last-child {
   color: #24734f;
   font-weight: 800;
+}
+.gameCard .cardActions {
+  padding: 0 15px 15px;
+}
+.managerConsole {
+  display: grid;
+  gap: 14px;
+  border: 1px solid #9ecb5d;
+  border-radius: 16px;
+  padding: 15px;
+  background: #f4fae9;
+}
+.managerConsoleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.managerConsoleHeader h2 {
+  margin: 3px 0 0;
+  font-size: 1.2rem;
+}
+.managerConsoleHeader .secondary {
+  flex: none;
 }
 .gameCardBody {
   display: grid;
@@ -778,6 +801,7 @@
   .scheduleCards,
   .spaceGroups { padding-right: 22px; padding-left: 22px; }
   .cardActions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .managerConsole { padding: 20px; }
 }
 @media (min-width: 1040px) {
   .gameGrid {
@@ -785,6 +809,8 @@
   }
 }
 @media (max-width: 639px) {
+  .managerConsoleHeader { align-items: stretch; flex-direction: column; }
+  .managerConsoleHeader .secondary { width: 100%; }
   .eventList li {
     grid-template-columns: auto minmax(0, 1fr);
     align-items: start;
