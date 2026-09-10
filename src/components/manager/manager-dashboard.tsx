@@ -72,6 +72,7 @@ type Game = {
     third?: number;
     participation?: number;
   };
+  run?: Run | null;
 };
 type Run = {
   id: string;
@@ -80,6 +81,8 @@ type Run = {
   status?: "checkin" | "running" | "paused" | "results";
   qrCode?: string;
   qrImageUrl?: string;
+  qrToken?: string;
+  qrExpiresAt?: string;
   participants?: Participant[];
 };
 type SpecialEvent = {
@@ -187,13 +190,12 @@ export function ManagerDashboard() {
   useEffect(() => {
     void loadRef.current();
   }, []); // Session is intentionally checked before any operation UI is shown.
-  const activeRunId = overview?.actions?.run?.id;
   const managerScope =
     session && overview ? getScope(session, overview) : undefined;
   useEffect(() => {
-    if (managerScope !== "actions" || !activeRunId) return;
+    if (managerScope !== "actions") return;
     let active = true;
-    const refreshRun = async () => {
+    const refreshOverview = async () => {
       if (
         overviewPollInFlight.current ||
         document.visibilityState !== "visible"
@@ -209,12 +211,12 @@ export function ManagerDashboard() {
         overviewPollInFlight.current = false;
       }
     };
-    const timer = window.setInterval(refreshRun, MANAGER_RUN_POLL_MS);
+    const timer = window.setInterval(refreshOverview, MANAGER_RUN_POLL_MS);
     return () => {
       active = false;
       window.clearInterval(timer);
     };
-  }, [activeRunId, managerScope]);
+  }, [managerScope]);
   useEffect(() => {
     if (managerScope !== "space") return;
     let active = true;
@@ -440,8 +442,6 @@ function ActionConsole({
   const [editor, setEditor] = useState<{ id?: string; name: string } | null>(
     null,
   );
-  const [qrImageUrl, setQrImageUrl] = useState<string>();
-  const run = data?.run;
   async function saveGame(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!editor?.name.trim()) return;
@@ -466,23 +466,14 @@ function ActionConsole({
       })) as { id: string };
       // A newly opened run must be immediately usable: provision its QR in
       // the same flow instead of requiring a second manual action.
-      const qr = (await api(`/manager/runs/${created.id}/qr`, {
+      await api(`/manager/runs/${created.id}/qr`, {
         method: "POST",
-      })) as { qrToken: string };
-      setQrImageUrl(await toDataURL(qr.qrToken));
+      });
       await refresh();
     } catch (error) {
       setError((error as Error).message);
     }
   }
-  if (run)
-    return (
-      mode === "special_events" ? (
-        <SpecialEventRunConsole run={{ ...run, qrImageUrl: qrImageUrl ?? run.qrImageUrl }} refresh={refresh} setError={setError} />
-      ) : (
-        <RunConsole run={{ ...run, qrImageUrl: qrImageUrl ?? run.qrImageUrl }} refresh={refresh} setError={setError} />
-      )
-    );
   const games = data?.games ?? [];
   return (
     <div className={styles.stack}>
@@ -496,36 +487,7 @@ function ActionConsole({
         </header>
         {games.length ? (
           <div className={styles.gameGrid}>
-            {games.map((game) => (
-              <article className={styles.gameCard} key={game.id}>
-                <strong>{game.name}</strong>
-                <div>
-                  <button
-                    className={styles.secondary}
-                    onClick={() => void openRun(game.id)}
-                  >
-                    <QrCode size={16} />
-                    {mode === "special_events" ? "Liberar QR" : "Abrir partida"}
-                  </button>
-                  <button
-                    className={styles.iconButton}
-                    aria-label={`Editar ${game.name}`}
-                    onClick={() => setEditor({ id: game.id, name: game.name })}
-                  >
-                    <Pencil size={16} />
-                  </button>
-                  {mode === "actions" ? (
-                    <button
-                      className={styles.iconButton}
-                      aria-label={`Concluir ${game.name}`}
-                      onClick={() => void call(`/manager/activities/${game.id}/conclude`, undefined, refresh, setError)}
-                    >
-                      <Square size={16} />
-                    </button>
-                  ) : null}
-                </div>
-              </article>
-            ))}
+            {games.map((game) => <GameCard key={game.id} game={game} mode={mode} openRun={openRun} refresh={refresh} setError={setError} setEditor={setEditor} />)}
           </div>
         ) : (
           <Empty
@@ -581,8 +543,85 @@ function ActionConsole({
   );
 }
 
+function GameCard({
+  game,
+  mode,
+  openRun,
+  refresh,
+  setError,
+  setEditor,
+}: {
+  game: Game;
+  mode: "actions" | "special_events";
+  openRun: (gameId: string) => Promise<void>;
+  refresh: () => Promise<void>;
+  setError: (value: string) => void;
+  setEditor: Dispatch<SetStateAction<{ id?: string; name: string } | null>>;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const run = game.run ?? null;
+  const runLabel = run
+    ? ({
+        checkin: "Aguardando participantes",
+        running: "Em andamento",
+        paused: "Pausada",
+        results: "Definindo resultados",
+      } as Record<string, string>)[run.status ?? ""] ?? "Partida aberta"
+    : "Disponível para abrir";
+  return (
+    <article className={`${styles.gameCard} ${run ? styles.gameCardLive : ""}`}>
+      <button
+        className={styles.gameCardHeader}
+        onClick={() => setExpanded((value) => !value)}
+        aria-expanded={expanded}
+      >
+        <span>
+          <span className={styles.kicker}>{mode === "actions" ? "Radicalidade" : "Evento"}</span>
+          <strong>{game.name}</strong>
+        </span>
+        <span className={styles.gameState}>{runLabel}</span>
+      </button>
+      <div className={styles.gameCardMeta}>
+        <span>{run ? `${run.participants?.length ?? 0} participantes` : "Nenhuma partida aberta"}</span>
+        <span>{expanded ? "Fechar detalhes" : "Abrir detalhes"}</span>
+      </div>
+      {expanded ? (
+        <div className={styles.gameCardBody}>
+          {run ? (
+            mode === "special_events" ? (
+              <SpecialEventRunConsole run={run} refresh={refresh} setError={setError} />
+            ) : (
+              <RunConsole run={run} refresh={refresh} setError={setError} />
+            )
+          ) : (
+            <button className={styles.button} onClick={() => void openRun(game.id)}>
+              <QrCode size={16} />
+              {mode === "special_events" ? "Liberar QR" : "Abrir partida"}
+            </button>
+          )}
+          {!run ? (
+            <div className={styles.cardActions}>
+              <button className={styles.secondary} onClick={() => setEditor({ id: game.id, name: game.name })}>
+                <Pencil size={16} /> Editar
+              </button>
+              {mode === "actions" ? (
+                <button className={styles.danger} onClick={() => void call(`/manager/activities/${game.id}/conclude`, undefined, refresh, setError)}>
+                  <Square size={16} /> Encerrar atividade
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
 function SpecialEventRunConsole({ run, refresh, setError }: { run: Run; refresh: () => Promise<void>; setError: (value: string) => void }) {
   const [qrImageUrl, setQrImageUrl] = useState(run.qrImageUrl);
+  useEffect(() => {
+    if (run.qrToken) void toDataURL(run.qrToken).then(setQrImageUrl);
+  }, [run.qrToken]);
   const people = run.participants ?? [];
   async function renewQr() {
     try {
@@ -612,6 +651,9 @@ function RunConsole({
   );
   const [reviewingResults, setReviewingResults] = useState(false);
   const [qrImageUrl, setQrImageUrl] = useState(run.qrImageUrl);
+  useEffect(() => {
+    if (run.qrToken) void toDataURL(run.qrToken).then(setQrImageUrl);
+  }, [run.qrToken]);
   const people = run.participants ?? [];
   const canReviewResults = !["checkin", "completed", "cancelled"].includes(run.status ?? "");
   const saveResults = () =>

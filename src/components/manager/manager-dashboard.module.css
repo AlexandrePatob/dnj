@@ -414,26 +414,82 @@
   padding: 0 18px 18px;
 }
 .gameCard {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  gap: 0;
   border: 1px solid #dce9de;
   border-radius: 12px;
+  background: #fbfef9;
+  overflow: hidden;
+}
+.gameCardLive {
+  border-color: #9ecb5d;
+  box-shadow: 0 8px 20px rgba(74, 125, 43, 0.12);
+}
+.gameCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 72px;
+  border: 0;
+  padding: 15px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.gameCardHeader > span:first-child {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.gameCardHeader strong {
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+}
+.gameState {
+  flex: none;
+  border-radius: 999px;
+  padding: 6px 8px;
+  background: #e5f2d5;
+  color: #286041;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-align: right;
+}
+.gameCardMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid #e5eee5;
+  padding: 10px 15px;
+  color: #68867b;
+  font-size: 0.72rem;
+}
+.gameCardMeta span:last-child {
+  color: #24734f;
+  font-weight: 800;
+}
+.gameCardBody {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid #e5eee5;
   padding: 12px;
 }
-.gameCard strong {
-  font-size: 0.86rem;
+.gameCardBody > .panel {
+  border: 0;
+  border-radius: 10px;
+  box-shadow: none;
 }
-.gameCard > div {
-  display: flex;
-  align-items: center;
-  gap: 7px;
+.gameCardBody > .panel .panelHeader {
+  padding: 10px 12px;
 }
-.gameCard .secondary {
-  min-height: 36px;
-  padding: 8px 10px;
-  font-size: 0.74rem;
+.gameCardBody > .panel .actions,
+.gameCardBody > .panel .details {
+  padding-left: 12px;
+  padding-right: 12px;
 }
 .iconButton {
   display: grid;
@@ -682,6 +738,9 @@
 .position { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #e7f2e6; color: #2a704e; font-size: 0.72rem; font-weight: 900; }
 .queueEmpty { display: block !important; padding: 30px 0 !important; color: #708b80; text-align: center; font-size: 0.8rem; }
 @media (min-width: 640px) {
+  .gameGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .actions {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -719,6 +778,11 @@
   .scheduleCards,
   .spaceGroups { padding-right: 22px; padding-left: 22px; }
   .cardActions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1040px) {
+  .gameGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 @media (max-width: 639px) {
   .eventList li {
