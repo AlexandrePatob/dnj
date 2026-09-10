@@ -869,9 +869,9 @@ function ParticipantList({
               </span>
             ) : (
               <div className={styles.resultOptions} role="radiogroup" aria-label={`Resultado de ${person.name}`}>
-                {([["first", "1º"], ["second", "2º"], ["third", "3º"], ["participation", "Participa"]] as const).map(([value, label]) => {
+                {([["first", "1º"], ["second", "2º"], ["third", "3º"], ["participation", "Participante"]] as const).map(([value, label]) => {
                   const selected = (results[person.id] ?? person.result ?? "participation") === value;
-                  const takenByOther = value !== "participation" && people.some((other) => other.id !== person.id && (results[other.id] ?? other.result ?? "participation") === value);
+                  const takenByOther = people.some((other) => other.id !== person.id && (results[other.id] ?? other.result ?? "participation") === value);
                   return (
                     <button
                       key={value}
@@ -883,11 +883,9 @@ function ParticipantList({
                       className={selected ? styles.resultOptionSelected : styles.resultOption}
                       onClick={() => onResult((current) => {
                         const next = { ...current, [person.id]: value };
-                        if (value !== "participation") {
-                          people.forEach((other) => {
-                            if (other.id !== person.id && (next[other.id] ?? other.result ?? "participation") === value) next[other.id] = "participation";
-                          });
-                        }
+                        people.forEach((other) => {
+                          if (other.id !== person.id && (next[other.id] ?? other.result ?? "participation") === value) next[other.id] = "participation";
+                        });
                         return next;
                       })}
                     >

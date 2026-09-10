@@ -240,11 +240,10 @@ describe("ManagerDashboard", () => {
     render(<ManagerDashboard />);
     await user.click(await screen.findByRole("button", { name: "Entrar na partida" }));
     const firstPlaceButtons = screen.getAllByRole("radio", { name: "1º" });
-    const participationButtons = screen.getAllByRole("radio", { name: "Participa" });
 
     await user.click(firstPlaceButtons[0]);
     expect(firstPlaceButtons[1]).toBeDisabled();
-    expect(participationButtons[1]).toBeEnabled();
+    expect(screen.getAllByRole("radio", { name: "Participante" })[1]).toBeChecked();
     await user.click(screen.getByRole("button", { name: "Confirmar pontuação e encerrar" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
