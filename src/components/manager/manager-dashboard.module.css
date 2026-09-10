@@ -411,16 +411,35 @@
 .gameGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
   padding: 0 18px 18px;
+}
+.gameGridHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 138px;
+  gap: 12px;
+  padding: 0 12px 7px;
+  color: #789187;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.gameGridHeader span:last-child {
+  text-align: center;
 }
 .gameCard {
   display: grid;
-  gap: 0;
+  grid-template-columns: minmax(0, 1fr) 138px;
+  gap: 12px;
+  align-items: center;
   border: 1px solid #dce9de;
-  border-radius: 12px;
-  background: #fbfef9;
+  border-width: 1px 0 0;
+  border-radius: 0;
+  background: #fff;
   overflow: hidden;
+}
+.gameCard:first-of-type {
+  border-top-color: #dce9de;
 }
 .gameCardInfo {
   min-width: 0;
@@ -435,9 +454,9 @@
   justify-content: space-between;
   gap: 12px;
   width: 100%;
-  min-height: 62px;
+  min-height: 58px;
   border: 0;
-  padding: 15px;
+  padding: 12px;
   background: transparent;
   color: inherit;
   text-align: left;
@@ -466,8 +485,8 @@
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  border-top: 1px solid #e5eee5;
-  padding: 8px 15px;
+  border-top: 0;
+  padding: 0 12px 12px;
   color: #68867b;
   font-size: 0.72rem;
 }
@@ -476,17 +495,25 @@
   font-weight: 800;
 }
 .gameCard .cardActions {
-  padding: 0 15px 15px;
+  min-width: 0;
+  padding: 10px 12px;
 }
-@media (min-width: 640px) {
-  .gameCard {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-  }
-  .gameCard .cardActions {
-    min-width: 190px;
-    padding: 15px;
-  }
+.gameCard .button,
+.gameCard .secondary,
+.gameCard .danger {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  font-size: 0.74rem;
+}
+.gameCard .secondary {
+  border: 1px solid #d5e5d8;
+  background: transparent;
+}
+.gameCard .danger {
+  border: 1px solid #e4b0a5;
+  background: transparent;
+  color: #a74536;
 }
 .managerConsole {
   display: grid;

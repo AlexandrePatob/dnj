@@ -519,7 +519,11 @@ function ActionConsole({
           <Gamepad2 size={21} />
         </header>
         {games.length ? (
-          <div className={styles.gameGrid}>
+          <div className={styles.gameGrid} role="table" aria-label={mode === "special_events" ? "Eventos" : "Partidas"}>
+            <div className={styles.gameGridHeader} role="row" aria-hidden="true">
+              <span>Atividade</span>
+              <span>Ações</span>
+            </div>
             {games.map((game) => <GameCard key={game.id} game={game} mode={mode} openRun={openRun} manageGame={setSelectedGameId} refresh={refresh} setError={setError} setEditor={setEditor} />)}
           </div>
         ) : (
@@ -594,7 +598,7 @@ function GameCard({
     ? "Partida aberta"
     : "Disponível para abrir";
   return (
-    <article className={`${styles.gameCard} ${run ? styles.gameCardLive : ""}`}>
+    <article className={`${styles.gameCard} ${run ? styles.gameCardLive : ""}`} role="row">
       <div className={styles.gameCardInfo}>
         <div className={styles.gameCardHeader}>
           <span>
@@ -609,20 +613,20 @@ function GameCard({
       </div>
       <div className={styles.cardActions}>
         {run ? (
-          <button className={styles.button} onClick={() => manageGame(game.id)}>
-            <Gamepad2 size={16} /> Gerenciar partida
+          <button className={styles.button} aria-label="Gerenciar partida" onClick={() => manageGame(game.id)}>
+            <Gamepad2 size={16} /> Gerenciar
           </button>
         ) : (
-          <button className={styles.button} onClick={() => void openRun(game.id)}>
-            <QrCode size={16} /> {mode === "special_events" ? "Liberar QR" : "Abrir partida"}
+          <button className={styles.button} aria-label={mode === "special_events" ? "Liberar QR" : "Abrir partida"} onClick={() => void openRun(game.id)}>
+            <QrCode size={16} /> {mode === "special_events" ? "Liberar QR" : "Abrir"}
           </button>
         )}
-        <button className={styles.secondary} onClick={() => setEditor({ id: game.id, name: game.name })}>
-          <Pencil size={16} /> Editar nome
+        <button className={styles.secondary} aria-label="Editar nome" onClick={() => setEditor({ id: game.id, name: game.name })}>
+          <Pencil size={16} /> Editar
         </button>
         {!run && mode === "actions" ? (
-          <button className={styles.danger} onClick={() => void call(`/manager/activities/${game.id}/conclude`, undefined, refresh, setError)}>
-            <Square size={16} /> Encerrar atividade
+          <button className={styles.danger} aria-label="Encerrar atividade" onClick={() => void call(`/manager/activities/${game.id}/conclude`, undefined, refresh, setError)}>
+            <Square size={16} /> Encerrar
           </button>
         ) : null}
       </div>
