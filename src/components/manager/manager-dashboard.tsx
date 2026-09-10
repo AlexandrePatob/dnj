@@ -157,6 +157,7 @@ export function ManagerDashboard() {
   const [session, setSession] = useState<Session | null>(null);
   const [overview, setOverview] = useState<Overview | null>(null);
   const [error, setError] = useState("");
+  const [isManagingAction, setIsManagingAction] = useState(false);
   const overviewPollInFlight = useRef(false);
   const load = useCallback(async () => {
     try {
@@ -270,7 +271,7 @@ export function ManagerDashboard() {
         </button>
       </header>
       <section className={styles.content}>
-        <header className={styles.intro}>
+        {!(scope === "actions" && isManagingAction) ? <header className={styles.intro}>
           <div>
             <h1>
               {scope === "space"
@@ -292,7 +293,7 @@ export function ManagerDashboard() {
             </p>
           </div>
           <span className={styles.scope}>{label}</span>
-        </header>
+        </header> : null}
         {error ? (
           <p role="alert" className={styles.error}>
             <AlertCircle size={17} />
@@ -310,6 +311,7 @@ export function ManagerDashboard() {
             data={overview.actions}
             refresh={load}
             setError={setError}
+            onManagingChange={setIsManagingAction}
           />
         ) : scope === "special_events" ? (
           <SpecialConsole
@@ -433,11 +435,13 @@ function ActionConsole({
   refresh,
   setError,
   mode = "actions",
+  onManagingChange,
 }: {
   data?: Overview["actions"];
   refresh: () => Promise<void>;
   setError: (value: string) => void;
   mode?: "actions" | "special_events";
+  onManagingChange?: (value: boolean) => void;
 }) {
   const [editor, setEditor] = useState<{ id?: string; name: string } | null>(
     null,
@@ -478,6 +482,9 @@ function ActionConsole({
   }
   const games = data?.games ?? [];
   const selectedGame = games.find((game) => game.id === selectedGameId);
+  useEffect(() => {
+    onManagingChange?.(Boolean(selectedGame?.run));
+  }, [onManagingChange, selectedGame?.run]);
   if (selectedGame?.run) {
     return (
       <section className={styles.managerConsole} aria-label={`Gerenciar ${selectedGame.name}`}>
@@ -708,8 +715,8 @@ function RunConsole({
                 src={qrImageUrl}
                 alt="QR Code da partida"
                 style={{
-                    width: 240,
-                    height: 240,
+                    width: 280,
+                    height: 280,
                   borderRadius: 12,
                   background: "white",
                   padding: 10,
