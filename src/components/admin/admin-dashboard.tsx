@@ -24,8 +24,8 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { toDataURL } from "qrcode";
 import { apiMutation, apiRequest } from "@/lib/api/client";
+import { qrImageUrl } from "@/lib/manager-qr";
 import { PastoralQueueOverview } from "./pastoral-queue-overview";
 import { deviceDateTimeToUtc, nowInDeviceDateTimeInput } from "@/lib/date-time";
 import type { AdminPanel, AdminSession } from "@/types/admin";
@@ -56,6 +56,7 @@ type Activity = {
   runsCount?: number;
   qrImageUrl?: string | null;
 };
+type ActivityStatusFilter = "all" | "active" | "draft" | "paused" | "completed" | "archived";
 type Staff = {
   id: string;
   name: string;
@@ -85,11 +86,15 @@ type SpecialEvent = {
 };
 
 type DashboardPanel =
-  AdminPanel | "Filas pastorais" | (typeof activityTypes)[number]["label"];
+  | "Dashboard"
+  | AdminPanel
+  | "Filas pastorais"
+  | (typeof activityTypes)[number]["label"];
 const navigation: Array<{
   label: DashboardPanel;
   icon: typeof LayoutDashboard;
 }> = [
+  { label: "Dashboard", icon: LayoutDashboard },
   { label: "Gestores", icon: UserRoundCog },
   { label: "Atividades", icon: CalendarClock },
   { label: "Espaços", icon: UsersRound },
@@ -209,7 +214,7 @@ export function AdminDashboard({
   session: AdminSession;
   onExit: () => void;
 }) {
-  const [panel, setPanel] = useState<DashboardPanel>("Gestores");
+  const [panel, setPanel] = useState<DashboardPanel>("Dashboard");
   const [activitiesOpen, setActivitiesOpen] = useState(true);
   const [activityKind, setActivityKind] = useState<ActivityKind>("schedule");
   async function signOut() {
@@ -313,6 +318,15 @@ export function AdminDashboard({
             </span>
           </div>
         </header>
+        {panel === "Dashboard" && (
+          <DashboardHome
+            onNavigate={(nextPanel) => setPanel(nextPanel)}
+            onActivityNavigate={(kind) => {
+              setActivityKind(kind);
+              setPanel(activityTypes.find((item) => item.kind === kind)?.label ?? "Atividades");
+            }}
+          />
+        )}
         {panel === "Gestores" && <StaffList />}
         {(panel === "Atividades" ||
           activityTypes.some((item) => item.label === panel)) && (
@@ -336,8 +350,103 @@ export function AdminDashboard({
   );
 }
 
+type DashboardStats = {
+  managers: number | null;
+  spaces: number | null;
+  activities: number | null;
+  moderation: number | null;
+  scoringClosed: boolean | null;
+};
+
+const emptyDashboardStats: DashboardStats = {
+  managers: null,
+  spaces: null,
+  activities: null,
+  moderation: null,
+  scoringClosed: null,
+};
+
+function DashboardHome({
+  onNavigate,
+  onActivityNavigate,
+}: {
+  onNavigate: (panel: DashboardPanel) => void;
+  onActivityNavigate: (kind: ActivityKind) => void;
+}) {
+  const [stats, setStats] = useState(emptyDashboardStats);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    void Promise.allSettled([
+      loadAllPages<Staff>("/admin/staff?role=EVENT_MANAGER"),
+      loadAllPages<Space>("/admin/spaces"),
+      loadAllPages<Activity>("/admin/activities"),
+      api<PaginatedResponse<Moderation>>("/admin/moments/moderation?queue=challenge"),
+      api<{ scoringClosed: boolean }>("/admin/event-settings/scoring"),
+    ]).then((results) => {
+      if (!active) return;
+      const [managers, spaces, activities, moderation, scoring] = results;
+      setStats({
+        managers: managers.status === "fulfilled" ? managers.value.length : null,
+        spaces: spaces.status === "fulfilled" ? spaces.value.length : null,
+        activities: activities.status === "fulfilled" ? activities.value.length : null,
+        moderation: moderation.status === "fulfilled" ? moderation.value.data.length : null,
+        scoringClosed: scoring.status === "fulfilled" ? scoring.value.scoringClosed : null,
+      });
+      setError(results.some((result) => result.status === "rejected") ? "Alguns indicadores estão indisponíveis." : "");
+      setLoading(false);
+    });
+    return () => { active = false; };
+  }, []);
+
+  return (
+    <div className={styles.dashboardHome}>
+      <section className={styles.dashboardHero}>
+        <div>
+          <p className={styles.context}>Visão geral</p>
+          <h2>Bom trabalho, {""}admin.</h2>
+          <p>Acompanhe o estado da operação e acesse rapidamente o que precisa de atenção.</p>
+        </div>
+        <span className={stats.scoringClosed === true ? styles.dashboardStatusClosed : styles.dashboardStatus}>
+          <span aria-hidden="true" />
+          {stats.scoringClosed === null ? "Pontuação —" : stats.scoringClosed ? "Pontuação fechada" : "Pontuação aberta"}
+        </span>
+      </section>
+      {error ? <p role="status" className={styles.operationMessage}>{error}</p> : null}
+      <section className={styles.metrics} aria-label="Indicadores principais">
+        <DashboardMetric value={stats.managers} label="Gestores" hint="contas operacionais" loading={loading} />
+        <DashboardMetric value={stats.activities} label="Atividades" hint="programadas e ativas" loading={loading} />
+        <DashboardMetric value={stats.spaces} label="Espaços" hint="locais cadastrados" loading={loading} />
+        <DashboardMetric value={stats.moderation} label="Moderação" hint="desafios pendentes" loading={loading} />
+      </section>
+      <div className={styles.columns}>
+        <section className={styles.activity}>
+          <div className={styles.sectionTitle}><div><p>Atalhos operacionais</p><h2>Acesse uma área</h2></div></div>
+          <div className={styles.quickActions}>
+            <button type="button" onClick={() => onNavigate("Gestores")}><UserRoundCog size={19} /><span><strong>Gestores</strong><small>Permissões e áreas</small></span></button>
+            <button type="button" onClick={() => onActivityNavigate("schedule")}><CalendarClock size={19} /><span><strong>Programação</strong><small>Atividades do evento</small></span></button>
+            <button type="button" onClick={() => onNavigate("Moderação")}><ShieldCheck size={19} /><span><strong>Moderação</strong><small>Revisar momentos</small></span></button>
+          </div>
+        </section>
+        <section className={styles.attention}>
+          <div className={styles.sectionTitle}><div><p>Próximo passo</p><h2>Manter operação pronta</h2></div><Zap size={19} /></div>
+          <p>Use os atalhos para revisar a programação, conferir os gestores e manter a fila de moderação em dia.</p>
+          <button className={styles.primaryButton} type="button" onClick={() => onNavigate("Pontuação")}>Ver pontuação</button>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function DashboardMetric({ value, label, hint, loading }: { value: number | null; label: string; hint: string; loading: boolean }) {
+  return <div className={styles.metric}><strong>{loading ? "—" : value ?? "—"}</strong><span>{label}</span><small>{value === null && !loading ? "Indisponível agora" : hint}</small></div>;
+}
+
 function StaffList() {
   const [staff, setStaff] = useState<Staff[] | null>(null);
+  const [candidates, setCandidates] = useState<Staff[]>([]);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [scopeByUser, setScopeByUser] = useState<Record<string, string>>({});
@@ -347,13 +456,15 @@ function StaffList() {
   const [message, setMessage] = useState("");
   const load = useCallback(async () => {
     try {
-      const managers = await api<PaginatedResponse<Staff>>(
-        withPage("/admin/staff?role=EVENT_MANAGER", page),
-      );
+      const [managers, participants] = await Promise.all([
+        api<PaginatedResponse<Staff>>(withPage("/admin/staff?role=EVENT_MANAGER", page)),
+        api<PaginatedResponse<Staff>>(withPage("/admin/staff?role=DEFAULT", 1)),
+      ]);
       const managerItems = managers.data.filter(
         (item) => item.role === "EVENT_MANAGER",
       );
       setStaff(managerItems);
+      setCandidates(participants.data.slice(0, 5));
       setPagination(managers.pagination ?? null);
       setScopeByUser(
         Object.fromEntries(
@@ -413,8 +524,58 @@ function StaffList() {
   }
   if (error && !staff) return <Failure message={error} />;
   if (!staff) return <Loading />;
+  const matchingCandidates = candidates
+    .filter((candidate) => {
+      const query = candidateEmail.trim().toLowerCase();
+      return query && `${candidate.name} ${candidate.email}`.toLowerCase().includes(query);
+    })
+    .slice(0, 5);
+  const managersByScope = managerScopes.map((scope) => ({
+    ...scope,
+    managers: staff.filter((manager) => (manager.scope ?? "actions") === scope.value),
+  }));
   return (
     <div className={styles.dashboard}>
+      <section className={styles.activity}>
+        <SectionTitle kicker="Contas participantes" title="Adicionar gestor" />
+        <p className={styles.help}>
+          Busque uma conta existente e escolha a área operacional. Cada gestor
+          pertence a uma única área e passa a operar tudo daquele escopo.
+        </p>
+        {error && <p role="alert" className={styles.operationError}>{error}</p>}
+        <form
+          className={styles.managerInviteForm}
+          onSubmit={(event) => { event.preventDefault(); void promoteByEmail(); }}
+        >
+          <label>
+            Participante
+            <input
+              aria-label="E-mail do participante"
+              type="email"
+              value={candidateEmail}
+              onChange={(event) => setCandidateEmail(event.target.value)}
+              placeholder="Digite nome ou e-mail…"
+              required
+            />
+          </label>
+          <label>
+            Área
+            <select aria-label="Área do novo gestor" value={candidateScope} onChange={(event) => setCandidateScope(event.target.value)}>
+              {managerScopes.map((scope) => <option key={scope.value} value={scope.value}>{scope.label}</option>)}
+            </select>
+          </label>
+          <button className={styles.primaryButton} type="submit" disabled={!candidateEmail.trim()}>Tornar gestor</button>
+        </form>
+        {candidateEmail.trim() && (
+          <div className={styles.autocompleteList} role="listbox" aria-label="Contas encontradas">
+            {matchingCandidates.length ? matchingCandidates.map((candidate) => (
+              <button key={candidate.id} type="button" onClick={() => setCandidateEmail(candidate.email)}>
+                <strong>{candidate.name}</strong><span>{candidate.email}</span>
+              </button>
+            )) : <p className={styles.help}>Nenhuma das 5 contas carregadas corresponde à busca.</p>}
+          </div>
+        )}
+      </section>
       <section className={styles.activity}>
         <SectionTitle
           kicker="Contas operacionais"
@@ -426,8 +587,12 @@ function StaffList() {
           </p>
         )}
         {staff.length ? (
-          <ol>
-            {staff.map((manager) => (
+          <div className={styles.managerGroups}>
+            {managersByScope.filter((group) => group.managers.length > 0).map((group) => (
+              <details key={group.value} className={styles.managerGroup}>
+                <summary className={styles.managerGroupTitle}><h3>{group.label}</h3><span>{group.managers.length}</span></summary>
+                <ol>
+                {group.managers.map((manager) => (
               <li key={manager.id}>
                 <span className={styles.activityDot} />
                 <div>
@@ -476,8 +641,11 @@ function StaffList() {
                   </button>
                 </span>
               </li>
+                ))}
+                </ol>
+              </details>
             ))}
-          </ol>
+          </div>
         ) : (
           <Empty text="Nenhum gestor cadastrado." />
         )}
@@ -486,63 +654,6 @@ function StaffList() {
           pagination={pagination}
           onChange={setPage}
         />
-      </section>
-      <section className={styles.activity}>
-        <SectionTitle kicker="Participantes" title="Adicionar gestor" />
-        <p className={styles.help}>
-          Digite o e-mail de uma conta existente. Se não existir, nada será
-          alterado.
-        </p>
-        {error && (
-          <p role="alert" className={styles.operationError}>
-            {error}
-          </p>
-        )}
-        <details>
-          <summary className={styles.primaryButton}>
-            Vincular participante por e-mail
-          </summary>
-          <form
-            className={styles.rowActions}
-            onSubmit={(event) => {
-              event.preventDefault();
-              void promoteByEmail();
-            }}
-          >
-            <label>
-              E-mail do participante
-              <input
-                aria-label="E-mail do participante"
-                type="email"
-                value={candidateEmail}
-                onChange={(event) => setCandidateEmail(event.target.value)}
-                placeholder="participante@exemplo.com"
-                required
-              />
-            </label>
-            <label>
-              Área
-              <select
-                aria-label="Área do novo gestor"
-                value={candidateScope}
-                onChange={(event) => setCandidateScope(event.target.value)}
-              >
-                {managerScopes.map((scope) => (
-                  <option key={scope.value} value={scope.value}>
-                    {scope.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              className={styles.primaryButton}
-              type="submit"
-              disabled={!candidateEmail.trim()}
-            >
-              Tornar gestor
-            </button>
-          </form>
-        </details>
       </section>
     </div>
   );
@@ -556,15 +667,33 @@ function SpaceList() {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [scheduleQrBySpace, setScheduleQrBySpace] = useState<Record<string, string>>({});
+  const [loadingQrBySpace, setLoadingQrBySpace] = useState<Record<string, boolean>>({});
   const [creatingQr, setCreatingQr] = useState("");
   const load = useCallback(
-    () =>
+    () => {
       void api<PaginatedResponse<Space>>(withPage("/admin/spaces", page))
         .then((data) => {
           setSpaces(data.data);
           setPagination(data.pagination ?? null);
+          const pageSpaces = data.data;
+          setLoadingQrBySpace(Object.fromEntries(pageSpaces.map((space) => [space.id, true])));
+          void Promise.all(pageSpaces.map(async (space) => {
+            try {
+              const qr = await api<{ qrToken: string }>(`/admin/spaces/${encodeURIComponent(space.id)}/schedule-qr`);
+              return [space.id, await qrImageUrl(qr.qrToken, space.name)] as const;
+            } catch {
+              return null;
+            }
+          })).then((entries) => {
+            setScheduleQrBySpace((current) => ({
+              ...current,
+              ...Object.fromEntries(entries.filter((entry): entry is readonly [string, string] => entry !== null)),
+            }));
+            setLoadingQrBySpace(Object.fromEntries(pageSpaces.map((space) => [space.id, false])));
+          });
         })
-        .catch(() => setError("Não foi possível carregar os espaços.")),
+        .catch(() => setError("Não foi possível carregar os espaços."));
+    },
     [page],
   );
   useEffect(load, [load]);
@@ -586,7 +715,7 @@ function SpaceList() {
     setCreatingQr(space.id);
     try {
       const qr = await api<{ qrToken: string }>(`/admin/spaces/${encodeURIComponent(space.id)}/schedule-qr`);
-      const imageUrl = await toDataURL(qr.qrToken, { width: 420, margin: 2 });
+      const imageUrl = await qrImageUrl(qr.qrToken, space.name);
       setScheduleQrBySpace((current) => ({ ...current, [space.id]: imageUrl }));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível gerar o QR Code do Space.");
@@ -639,7 +768,7 @@ function SpaceList() {
         {!spaces ? (
           <Loading />
         ) : spaces.length ? (
-          <ol>
+          <ol className={styles.spaceGrid}>
             {spaces.map((space) => (
               <li key={space.id}>
                 <span className={styles.activityDot} />
@@ -650,7 +779,12 @@ function SpaceList() {
                     {space.mapReference ? ` · ${space.mapReference}` : ""}
                   </p>
                   {scheduleQrBySpace[space.id] ? (
-                    <button className={styles.ghostButton} onClick={() => downloadScheduleQr(space)}><Download size={14} /> Baixar QR da programação</button>
+                    <div className={styles.qrPreview}>
+                      <img src={scheduleQrBySpace[space.id]} alt={`QR Code da programação de ${space.name}`} />
+                      <button className={styles.ghostButton} onClick={() => downloadScheduleQr(space)}><Download size={14} /> Baixar QR da programação</button>
+                    </div>
+                  ) : loadingQrBySpace[space.id] ? (
+                    <span className={styles.muted}>Carregando QR da programação…</span>
                   ) : (
                     <button className={styles.ghostButton} disabled={creatingQr === space.id} onClick={() => void generateScheduleQr(space)}><QrCode size={14} /> {creatingQr === space.id ? "Gerando…" : "Gerar QR da programação"}</button>
                   )}
@@ -696,17 +830,26 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
   const [qrByActivity, setQrByActivity] = useState<Record<string, string>>({});
   const [runByActivity, setRunByActivity] = useState<Record<string, string>>({});
   const [creatingQr, setCreatingQr] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ActivityStatusFilter>("all");
   const load = useCallback(async () => {
     try {
-      const data = await api<PaginatedResponse<Activity>>(
-        withPage("/admin/activities", page),
+      const allActivities = await loadAllPages<Activity>("/admin/activities");
+      const filteredActivities = allActivities.filter(
+        (activity) => activity.kind === kind &&
+          (statusFilter === "all" || activity.status === statusFilter),
       );
-      setActivities(data.data);
-      setPagination(data.pagination ?? null);
+      const pageSize = 20;
+      const pageStart = (page - 1) * pageSize;
+      const pageItems = filteredActivities.slice(pageStart, pageStart + pageSize);
+      setActivities(pageItems);
+      setPagination({
+        currentPage: page,
+        hasNextPage: pageStart + pageSize < filteredActivities.length,
+        limit: pageSize,
+      });
       if (kind !== "checkpoint") return;
       const savedQrs = await Promise.all(
-        data.data
-          .filter((activity) => activity.kind === "checkpoint")
+        pageItems
           .map(async (activity) => {
             try {
               const qr = await api<{ runId: string; qrToken: string } | null>(
@@ -716,10 +859,7 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
                 ? {
                     activityId: activity.id,
                     runId: qr.runId,
-                    imageUrl: await toDataURL(qr.qrToken, {
-                      width: 420,
-                      margin: 2,
-                    }),
+                    imageUrl: await qrImageUrl(qr.qrToken, activity.name),
                   }
                 : null;
             } catch {
@@ -741,7 +881,7 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
     } catch {
       setError("Não foi possível carregar as atividades.");
     }
-  }, [kind, page]);
+  }, [kind, page, statusFilter]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -918,7 +1058,7 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
       const qr =
         run.qrImageUrl ??
         (run.qrToken
-          ? await toDataURL(run.qrToken, { width: 420, margin: 2 })
+          ? await qrImageUrl(run.qrToken, activity.name)
           : undefined);
       if (!qr) throw new Error("A API não retornou o QR Code.");
       setQrByActivity((current) => ({ ...current, [activity.id]: qr }));
@@ -942,10 +1082,7 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
   }
   if (kind === "live") return <SpecialEventsPanel />;
   if (error && !activities) return <Failure message={error} />;
-  const visible =
-    activities?.filter(
-      (activity) => activity.kind === kind && activity.status !== "archived",
-    ) ?? [];
+  const visible = activities ?? [];
   return (
     <div className={styles.dashboard}>
       <section className={styles.activity}>
@@ -970,6 +1107,26 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
             {message}
           </p>
         )}
+        <div className={styles.activityToolbar}>
+          <label>
+            Estado
+            <select
+              aria-label="Filtrar atividades por estado"
+              value={statusFilter}
+              onChange={(event) => {
+                setPage(1);
+                setStatusFilter(event.target.value as ActivityStatusFilter);
+              }}
+            >
+              <option value="all">Todos</option>
+              <option value="active">Ativas</option>
+              <option value="draft">Rascunhos</option>
+              <option value="paused">Pausadas</option>
+              <option value="completed">Concluídas</option>
+              <option value="archived">Excluídas</option>
+            </select>
+          </label>
+        </div>
         {!activities ? (
           <Loading />
         ) : visible.length ? (
@@ -987,7 +1144,11 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
                       ? "Ativa"
                       : activity.status === "paused"
                         ? "Pausada"
-                        : "Rascunho"}
+                        : activity.status === "completed"
+                          ? "Concluída"
+                          : activity.status === "archived"
+                            ? "Excluída"
+                            : "Rascunho"}
                   </span>
                 </div>
                 <h3>{activity.name}</h3>
@@ -1094,9 +1255,6 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
                     Excluir
                   </button>
                 </div>
-                {kind !== "competitive" && (
-                  <ManagerAssignments activityId={activity.id} />
-                )}
               </article>
             ))}
           </div>
@@ -1300,7 +1458,7 @@ function SpecialEventsPanel() {
         );
         setActiveQr({
           title: event.title,
-          imageUrl: await toDataURL(result.qrToken, { width: 360, margin: 1 }),
+          imageUrl: await qrImageUrl(result.qrToken, event.title),
           expiresAt: result.expiresAt ?? event.expiresAt,
         });
         await load();
@@ -1568,107 +1726,6 @@ function SpecialEventsPanel() {
           )}
         </div>
       </section>
-    </div>
-  );
-}
-
-function ManagerAssignments({ activityId }: { activityId: string }) {
-  const [managers, setManagers] = useState<Staff[]>([]);
-  const [assigned, setAssigned] = useState<Staff[]>([]);
-  const [selected, setSelected] = useState("");
-  const [error, setError] = useState("");
-  const load = useCallback(async () => {
-    try {
-      const [available, current] = await Promise.all([
-        loadAllPages<Staff>("/admin/staff?role=EVENT_MANAGER"),
-        loadAllPages<Staff>(`/admin/activities/${activityId}/managers`),
-      ]);
-      setManagers(available);
-      setAssigned(current);
-    } catch {
-      setError("Não foi possível carregar os vínculos.");
-    }
-  }, [activityId]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  async function assign() {
-    if (!selected) return;
-    try {
-      await api(`/admin/activities/${activityId}/managers/${selected}`, {
-        method: "PUT",
-      });
-      setSelected("");
-      await load();
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "Não foi possível vincular o gestor.",
-      );
-    }
-  }
-  async function remove(userId: string) {
-    try {
-      await api(`/admin/activities/${activityId}/managers/${userId}`, {
-        method: "DELETE",
-      });
-      await load();
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "Não foi possível remover o vínculo.",
-      );
-    }
-  }
-  return (
-    <div className={styles.help}>
-      <strong>Gestores:</strong>{" "}
-      {assigned.length
-        ? assigned.map((manager) => (
-            <span key={manager.id}>
-              {" "}
-              {manager.email || manager.name}{" "}
-              <button
-                type="button"
-                className={styles.ghostButton}
-                onClick={() => void remove(String(manager.id))}
-              >
-                remover
-              </button>
-            </span>
-          ))
-        : " nenhum"}{" "}
-      {managers.length > assigned.length && (
-        <span>
-          <select
-            aria-label={`E-mail do gestor da atividade ${activityId}`}
-            value={selected}
-            onChange={(event) => setSelected(event.target.value)}
-          >
-            <option value="">Vincular e-mail…</option>
-            {managers
-              .filter(
-                (manager) => !assigned.some((item) => item.id === manager.id),
-              )
-              .map((manager) => (
-                <option key={manager.id} value={manager.id}>
-                  {manager.email || manager.name}
-                </option>
-              ))}
-          </select>
-          <button
-            type="button"
-            className={styles.primaryButton}
-            disabled={!selected}
-            onClick={() => void assign()}
-          >
-            Vincular
-          </button>
-        </span>
-      )}{" "}
-      {error && <span role="alert"> {error}</span>}
     </div>
   );
 }

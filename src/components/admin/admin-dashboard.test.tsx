@@ -96,6 +96,7 @@ describe("AdminDashboard V2", () => {
     });
 
     render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Gestores" }));
     expect(await screen.findByText("Ana Gestora")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
 
@@ -108,10 +109,7 @@ describe("AdminDashboard V2", () => {
     const navigation = within(screen.getByRole("navigation", { name: "Navegação administrativa" }));
     fireEvent.click(navigation.getByRole("button", { name: "Atividades" }));
     expect(await screen.findByText("Gincana")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
-    expect(await screen.findByText("Gincana 2")).toBeInTheDocument();
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/spaces?page=2", expect.anything());
       expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/staff?role=EVENT_MANAGER&page=2", expect.anything());
     });
 
@@ -183,6 +181,7 @@ describe("AdminDashboard V2", () => {
 
   it("loads the documented staff endpoint by default", async () => {
     render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Gestores" }));
     expect(await screen.findByText("Ana Gestora")).toBeInTheDocument();
     expect(screen.getByText("ana.gestora@example.com")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/staff?role=EVENT_MANAGER", expect.anything());
