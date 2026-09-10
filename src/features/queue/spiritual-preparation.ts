@@ -5,7 +5,7 @@ export const SPIRITUAL_PREPARATION_INTRO =
 
 export const SPIRITUAL_PREPARATION: ConfessionPreparationSection[] = [
   {
-    title: "1. O que é direção espiritual?",
+    title: "O que é direção espiritual?",
     paragraphs: [
       "A direção espiritual é um momento de escuta, partilha e discernimento.",
       "É uma oportunidade para conversar sobre sua caminhada com Deus, suas dúvidas, dificuldades, decisões, vocação, oração e tudo aquilo que tem acontecido no seu coração.",
@@ -14,7 +14,7 @@ export const SPIRITUAL_PREPARATION: ConfessionPreparationSection[] = [
     ],
   },
   {
-    title: "2. Como me preparar?",
+    title: "Como me preparar?",
     paragraphs: [
       "Antes de conversar, reserve alguns minutos de silêncio.",
       "Tente sair um pouco do barulho ao seu redor e pergunte a si mesmo:",
@@ -31,7 +31,7 @@ export const SPIRITUAL_PREPARATION: ConfessionPreparationSection[] = [
     ],
   },
   {
-    title: "3. Oração antes da direção espiritual",
+    title: "Oração antes da direção espiritual",
     paragraphs: [
       "Vinde, Espírito Santo.",
       "Ajudai-me a olhar com sinceridade para aquilo que estou vivendo.",
@@ -43,7 +43,7 @@ export const SPIRITUAL_PREPARATION: ConfessionPreparationSection[] = [
     ],
   },
   {
-    title: "4. Sobre o que posso conversar?",
+    title: "Sobre o que posso conversar?",
     items: [
       "Minha vida com Deus — Como está minha oração? Tenho sentido Deus perto ou distante? Tenho dificuldade para rezar, confiar ou perseverar?",
       "Minha vida e meus relacionamentos — Família, namoro, amizades, afetividade, perdão, solidão, feridas e situações que têm mexido comigo.",
@@ -57,7 +57,7 @@ export const SPIRITUAL_PREPARATION: ConfessionPreparationSection[] = [
     ],
   },
   {
-    title: "5. Algumas perguntas para olhar para dentro",
+    title: "Algumas perguntas para olhar para dentro",
     paragraphs: ["Sobre minha relação com Deus:"],
     items: [
       "Tenho dado espaço para Deus na minha rotina?",
@@ -83,7 +83,7 @@ export const SPIRITUAL_PREPARATION: ConfessionPreparationSection[] = [
     itemHeadingIndexes: [4, 9, 14],
   },
   {
-    title: "6. Como começar a conversa?",
+    title: "Como começar a conversa?",
     paragraphs: [
       "Você pode simplesmente dizer:",
       "“Eu nunca fiz direção espiritual e não sei muito bem como começar.”",
@@ -95,7 +95,7 @@ export const SPIRITUAL_PREPARATION: ConfessionPreparationSection[] = [
     ],
   },
   {
-    title: "7. Direção espiritual não é confissão",
+    title: "Direção espiritual não é confissão",
     paragraphs: [
       "Direção espiritual e confissão são coisas diferentes.",
       "Na Confissão, você reconhece seus pecados, manifesta seu arrependimento e recebe sacramentalmente o perdão de Deus pela absolvição do sacerdote.",
@@ -105,7 +105,7 @@ export const SPIRITUAL_PREPARATION: ConfessionPreparationSection[] = [
     ],
   },
   {
-    title: "8. E depois da direção espiritual?",
+    title: "E depois da direção espiritual?",
     paragraphs: [
       "Não saia apenas pensando: “Foi uma conversa boa.”",
       "Pergunte-se: O que Deus me mostrou nesta conversa?",
