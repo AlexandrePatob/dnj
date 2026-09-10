@@ -154,6 +154,7 @@ type Pagination = {
   currentPage: number | string;
   hasNextPage: boolean;
   limit: number;
+  total?: number;
 };
 type PaginatedResponse<T> = { data: T[]; pagination?: Pagination };
 
@@ -382,7 +383,7 @@ function DashboardHome({
     void Promise.allSettled([
       loadAllPages<Staff>("/admin/staff?role=EVENT_MANAGER"),
       loadAllPages<Space>("/admin/spaces"),
-      loadAllPages<Activity>("/admin/activities"),
+      api<PaginatedResponse<Activity>>("/admin/activities"),
       api<PaginatedResponse<Moderation>>("/admin/moments/moderation?queue=challenge"),
       api<{ scoringClosed: boolean }>("/admin/event-settings/scoring"),
     ]).then((results) => {
@@ -391,7 +392,9 @@ function DashboardHome({
       setStats({
         managers: managers.status === "fulfilled" ? managers.value.length : null,
         spaces: spaces.status === "fulfilled" ? spaces.value.length : null,
-        activities: activities.status === "fulfilled" ? activities.value.length : null,
+        activities: activities.status === "fulfilled"
+          ? activities.value.pagination?.total ?? activities.value.data.length
+          : null,
         moderation: moderation.status === "fulfilled" ? moderation.value.data.length : null,
         scoringClosed: scoring.status === "fulfilled" ? scoring.value.scoringClosed : null,
       });
@@ -833,20 +836,16 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
   const [statusFilter, setStatusFilter] = useState<ActivityStatusFilter>("all");
   const load = useCallback(async () => {
     try {
-      const allActivities = await loadAllPages<Activity>("/admin/activities");
-      const filteredActivities = allActivities.filter(
-        (activity) => activity.kind === kind &&
-          (statusFilter === "all" || activity.status === statusFilter),
+      const params = new URLSearchParams({ kind });
+      if (statusFilter !== "all") params.set("status", statusFilter);
+      const response = await api<PaginatedResponse<Activity>>(
+        withPage(`/admin/activities?${params.toString()}`, page),
       );
-      const pageSize = 20;
-      const pageStart = (page - 1) * pageSize;
-      const pageItems = filteredActivities.slice(pageStart, pageStart + pageSize);
+      const pageItems = response.data;
       setActivities(pageItems);
-      setPagination({
-        currentPage: page,
-        hasNextPage: pageStart + pageSize < filteredActivities.length,
-        limit: pageSize,
-      });
+      setPagination(response.pagination ?? null);
+      setQrByActivity({});
+      setRunByActivity({});
       if (kind !== "checkpoint") return;
       const savedQrs = await Promise.all(
         pageItems
