@@ -88,7 +88,7 @@ type SpecialEvent = {
 type DashboardPanel =
   | "Dashboard"
   | AdminPanel
-  | "Filas pastorais"
+  | "Filas"
   | (typeof activityTypes)[number]["label"];
 const navigation: Array<{
   label: DashboardPanel;
@@ -100,7 +100,7 @@ const navigation: Array<{
   { label: "Espaços", icon: UsersRound },
   { label: "Moderação", icon: ShieldCheck },
   { label: "Notificações", icon: Bell },
-  { label: "Filas pastorais", icon: Clock3 },
+  { label: "Filas", icon: Clock3 },
   { label: "Pontuação", icon: BarChart3 },
 ];
 const managerScopes = [
@@ -344,7 +344,7 @@ export function AdminDashboard({
         {panel === "Espaços" && <SpaceList />}
         {panel === "Moderação" && <ModerationList />}
         {panel === "Notificações" && <Notifications />}
-        {panel === "Filas pastorais" && <PastoralQueueOverview />}
+        {panel === "Filas" && <PastoralQueueOverview />}
         {panel === "Pontuação" && <ScoringPanel />}
       </section>
     </main>
@@ -1478,8 +1478,8 @@ function SpecialEventsPanel() {
     if (!teaser || operatingEvent === teaser.id) return;
     const teaserStartedAt = Date.parse(teaser.qrAvailableAt ?? "");
     const delay = Number.isNaN(teaserStartedAt)
-      ? 15_000
-      : Math.max(0, teaserStartedAt + 15_000 - Date.now());
+      ? 30_000
+      : Math.max(0, teaserStartedAt + 30_000 - Date.now());
     const timer = window.setTimeout(() => void releaseQr(teaser), delay);
     return () => window.clearTimeout(timer);
   }, [events, operatingEvent, releaseQr]);
@@ -1550,7 +1550,7 @@ function SpecialEventsPanel() {
             <p className={styles.context}>Atividades · Eventos especiais</p>
             <h2>Eventos especiais</h2>
             <p className={styles.help}>
-              Crie o evento e inicie uma vez. O teaser aparece por 15 segundos;
+              Crie o evento e inicie uma vez. O teaser aparece por 30 segundos;
               ao terminar, o QR é liberado automaticamente.
             </p>
           </div>

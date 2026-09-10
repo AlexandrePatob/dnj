@@ -64,7 +64,7 @@
   justify-content: space-between;
   gap: 14px;
   align-items: flex-start;
-  margin: 2px 0 24px;
+  margin: 2px 0 18px;
 }
 .intro h1 {
   margin: 0;
@@ -73,11 +73,11 @@
   line-height: 0.98;
 }
 .intro p {
-  max-width: 42ch;
-  margin: 9px 0 0;
+  max-width: 38ch;
+  margin: 6px 0 0;
   color: #58786c;
   font-size: 0.84rem;
-  line-height: 1.55;
+  line-height: 1.35;
 }
 .scope {
   flex: none;
@@ -129,6 +129,20 @@
   font-size: 1.08rem;
   letter-spacing: -0.03em;
 }
+.accordionHeader {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.accordionHeader::-webkit-details-marker { display: none; }
+.accordionHeader::after {
+  content: "+";
+  color: #1f7659;
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1;
+}
+.panel[open] > .accordionHeader::after { content: "−"; }
 .kicker {
   margin: 0;
   color: #588173;
@@ -137,6 +151,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+.kicker svg { display: inline-block; margin-right: 4px; vertical-align: -2px; }
 .timer {
   font-variant-numeric: tabular-nums;
   color: #1a5039;
@@ -250,6 +265,34 @@
   display: grid;
   gap: 14px;
 }
+.scheduleCards,
+.spaceGroups {
+  display: grid;
+  gap: 12px;
+  padding: 0 18px 18px;
+}
+.scheduleCard {
+  display: grid;
+  gap: 12px;
+  border: 1px solid #d7e7da;
+  border-radius: 14px;
+  padding: 14px;
+  background: #fbfef9;
+}
+.scheduleCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.scheduleCardHeader h3 { margin: 4px 0 0; font-size: 1rem; letter-spacing: -0.025em; }
+.scheduleMeta { display: flex; flex-wrap: wrap; gap: 7px; color: #5f7d70; font-size: 0.74rem; }
+.scheduleMeta span { border-radius: 8px; padding: 6px 8px; background: #e9f3e8; }
+.cardActions { display: grid; gap: 8px; }
+.cardActions button { min-height: 40px; }
+.spaceGroup { display: grid; gap: 10px; }
+.spaceGroup > h3 { display: flex; align-items: center; gap: 6px; margin: 4px 0 0; color: #1f583f; font-size: 0.9rem; }
+.spaceGroup > h3 small { margin-left: auto; color: #6a887b; font-size: 0.7rem; font-weight: 700; }
 .eventList {
   display: grid;
   gap: 0;
@@ -267,6 +310,17 @@
 }
 .eventList li:first-child {
   border-top: 0;
+}
+.eventActive {
+  background: #eef8df;
+  box-shadow: inset 4px 0 0 #8fbd36;
+}
+.eventActive .eventIcon {
+  background: #b5df55;
+  color: #17352a;
+}
+.eventActive strong {
+  color: #164b35;
 }
 .eventIcon {
   display: grid;
@@ -289,14 +343,33 @@
   color: #638277;
   font-size: 0.72rem;
 }
+.eventActions {
+  display: grid;
+  gap: 8px;
+  min-width: 138px;
+}
 .eventList button {
-  border: 0;
-  background: transparent;
+  min-height: 44px;
+  border: 1px solid #c9ded0;
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: #e8f2e8;
   color: #216d4a;
   font: inherit;
   font-size: 0.75rem;
   font-weight: 800;
   cursor: pointer;
+}
+.eventList button:hover {
+  background: #dbead9;
+}
+.eventStatus {
+  justify-self: end;
+  max-width: 190px;
+  text-align: right;
+}
+.eventActionButton {
+  min-width: 138px;
 }
 .qr {
   display: grid;
@@ -337,30 +410,197 @@
 }
 .gameGrid {
   display: grid;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
   padding: 0 18px 18px;
 }
+.gameGridHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 108px;
+  gap: 12px;
+  padding: 0 12px 7px;
+  color: #789187;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.gameGridHeader span:last-child {
+  text-align: center;
+}
 .gameCard {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 108px;
+  gap: 12px;
   align-items: center;
+  border: 1px solid #dce9de;
+  border-width: 1px 0 0;
+  border-radius: 0;
+  background: #fff;
+  overflow: hidden;
+}
+.gameCard:first-of-type {
+  border-top-color: #dce9de;
+}
+.gameCardInfo {
+  min-width: 0;
+}
+.gameCardLive {
+  border-color: #9ecb5d;
+  box-shadow: 0 8px 20px rgba(74, 125, 43, 0.12);
+}
+.gameCardHeader {
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  border: 1px solid #dce9de;
-  border-radius: 12px;
+  width: 100%;
+  min-height: 58px;
+  border: 0;
   padding: 12px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
 }
-.gameCard strong {
-  font-size: 0.86rem;
+.gameCardHeader > span:first-child {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
 }
-.gameCard > div {
+.gameCardHeader strong {
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+}
+.gameState {
+  flex: none;
+  border-radius: 999px;
+  padding: 6px 8px;
+  background: #e5f2d5;
+  color: #286041;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-align: right;
+}
+.gameCardMeta {
   display: flex;
-  align-items: center;
-  gap: 7px;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 0;
+  padding: 0 12px 12px;
+  color: #68867b;
+  font-size: 0.72rem;
+}
+.gameCardMeta span:last-child {
+  color: #24734f;
+  font-weight: 800;
+}
+.gameCard .cardActions {
+  min-width: 0;
+  padding: 8px 10px;
+  gap: 5px;
+}
+.gameCard .button,
+.gameCard .secondary,
+.gameCard .danger {
+  width: 100%;
+  min-height: 44px;
+  padding: 7px 8px;
+  font-size: 0.7rem;
 }
 .gameCard .secondary {
-  min-height: 36px;
-  padding: 8px 10px;
-  font-size: 0.74rem;
+  border: 1px solid #d5e5d8;
+  background: transparent;
+}
+.gameCard .danger {
+  border: 1px solid #e4b0a5;
+  background: transparent;
+  color: #a74536;
+}
+@media (max-width: 639px) {
+  .gameCardHeader {
+    display: grid;
+    gap: 5px;
+  }
+  .gameCardHeader .gameState {
+    justify-self: start;
+    order: -1;
+  }
+}
+.managerConsole {
+  display: grid;
+  gap: 14px;
+  border: 1px solid #9ecb5d;
+  border-radius: 16px;
+  padding: 15px;
+  background: #f4fae9;
+}
+.managerConsoleHeader {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 12px;
+}
+.managerConsoleHeader h2 {
+  margin: 3px 0 0;
+  font-size: 1.2rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.managerConsoleHeader .iconButton {
+  width: 44px;
+  height: 44px;
+}
+.managerConsole .qr {
+  gap: 6px;
+  padding: 6px 10px 8px;
+}
+.runQrImage {
+  display: block;
+  width: min(100%, 320px);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+.managerConsole .participants {
+  max-height: 280px;
+  overflow-y: auto;
+}
+.runControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 620px;
+  margin: 0 auto;
+  width: 100%;
+  gap: 6px;
+  padding: 8px 10px 10px;
+}
+.runControls button {
+  flex: 1 1 0;
+  max-width: 170px;
+  min-width: 0;
+  padding-right: 7px;
+  padding-left: 7px;
+  font-size: 0.72rem;
+}
+.gameCardBody {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid #e5eee5;
+  padding: 12px;
+}
+.gameCardBody > .panel {
+  border: 0;
+  border-radius: 10px;
+  box-shadow: none;
+}
+.gameCardBody > .panel .panelHeader {
+  padding: 10px 12px;
+}
+.gameCardBody > .panel .actions,
+.gameCardBody > .panel .details {
+  padding-left: 12px;
+  padding-right: 12px;
 }
 .iconButton {
   display: grid;
@@ -443,6 +683,9 @@
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+.specialForm {
+  gap: 15px;
+}
 .participants {
   display: grid;
   gap: 0;
@@ -467,6 +710,17 @@
   color: #68867b;
   font-size: 0.72rem;
 }
+.participants li.participantScored > span:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+.participants li.participantScored > span:first-child small {
+  flex: none;
+  margin-top: 0;
+}
 .participants select {
   border: 1px solid #cddfd2;
   border-radius: 8px;
@@ -474,6 +728,51 @@
   background: #fff;
   font: inherit;
   font-size: 0.73rem;
+}
+.participants li.participantScored {
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+.resultOptions {
+  display: grid;
+  grid-template-columns: repeat(3, 40px) minmax(0, 1fr);
+  gap: 6px;
+  width: 100%;
+}
+.resultPicker {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  margin-top: 7px;
+}
+.resultLabel {
+  color: #68867b;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.resultOption,
+.resultOptionSelected {
+  min-height: 40px;
+  border: 1px solid #cddfd2;
+  border-radius: 9px;
+  padding: 6px 4px;
+  background: #f5faf4;
+  color: #286047;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.resultOptionSelected {
+  border-color: #167c56;
+  background: #167c56;
+  color: #fff;
+}
+.resultOption:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
 }
 .notice {
   margin: 0 18px 18px;
@@ -556,7 +855,14 @@
   font-weight: 800;
 }
 .queueConsole { display: grid; gap: 18px; }
+.queueSettings { border: 1px solid #d8e5dc; border-radius: 12px; background: #fbfdf9; }
+.queueSettingsSummary { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 14px; color: #356a50; cursor: pointer; font-size: 0.76rem; font-weight: 800; list-style: none; }
+.queueSettingsSummary::-webkit-details-marker { display: none; }
+.queueSettingsSummary::after { content: ""; width: 7px; height: 7px; margin-left: auto; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); }
+.queueSettings[open] .queueSettingsSummary { border-bottom: 1px solid #e5eee8; }
+.queueSettings[open] .queueSettingsSummary::after { transform: rotate(225deg) translate(-1px, -1px); }
 .queueToolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid #d8e5dc; padding: 0 0 16px; }
+.queueSettings .queueToolbar { margin: 0 14px; padding: 14px 0 16px; }
 .queueToolbar strong, .queueToolbar span { display: block; }
 .queueToolbar strong { margin-top: 3px; color: #1d4e3a; font-size: 1.05rem; }
 .queueToolbar span { margin-top: 3px; color: #668278; font-size: 0.76rem; }
@@ -575,12 +881,20 @@
 .queueMetrics div:last-child { border-right: 0; }
 .queueMetrics dt { color: #6b877c; font-size: 0.68rem; font-weight: 700; }
 .queueMetrics dd { margin: 3px 0 0; color: #183f30; font-size: 1.18rem; font-weight: 900; letter-spacing: -0.045em; }
-.calledArea { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 82px; padding: 14px 20px; background: #f5faef; }
+.queueSection { border-top: 1px solid #edf2ee; }
+.queueSectionHeader { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 20px 8px; background: #fbfdf9; }
+.queueSectionLabel { color: #3f6c59; font-size: 0.68rem; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; }
+.expiryTimer, .queueCount { color: #668278; font-size: 0.72rem; font-variant-numeric: tabular-nums; font-weight: 800; }
+.expiryTimer { color: #b14a2f; }
+.calledArea { display: grid; gap: 10px; min-height: 82px; padding: 10px 20px 16px; background: #f5faef; }
 .calledArea p { margin: auto; color: #627f73; font-size: 0.8rem; }
 .calledArea span, .calledArea strong, .calledArea small { display: block; }
 .calledArea span { color: #587568; font-size: 0.67rem; font-weight: 800; }
 .calledArea strong { margin-top: 2px; color: #234b3a; font-size: 0.9rem; }
 .calledArea small { margin-top: 2px; color: #708b80; font-size: 0.7rem; }
+.calledCard { display: flex; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid #e1eddc; padding: 5px 0 10px; }
+.calledCard:last-child { border-bottom: 0; padding-bottom: 0; }
+.calledCardSide { display: grid; justify-items: end; gap: 7px; }
 .calledActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
 .calledActions .secondary, .calledActions .danger { min-height: 35px; padding: 7px 9px; font-size: 0.72rem; }
 .queueList { margin: 0; padding: 4px 20px 10px; list-style: none; }
@@ -612,11 +926,48 @@
   .form {
     padding: 0 22px 22px;
   }
+  .specialForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .specialForm fieldset,
+  .specialForm > button {
+    grid-column: 1 / -1;
+  }
   .participants {
     padding: 0 22px 22px;
   }
   .notice {
     margin: 0 22px 22px;
+  }
+  .scheduleCards,
+  .spaceGroups { padding-right: 22px; padding-left: 22px; }
+  .cardActions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .managerConsole { padding: 20px; }
+}
+@media (max-width: 639px) {
+  .intro p { line-height: 1.28; }
+  .eventList li {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 10px 12px;
+    padding: 15px 16px;
+  }
+  .eventActions,
+  .eventStatus,
+  .eventActionButton {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .eventStatus {
+    max-width: none;
+    text-align: left;
+  }
+  .eventActions {
+    min-width: 0;
+  }
+  .eventList button {
+    min-height: 48px;
+    font-size: 0.82rem;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -628,11 +979,13 @@
 }
 @media (max-width: 860px) { .queueGrid { grid-template-columns: 1fr; } }
 @media (max-width: 520px) {
-  .queueToolbar, .queuePanelHeader, .calledArea { align-items: flex-start; flex-direction: column; }
+  .queueToolbar, .queuePanelHeader { align-items: flex-start; flex-direction: column; }
   .queueToolbar .button, .queueToolbar .danger, .callButton { width: 100%; }
   .queuePanelHeader { padding: 18px 16px 14px; }
   .queueMetrics div { padding: 12px 10px; }
   .calledArea { padding: 14px 16px; }
+  .calledCard { align-items: stretch; flex-direction: column; }
+  .calledCardSide { justify-items: stretch; }
   .calledActions { width: 100%; justify-content: stretch; }
   .calledActions .secondary, .calledActions .danger { flex: 1; }
   .queueList { padding-right: 16px; padding-left: 16px; }

@@ -7,14 +7,19 @@ import {
   type SetStateAction,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
 import {
   AlertCircle,
+  ArrowLeft,
+  CalendarDays,
+  CheckCircle2,
   Clock3,
   Gamepad2,
   LogOut,
+  MapPin,
   Pause,
   Pencil,
   Play,
@@ -33,6 +38,7 @@ import styles from "./manager-dashboard.module.css";
 import { PastoralQueueConsole } from "./pastoral-queue-console";
 
 const MANAGER_RUN_POLL_MS = 15_000;
+const MANAGER_SPACE_POLL_MS = 15_000;
 
 type Scope = "space" | "actions" | "special_events" | "pastoral_queue";
 type Session = {
@@ -52,6 +58,7 @@ type Item = {
   id: string;
   title: string;
   startsAt?: string;
+  endsAt?: string;
   startedAt?: string;
   status?: string;
   flexMinutes?: number;
@@ -66,6 +73,7 @@ type Game = {
     third?: number;
     participation?: number;
   };
+  run?: Run | null;
 };
 type Run = {
   id: string;
@@ -74,6 +82,8 @@ type Run = {
   status?: "checkin" | "running" | "paused" | "results";
   qrCode?: string;
   qrImageUrl?: string;
+  qrToken?: string;
+  qrExpiresAt?: string;
   participants?: Participant[];
 };
 type SpecialEvent = {
@@ -89,7 +99,7 @@ type SpecialEvent = {
 };
 type Overview = {
   scope?: Scope;
-  space?: { current?: Item; upcoming?: Item[] };
+  space?: { now?: Item[]; upcoming?: Item[] };
   actions?: { games?: Game[]; run?: Run | null };
   specialEvents?: { events?: SpecialEvent[] };
 };
@@ -126,6 +136,12 @@ function time(value?: string) {
       }).format(new Date(value))
     : "—";
 }
+function countdown(value: string | undefined, nowMs: number) {
+  if (!value) return null;
+  const seconds = Math.max(0, Math.ceil((new Date(value).getTime() - nowMs) / 1000));
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
+}
 function call(
   path: string,
   body: object | undefined,
@@ -142,6 +158,7 @@ export function ManagerDashboard() {
   const [session, setSession] = useState<Session | null>(null);
   const [overview, setOverview] = useState<Overview | null>(null);
   const [error, setError] = useState("");
+  const [isManagingAction, setIsManagingAction] = useState(false);
   const overviewPollInFlight = useRef(false);
   const load = useCallback(async () => {
     try {
@@ -175,13 +192,12 @@ export function ManagerDashboard() {
   useEffect(() => {
     void loadRef.current();
   }, []); // Session is intentionally checked before any operation UI is shown.
-  const activeRunId = overview?.actions?.run?.id;
   const managerScope =
     session && overview ? getScope(session, overview) : undefined;
   useEffect(() => {
-    if (managerScope !== "actions" || !activeRunId) return;
+    if (managerScope !== "actions") return;
     let active = true;
-    const refreshRun = async () => {
+    const refreshOverview = async () => {
       if (
         overviewPollInFlight.current ||
         document.visibilityState !== "visible"
@@ -197,12 +213,30 @@ export function ManagerDashboard() {
         overviewPollInFlight.current = false;
       }
     };
-    const timer = window.setInterval(refreshRun, MANAGER_RUN_POLL_MS);
+    const timer = window.setInterval(refreshOverview, MANAGER_RUN_POLL_MS);
     return () => {
       active = false;
       window.clearInterval(timer);
     };
-  }, [activeRunId, managerScope]);
+  }, [managerScope]);
+  useEffect(() => {
+    if (managerScope !== "space") return;
+    let active = true;
+    const refreshSchedule = async () => {
+      if (overviewPollInFlight.current || document.visibilityState !== "visible") return;
+      overviewPollInFlight.current = true;
+      try {
+        const data = await api("/manager/game-overview");
+        if (active) setOverview(data as Overview);
+      } catch {
+        // A leitura automática não interfere nas ações do gestor.
+      } finally {
+        overviewPollInFlight.current = false;
+      }
+    };
+    const timer = window.setInterval(refreshSchedule, MANAGER_SPACE_POLL_MS);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [managerScope]);
   async function signOut() {
     await fetch("/api/manager/session", { method: "DELETE" }).catch(() => null);
     router.replace("/manager/login");
@@ -219,7 +253,7 @@ export function ManagerDashboard() {
       : scope === "special_events"
         ? "Gestor de eventos especiais"
         : scope === "pastoral_queue"
-          ? "Gestor das filas pastorais"
+          ? "Gestor das filas"
         : "Gestor DNJ";
   return (
     <main className={styles.shell}>
@@ -238,7 +272,7 @@ export function ManagerDashboard() {
         </button>
       </header>
       <section className={styles.content}>
-        <header className={styles.intro}>
+        {!(scope === "actions" && isManagingAction) ? <header className={styles.intro}>
           <div>
             <h1>
               {scope === "space"
@@ -246,21 +280,21 @@ export function ManagerDashboard() {
                 : scope === "actions"
                   ? "Radicalidade"
                 : scope === "pastoral_queue"
-                  ? "Filas pastorais"
+                  ? "Filas"
                   : "Eventos especiais"}
             </h1>
             <p>
               {scope === "space"
-                ? "Registre o horário real e mantenha a programação do seu espaço atualizada."
+                ? "Acompanhe todos os espaços, registre o horário real e mantenha a programação atualizada."
                 : scope === "actions"
-                  ? "Abra partidas, acompanhe os scans e confirme a pontuação de cada participante."
+                  ? "Gerencie partidas e pontuação."
                 : scope === "pastoral_queue"
                   ? "Acompanhe e opere as filas de Confissão e Direção Espiritual."
                   : "Prepare o anúncio, libere o QR no momento certo e acompanhe a experiência."}
             </p>
           </div>
           <span className={styles.scope}>{label}</span>
-        </header>
+        </header> : null}
         {error ? (
           <p role="alert" className={styles.error}>
             <AlertCircle size={17} />
@@ -278,6 +312,7 @@ export function ManagerDashboard() {
             data={overview.actions}
             refresh={load}
             setError={setError}
+            onManagingChange={setIsManagingAction}
           />
         ) : scope === "special_events" ? (
           <SpecialConsole
@@ -308,128 +343,91 @@ function SpaceConsole({
   refresh: () => Promise<void>;
   setError: (value: string) => void;
 }) {
-  const current = data?.current;
-  if (!current)
-    return (
-      <Empty
-        icon={<Clock3 size={28} />}
-        title="Nenhum item em andamento"
-        text="Quando uma atividade do seu espaço estiver disponível, ela aparecerá aqui para você iniciar no horário real."
-      />
-    );
+  const now = data?.now ?? [];
+  const upcoming = data?.upcoming ?? [];
+  const [manualItem, setManualItem] = useState<Item | null>(null);
+  const [manualValue, setManualValue] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const grouped = upcoming.reduce<Record<string, Item[]>>((groups, item) => {
+    const key = item.spaceName ?? "Espaço a confirmar";
+    (groups[key] ??= []).push(item);
+    return groups;
+  }, {});
+  const operate = async (path: string, item: Item, body?: object) => {
+    setBusyId(item.id);
+    try {
+      await api(path, { method: "POST", body: JSON.stringify({ itemId: item.id, ...body }) });
+      await refresh();
+    } catch (error) {
+      setError((error as Error).message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+  const openManual = (item: Item) => {
+    const initial = item.startedAt ? new Date(item.startedAt) : new Date();
+    initial.setSeconds(0, 0);
+    setManualValue(localDateTimeValue(initial));
+    setManualItem(item);
+  };
+  const saveManual = async () => {
+    if (!manualItem || !manualValue) return;
+    await operate("/manager/space/start", manualItem, { startedAt: new Date(manualValue).toISOString() });
+    setManualItem(null);
+  };
   return (
     <div className={styles.stack}>
       <section className={styles.panel}>
         <header className={styles.panelHeader}>
           <div>
-            <p className={styles.kicker}>
-              {current.spaceName ?? "Espaço atribuído"}
-            </p>
-            <h2>{current.title}</h2>
+            <p className={styles.kicker}><CalendarDays size={14} /> Operação ao vivo</p>
+            <h2>Acontecendo agora</h2>
           </div>
-          <span className={styles.timer}>
-            {current.flexMinutes
-              ? `+${current.flexMinutes} min`
-              : time(current.startedAt)}
-          </span>
+          <span className={styles.scope}>{now.length} {now.length === 1 ? "atividade" : "atividades"}</span>
         </header>
-        <ul className={styles.details}>
-          <li>
-            <span>Previsto</span>
-            <strong>{time(current.startsAt)}</strong>
-          </li>
-          <li>
-            <span>Início real</span>
-            <strong>{time(current.startedAt)}</strong>
-          </li>
-          <li>
-            <span>Tolerância</span>
-            <strong>15 minutos</strong>
-          </li>
-        </ul>
-        <div className={styles.actions}>
-          {!current.startedAt ? (
-            <button
-              className={styles.button}
-              onClick={() =>
-                void call(
-                  "/manager/space/start",
-                  { itemId: current.id },
-                  refresh,
-                  setError,
-                )
-              }
-            >
-              <Play size={16} />
-              Marcar início real
-            </button>
-          ) : (
-            <button
-              className={styles.secondary}
-              onClick={() =>
-                void call(
-                  "/manager/space/flex",
-                  { itemId: current.id },
-                  refresh,
-                  setError,
-                )
-              }
-            >
-              <TimerReset size={16} />
-              Aplicar Flex time
-            </button>
-          )}
-          <button
-            className={styles.button}
-            onClick={() =>
-              void call(
-                "/manager/space/advance",
-                { itemId: current.id },
-                refresh,
-                setError,
-              )
-            }
-          >
-            <Clock3 size={16} />
-            Avançar programação
-          </button>
-        </div>
+        {now.length ? <div className={styles.scheduleCards}>{now.map((item) => <ScheduleCard key={item.id} item={item} nowMs={nowMs} busy={busyId === item.id} operate={operate} openManual={openManual} />)}</div> : <p className={styles.empty}><Clock3 size={28} /><strong>Nenhuma atividade acontecendo agora</strong><span>As atividades em andamento aparecerão aqui agrupadas por espaço.</span></p>}
       </section>
-      <Schedule items={data?.upcoming ?? []} />
+      <Schedule groups={grouped} nowMs={nowMs} busyId={busyId} operate={operate} openManual={openManual} />
+      {manualItem ? <div className={styles.dialogBackdrop} role="presentation"><section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="manual-start-title"><div><p className={styles.kicker}>Ajuste operacional</p><h2 id="manual-start-title">Início real</h2><p>Informe quando “{manualItem.title}” começou. O horário não pode estar no futuro.</p></div><label>Data e hora<input type="datetime-local" value={manualValue} max={localDateTimeValue(new Date())} onChange={(event) => setManualValue(event.target.value)} /></label><div className={styles.dialogActions}><button className={styles.secondary} onClick={() => setManualItem(null)}>Cancelar</button><button className={styles.button} onClick={() => void saveManual()} disabled={!manualValue || busyId === manualItem.id}>Salvar início</button></div></section></div> : null}
     </div>
   );
 }
+function localDateTimeValue(value: Date) {
+  const local = new Date(value.getTime() - value.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
 
-function Schedule({ items }: { items: Item[] }) {
+function ScheduleCard({ item, nowMs, busy, operate, openManual }: { item: Item; nowMs: number; busy: boolean; operate: (path: string, item: Item, body?: object) => Promise<void>; openManual: (item: Item) => void }) {
+  const started = Boolean(item.startedAt);
+  const canOperate = item.status === "active" || item.status === "paused";
+  const canStartNow = !started && (!item.startsAt || new Date(item.startsAt).getTime() > nowMs);
+  const skip = () => { if (window.confirm(`Pular a atividade “${item.title}”?`)) void operate("/manager/space/advance", item); };
+  return <article className={styles.scheduleCard}><div className={styles.scheduleCardHeader}><div><p className={styles.kicker}><MapPin size={13} /> {item.spaceName ?? "Espaço a confirmar"}</p><h3>{item.title}</h3></div><span className={styles.timer}>{started ? `Início ${time(item.startedAt)}` : time(item.startsAt)}</span></div><div className={styles.scheduleMeta}><span>Previsto {time(item.startsAt)}–{time(item.endsAt)}</span>{item.flexMinutes ? <span>+{item.flexMinutes} min</span> : null}{!canOperate ? <span>Aguardando ativação</span> : null}</div>{canOperate ? <div className={styles.cardActions}>{!started ? <>{canStartNow ? <button className={styles.button} disabled={busy} onClick={() => void operate("/manager/space/start", item)}><Play size={15} /> Iniciar agora</button> : null}<button className={styles.secondary} disabled={busy} onClick={() => openManual(item)}><Pencil size={15} /> Ajustar início</button></> : <button className={styles.secondary} disabled={busy} onClick={() => void operate("/manager/space/flex", item)}><TimerReset size={15} /> Aplicar Flex time</button>}<button className={styles.danger} disabled={busy} onClick={skip}><CheckCircle2 size={15} /> Pular atividade</button></div> : null}</article>;
+}
+
+function Schedule({ groups, nowMs, busyId, operate, openManual }: { groups: Record<string, Item[]>; nowMs: number; busyId: string | null; operate: (path: string, item: Item, body?: object) => Promise<void>; openManual: (item: Item) => void }) {
+  const spaces = Object.entries(groups);
   return (
-    <section className={styles.panel}>
-      <header className={styles.panelHeader}>
+    <details className={styles.panel}>
+      <summary className={`${styles.panelHeader} ${styles.accordionHeader}`}>
         <div>
           <p className={styles.kicker}>A seguir</p>
-          <h2>Próximas atividades</h2>
+          <h2>Próximas atividades por espaço</h2>
         </div>
-      </header>
-      {items.length ? (
-        <ul className={styles.eventList}>
-          {items.map((item) => (
-            <li key={item.id}>
-              <span className={styles.eventIcon}>
-                <Clock3 size={16} />
-              </span>
-              <span>
-                <strong>{item.title}</strong>
-                <small>{item.spaceName ?? "Seu espaço"}</small>
-              </span>
-              <time>{time(item.startsAt)}</time>
-            </li>
-          ))}
-        </ul>
+      </summary>
+      {spaces.length ? (
+        <div className={styles.spaceGroups}>{spaces.map(([space, items]) => <section key={space} className={styles.spaceGroup}><h3><MapPin size={15} />{space}<small>{items.length} {items.length === 1 ? "atividade" : "atividades"}</small></h3>{items.map((item) => <ScheduleCard key={item.id} item={item} nowMs={nowMs} busy={busyId === item.id} operate={operate} openManual={openManual} />)}</section>)}</div>
       ) : (
         <p className={styles.empty}>
-          Não há outra atividade programada para este espaço.
+          <CheckCircle2 size={28} /><strong>Programação em dia</strong><span>Não há outras atividades pendentes.</span>
         </p>
       )}
-    </section>
+    </details>
   );
 }
 
@@ -438,17 +436,18 @@ function ActionConsole({
   refresh,
   setError,
   mode = "actions",
+  onManagingChange,
 }: {
   data?: Overview["actions"];
   refresh: () => Promise<void>;
   setError: (value: string) => void;
   mode?: "actions" | "special_events";
+  onManagingChange?: (value: boolean) => void;
 }) {
   const [editor, setEditor] = useState<{ id?: string; name: string } | null>(
     null,
   );
-  const [qrImageUrl, setQrImageUrl] = useState<string>();
-  const run = data?.run;
+  const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
   async function saveGame(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!editor?.name.trim()) return;
@@ -473,66 +472,59 @@ function ActionConsole({
       })) as { id: string };
       // A newly opened run must be immediately usable: provision its QR in
       // the same flow instead of requiring a second manual action.
-      const qr = (await api(`/manager/runs/${created.id}/qr`, {
+      await api(`/manager/runs/${created.id}/qr`, {
         method: "POST",
-      })) as { qrToken: string };
-      setQrImageUrl(await toDataURL(qr.qrToken));
+      });
       await refresh();
+      setSelectedGameId(gameId);
     } catch (error) {
       setError((error as Error).message);
     }
   }
-  if (run)
-    return (
-      mode === "special_events" ? (
-        <SpecialEventRunConsole run={{ ...run, qrImageUrl: qrImageUrl ?? run.qrImageUrl }} refresh={refresh} setError={setError} />
-      ) : (
-        <RunConsole run={{ ...run, qrImageUrl: qrImageUrl ?? run.qrImageUrl }} refresh={refresh} setError={setError} />
-      )
-    );
   const games = data?.games ?? [];
+  const selectedGame = games.find((game) => game.id === selectedGameId);
+  useEffect(() => {
+    onManagingChange?.(Boolean(selectedGame?.run));
+  }, [onManagingChange, selectedGame?.run]);
+  if (selectedGame?.run) {
+    return (
+      <section className={styles.managerConsole} aria-label={`Gerenciar ${selectedGame.name}`}>
+        <div className={styles.managerConsoleHeader}>
+          <button className={styles.iconButton} aria-label="Voltar para atividades" onClick={() => setSelectedGameId(null)}>
+            <ArrowLeft size={20} />
+          </button>
+          <h2>{selectedGame.name}</h2>
+          <span aria-hidden="true" />
+        </div>
+        {mode === "special_events" ? (
+          <SpecialEventRunConsole run={selectedGame.run} refresh={refresh} setError={setError} />
+        ) : (
+          <RunConsole run={selectedGame.run} refresh={refresh} setError={setError} />
+        )}
+      </section>
+    );
+  }
   return (
     <div className={styles.stack}>
+      <button className={styles.button} onClick={() => setEditor({ name: "" })}>
+        <Plus size={16} />
+        {mode === "special_events" ? "Novo evento" : "Novo jogo"}
+      </button>
       <section className={styles.panel}>
         <header className={styles.panelHeader}>
           <div>
-            <p className={styles.kicker}>{mode === "special_events" ? "Evento pronto" : "Nova partida"}</p>
-            <h2>{mode === "special_events" ? "Eventos especiais" : "Abrir Radicalidade"}</h2>
+            {mode === "special_events" ? <p className={styles.kicker}>Evento pronto</p> : null}
+            <h2>{mode === "special_events" ? "Eventos especiais" : "Partidas"}</h2>
           </div>
           <Gamepad2 size={21} />
         </header>
         {games.length ? (
-          <div className={styles.gameGrid}>
-            {games.map((game) => (
-              <article className={styles.gameCard} key={game.id}>
-                <strong>{game.name}</strong>
-                <div>
-                  <button
-                    className={styles.secondary}
-                    onClick={() => void openRun(game.id)}
-                  >
-                    <QrCode size={16} />
-                    {mode === "special_events" ? "Liberar QR" : "Abrir partida"}
-                  </button>
-                  <button
-                    className={styles.iconButton}
-                    aria-label={`Editar ${game.name}`}
-                    onClick={() => setEditor({ id: game.id, name: game.name })}
-                  >
-                    <Pencil size={16} />
-                  </button>
-                  {mode === "actions" ? (
-                    <button
-                      className={styles.iconButton}
-                      aria-label={`Concluir ${game.name}`}
-                      onClick={() => void call(`/manager/activities/${game.id}/conclude`, undefined, refresh, setError)}
-                    >
-                      <Square size={16} />
-                    </button>
-                  ) : null}
-                </div>
-              </article>
-            ))}
+          <div className={styles.gameGrid} role="table" aria-label={mode === "special_events" ? "Eventos" : "Partidas"}>
+            <div className={styles.gameGridHeader} role="row" aria-hidden="true">
+              <span>Atividade</span>
+              <span>Ações</span>
+            </div>
+            {games.map((game) => <GameCard key={game.id} game={game} mode={mode} openRun={openRun} manageGame={setSelectedGameId} refresh={refresh} setError={setError} setEditor={setEditor} />)}
           </div>
         ) : (
           <Empty
@@ -542,10 +534,6 @@ function ActionConsole({
           />
         )}
       </section>
-      <button className={styles.button} onClick={() => setEditor({ name: "" })}>
-        <Plus size={16} />
-        {mode === "special_events" ? "Novo evento" : "Novo jogo"}
-      </button>
       {editor ? (
         <div className={styles.dialogBackdrop} role="presentation">
           <form
@@ -588,8 +576,69 @@ function ActionConsole({
   );
 }
 
+function GameCard({
+  game,
+  mode,
+  openRun,
+  manageGame,
+  refresh,
+  setError,
+  setEditor,
+}: {
+  game: Game;
+  mode: "actions" | "special_events";
+  openRun: (gameId: string) => Promise<void>;
+  manageGame: (gameId: string) => void;
+  refresh: () => Promise<void>;
+  setError: (value: string) => void;
+  setEditor: Dispatch<SetStateAction<{ id?: string; name: string } | null>>;
+}) {
+  const run = game.run ?? null;
+  const runLabel = run
+    ? "Aberta"
+    : "Disponível";
+  return (
+    <article className={`${styles.gameCard} ${run ? styles.gameCardLive : ""}`} role="row">
+      <div className={styles.gameCardInfo}>
+        <div className={styles.gameCardHeader}>
+          <span>
+            {mode === "special_events" ? <span className={styles.kicker}>Evento</span> : null}
+            <strong>{game.name}</strong>
+          </span>
+          <span className={styles.gameState}>{runLabel}</span>
+        </div>
+        <div className={styles.gameCardMeta}>
+          <span>{run ? "Sala pronta para gerenciar" : "Nenhuma partida aberta"}</span>
+        </div>
+      </div>
+      <div className={styles.cardActions}>
+        {run ? (
+          <button className={styles.button} aria-label="Entrar na partida" onClick={() => manageGame(game.id)}>
+            <Gamepad2 size={16} /> Entrar
+          </button>
+        ) : (
+          <button className={styles.button} aria-label={mode === "special_events" ? "Liberar QR" : "Iniciar partida"} onClick={() => void openRun(game.id)}>
+            <QrCode size={16} /> {mode === "special_events" ? "Liberar QR" : "Iniciar"}
+          </button>
+        )}
+        <button className={styles.secondary} aria-label="Editar nome" onClick={() => setEditor({ id: game.id, name: game.name })}>
+          <Pencil size={16} /> Editar
+        </button>
+        {!run && mode === "actions" ? (
+          <button className={styles.danger} aria-label="Encerrar atividade" onClick={() => void call(`/manager/activities/${game.id}/conclude`, undefined, refresh, setError)}>
+            <Square size={16} /> Encerrar
+          </button>
+        ) : null}
+      </div>
+    </article>
+  );
+}
+
 function SpecialEventRunConsole({ run, refresh, setError }: { run: Run; refresh: () => Promise<void>; setError: (value: string) => void }) {
   const [qrImageUrl, setQrImageUrl] = useState(run.qrImageUrl);
+  useEffect(() => {
+    if (run.qrToken) void toDataURL(run.qrToken).then(setQrImageUrl);
+  }, [run.qrToken]);
   const people = run.participants ?? [];
   async function renewQr() {
     try {
@@ -619,12 +668,11 @@ function RunConsole({
   );
   const [reviewingResults, setReviewingResults] = useState(false);
   const [qrImageUrl, setQrImageUrl] = useState(run.qrImageUrl);
-  const people = run.participants ?? [];
   useEffect(() => {
-    if (["checkin", "completed", "cancelled"].includes(run.status ?? "")) {
-      setReviewingResults(false);
-    }
-  }, [run.status]);
+    if (run.qrToken) void toDataURL(run.qrToken).then(setQrImageUrl);
+  }, [run.qrToken]);
+  const people = run.participants ?? [];
+  const canReviewResults = !["checkin", "completed", "cancelled"].includes(run.status ?? "");
   const saveResults = () =>
     call(
       `/manager/runs/${run.id}/results`,
@@ -637,16 +685,6 @@ function RunConsole({
       refresh,
       setError,
     );
-  async function renewQr() {
-    try {
-      const created = (await api(`/manager/runs/${run.id}/qr`, {
-        method: "POST",
-      })) as { qrToken: string };
-      setQrImageUrl(await toDataURL(created.qrToken));
-    } catch (error) {
-      setError((error as Error).message);
-    }
-  }
   const label =
     run.status === "running"
       ? "Partida em andamento"
@@ -671,9 +709,8 @@ function RunConsole({
               <img
                 src={qrImageUrl}
                 alt="QR Code da partida"
+                className={styles.runQrImage}
                 style={{
-                  width: 178,
-                  height: 178,
                   borderRadius: 12,
                   background: "white",
                   padding: 10,
@@ -693,13 +730,7 @@ function RunConsole({
                 : "Gere um QR novo para receber participantes nesta partida."}
             </p>
           </div>
-          <ParticipantList
-            people={people}
-            results={results}
-            onResult={setResults}
-            readonly
-          />
-          <div className={styles.actions}>
+          <div className={`${styles.actions} ${styles.runControls}`}>
             <button
               className={styles.button}
               onClick={() =>
@@ -714,10 +745,6 @@ function RunConsole({
               <Play size={16} />
               Iniciar jogo
             </button>
-            <button className={styles.secondary} onClick={() => void renewQr()}>
-              <TimerReset size={16} />
-              Novo QR
-            </button>
             <button
               className={styles.danger}
               onClick={() =>
@@ -729,12 +756,17 @@ function RunConsole({
                 )
               }
             >
-              <Square size={16} />
-              Cancelar partida
+              <Square size={16} /> Cancelar partida
             </button>
           </div>
+          <ParticipantList
+            people={people}
+            results={results}
+            onResult={setResults}
+            readonly
+          />
         </>
-      ) : (run.status === "running" || run.status === "paused") && !reviewingResults ? (
+      ) : (run.status === "running" || run.status === "paused") && !reviewingResults && canReviewResults ? (
         <>
           <ParticipantList
             people={people}
@@ -822,7 +854,7 @@ function ParticipantList({
     <ul className={styles.participants}>
       {people.length ? (
         people.map((person) => (
-          <li key={person.id}>
+          <li key={person.id} className={readonly ? undefined : styles.participantScored}>
             <span>
               <strong>{person.name}</strong>
               <small>
@@ -836,21 +868,35 @@ function ParticipantList({
                 {results[person.id] ?? person.result ?? "Participando"}
               </span>
             ) : (
-              <select
-                aria-label={`Resultado de ${person.name}`}
-                value={results[person.id] ?? person.result ?? "participation"}
-                onChange={(event) =>
-                  onResult((current) => ({
-                    ...current,
-                    [person.id]: event.target.value as Participant["result"],
-                  }))
-                }
-              >
-                <option value="first">1º lugar</option>
-                <option value="second">2º lugar</option>
-                <option value="third">3º lugar</option>
-                <option value="participation">Participação</option>
-              </select>
+              <div className={styles.resultPicker}>
+                <span className={styles.resultLabel}>Classificação</span>
+                <div className={styles.resultOptions} role="radiogroup" aria-label={`Resultado de ${person.name}`}>
+                  {([["first", "1º"], ["second", "2º"], ["third", "3º"], ["participation", "Participante"]] as const).map(([value, label]) => {
+                    const selected = (results[person.id] ?? person.result ?? "participation") === value;
+                    const takenByOther = value !== "participation" && people.some((other) => other.id !== person.id && (results[other.id] ?? other.result ?? "participation") === value);
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        aria-label={`${label}${takenByOther && !selected ? " indisponível" : ""}`}
+                        disabled={takenByOther && !selected}
+                        className={selected ? styles.resultOptionSelected : styles.resultOption}
+                        onClick={() => onResult((current) => {
+                          const next = { ...current, [person.id]: value };
+                          if (value !== "participation") people.forEach((other) => {
+                            if (other.id !== person.id && (next[other.id] ?? other.result ?? "participation") === value) next[other.id] = "participation";
+                          });
+                          return next;
+                        })}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             )}
           </li>
         ))
@@ -881,13 +927,51 @@ function SpecialConsole({
   const [duration, setDuration] = useState("5");
   const [customDuration, setCustomDuration] = useState("");
   const [targets, setTargets] = useState<string[]>(["app"]);
-  const [activeQr, setActiveQr] = useState<{
-    eventId: string;
-    title: string;
-    imageUrl: string;
-    expiresAt?: string;
-  } | null>(null);
-  const events = data?.events ?? [];
+  const [operatingEvent, setOperatingEvent] = useState("");
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const events = useMemo(() => data?.events ?? [], [data?.events]);
+  const visibleEvents = useMemo(
+    () =>
+      events.filter(
+        (event) =>
+          ["draft", "teaser", "active"].includes(event.status ?? "") &&
+          (event.status !== "active" ||
+            !event.expiresAt ||
+            new Date(event.expiresAt).getTime() > nowMs),
+      ),
+    [events, nowMs],
+  );
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 1_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const releaseQr = useCallback(
+    async (event: SpecialEvent) => {
+      setOperatingEvent(event.id);
+      try {
+        await api("/manager/special-events/qr", {
+          method: "POST",
+          body: JSON.stringify({ eventId: event.id }),
+        });
+        await refresh();
+      } catch (error) {
+        setError((error as Error).message);
+      } finally {
+        setOperatingEvent("");
+      }
+    },
+    [refresh, setError],
+  );
+  useEffect(() => {
+    const teaser = events.find((event) => event.status === "teaser");
+    if (!teaser || operatingEvent === teaser.id) return;
+    const teaserStartedAt = Date.parse(teaser.qrAvailableAt ?? "");
+    const delay = Number.isNaN(teaserStartedAt)
+      ? 30_000
+      : Math.max(0, teaserStartedAt + 30_000 - Date.now());
+    const timer = window.setTimeout(() => void releaseQr(teaser), delay);
+    return () => window.clearTimeout(timer);
+  }, [events, operatingEvent, releaseQr]);
   function toggleTarget(target: string) {
     setTargets((current) =>
       current.includes(target)
@@ -928,44 +1012,15 @@ function SpecialConsole({
           ? "/manager/special-events/qr"
           : "/manager/special-events/close";
     try {
-      const result = (await api(path, {
+      await api(path, {
         method: "POST",
         body: JSON.stringify({ eventId: event.id }),
-      })) as { qrToken?: string; expiresAt?: string };
-      if (result?.qrToken)
-        setActiveQr({
-          eventId: event.id,
-          title: event.title,
-          imageUrl: await toDataURL(result.qrToken, { width: 360, margin: 1 }),
-          expiresAt: result.expiresAt ?? event.expiresAt,
-        });
-      if (event.status === "active")
-        setActiveQr((current) =>
-          current?.eventId === event.id ? null : current,
-        );
-      await refresh();
-    } catch (error) {
-      setError((error as Error).message);
-    }
-  }
-  async function renewQr(event: SpecialEvent) {
-    try {
-      const result = (await api("/manager/special-events/qr", {
-        method: "POST",
-        body: JSON.stringify({ eventId: event.id }),
-      })) as { qrToken: string; expiresAt?: string };
-      setActiveQr({
-        eventId: event.id,
-        title: event.title,
-        imageUrl: await toDataURL(result.qrToken, { width: 360, margin: 1 }),
-        expiresAt: result.expiresAt ?? event.expiresAt,
       });
       await refresh();
     } catch (error) {
       setError((error as Error).message);
     }
   }
-  const visibleQr = activeQr;
   return (
     <div className={styles.stack}>
       <section className={styles.panel}>
@@ -976,7 +1031,10 @@ function SpecialConsole({
           </div>
           <Sparkles size={21} />
         </header>
-        <form className={styles.form} onSubmit={(event) => void create(event)}>
+        <form
+          className={`${styles.form} ${styles.specialForm}`}
+          onSubmit={(event) => void create(event)}
+        >
           <label>
             Nome do evento
             <input
@@ -1069,29 +1127,6 @@ function SpecialConsole({
           </button>
         </form>
       </section>
-      {visibleQr ? (
-        <section className={styles.panel}>
-          <div className={styles.qr}>
-            <img
-              src={visibleQr.imageUrl}
-              alt={`QR Code do evento ${visibleQr.title}`}
-              style={{
-                width: 178,
-                height: 178,
-                borderRadius: 12,
-                background: "white",
-                padding: 10,
-              }}
-            />
-            <strong>{visibleQr.title}</strong>
-            <p>
-              {visibleQr.expiresAt
-                ? `QR ativo até ${time(visibleQr.expiresAt)}.`
-                : "QR ativo."}
-            </p>
-          </div>
-        </section>
-      ) : null}
       <section className={styles.panel}>
         <header className={styles.panelHeader}>
           <div>
@@ -1099,10 +1134,13 @@ function SpecialConsole({
             <h2>Eventos preparados</h2>
           </div>
         </header>
-        {events.length ? (
+        {visibleEvents.length ? (
           <ul className={styles.eventList}>
-            {events.map((event) => (
-              <li key={event.id}>
+            {visibleEvents.map((event) => (
+              <li
+                key={event.id}
+                className={event.status === "active" ? styles.eventActive : undefined}
+              >
                 <span className={styles.eventIcon}>
                   <Sparkles size={16} />
                 </span>
@@ -1112,22 +1150,30 @@ function SpecialConsole({
                     {event.status === "teaser"
                       ? "Teaser em andamento"
                       : event.status === "active"
-                        ? "QR ativo"
-                        : "Pronto para o teaser"}
+                        ? `Rodando agora${
+                            countdown(event.expiresAt, nowMs)
+                              ? ` · termina em ${countdown(event.expiresAt, nowMs)}`
+                              : ""
+                          }`
+                        : "Pronto para iniciar"}
                   </small>
                 </span>
                 {event.status === "active" ? (
-                  <span style={{ display: "grid", gap: 4 }}>
-                    <button onClick={() => void renewQr(event)}>
-                      Gerar novo QR
-                    </button>
-                    <button onClick={() => void operate(event)}>
-                      Encerrar
-                    </button>
+                  <span className={styles.eventActions}>
+                    <button onClick={() => void operate(event)}>Encerrar</button>
                   </span>
+                ) : event.status === "teaser" ? (
+                  <small className={styles.eventStatus}>
+                    {operatingEvent === event.id
+                      ? "Gerando QR..."
+                      : "QR será liberado automaticamente"}
+                  </small>
                 ) : (
-                  <button onClick={() => void operate(event)}>
-                    {event.status === "draft" ? "Teaser 15 s" : "Liberar QR"}
+                  <button
+                    className={styles.eventActionButton}
+                    onClick={() => void operate(event)}
+                  >
+                    Iniciar teaser
                   </button>
                 )}
               </li>

@@ -153,7 +153,7 @@ describe("AdminDashboard V2", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("Teaser em exibição");
     expect(screen.queryByRole("button", { name: "Liberar QR" })).not.toBeInTheDocument();
-    await act(async () => vi.advanceTimersByTimeAsync(15_000));
+    await act(async () => vi.advanceTimersByTimeAsync(30_000));
 
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/special-events/qr", expect.objectContaining({ method: "POST", body: JSON.stringify({ eventId: "special-1" }) }));
     vi.useRealTimers();
@@ -225,7 +225,7 @@ describe("AdminDashboard V2", () => {
 
   it("shows both pastoral queues as a read-only live overview", async () => {
     render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
-    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Filas pastorais" }));
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Filas" }));
     expect(await screen.findByRole("heading", { name: "Confissão" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Direção espiritual" })).toBeInTheDocument();
     expect(screen.getAllByText("1 aguardando")).toHaveLength(2);
@@ -240,7 +240,7 @@ describe("AdminDashboard V2", () => {
 
   it("allows the admin to open or close the pastoral queues", async () => {
     render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
-    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Filas pastorais" }));
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Filas" }));
     await screen.findByRole("heading", { name: "Filas abertas" });
     fireEvent.click(screen.getByRole("button", { name: "Fechar filas" }));
     await waitFor(() => expect(queueConfig.updateQueueConfig).toHaveBeenCalledWith({ isQueueOpen: false }));
