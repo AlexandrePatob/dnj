@@ -159,8 +159,10 @@ describe("ManagerDashboard", () => {
     expect(await screen.findByText("Corrida do saco")).toBeInTheDocument();
     expect(screen.getByText("Cabo de guerra")).toBeInTheDocument();
     expect(screen.getByText("Disponível para abrir")).toBeInTheDocument();
-    expect(screen.getByText("Aguardando participantes")).toBeInTheDocument();
+    expect(screen.getByText("Partida aberta")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Gerenciar partida" }));
+    expect(screen.queryByRole("heading", { name: "Abrir Radicalidade" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Voltar para atividades" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Iniciar jogo" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(

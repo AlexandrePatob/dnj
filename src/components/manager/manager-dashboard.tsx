@@ -478,6 +478,26 @@ function ActionConsole({
   }
   const games = data?.games ?? [];
   const selectedGame = games.find((game) => game.id === selectedGameId);
+  if (selectedGame?.run) {
+    return (
+      <section className={styles.managerConsole} aria-label={`Gerenciar ${selectedGame.name}`}>
+        <div className={styles.managerConsoleHeader}>
+          <div>
+            <p className={styles.kicker}>Partida selecionada</p>
+            <h2>Gerenciar {selectedGame.name}</h2>
+          </div>
+          <button className={styles.secondary} onClick={() => setSelectedGameId(null)}>
+            Voltar para atividades
+          </button>
+        </div>
+        {mode === "special_events" ? (
+          <SpecialEventRunConsole run={selectedGame.run} refresh={refresh} setError={setError} />
+        ) : (
+          <RunConsole run={selectedGame.run} refresh={refresh} setError={setError} />
+        )}
+      </section>
+    );
+  }
   return (
     <div className={styles.stack}>
       <section className={styles.panel}>
@@ -504,24 +524,6 @@ function ActionConsole({
         <Plus size={16} />
         {mode === "special_events" ? "Novo evento" : "Novo jogo"}
       </button>
-      {selectedGame?.run ? (
-        <section className={styles.managerConsole} aria-label={`Gerenciar ${selectedGame.name}`}>
-          <div className={styles.managerConsoleHeader}>
-            <div>
-              <p className={styles.kicker}>Partida selecionada</p>
-              <h2>Gerenciar {selectedGame.name}</h2>
-            </div>
-            <button className={styles.secondary} onClick={() => setSelectedGameId(null)}>
-              Voltar para atividades
-            </button>
-          </div>
-          {mode === "special_events" ? (
-            <SpecialEventRunConsole run={selectedGame.run} refresh={refresh} setError={setError} />
-          ) : (
-            <RunConsole run={selectedGame.run} refresh={refresh} setError={setError} />
-          )}
-        </section>
-      ) : null}
       {editor ? (
         <div className={styles.dialogBackdrop} role="presentation">
           <form
@@ -583,12 +585,7 @@ function GameCard({
 }) {
   const run = game.run ?? null;
   const runLabel = run
-    ? ({
-        checkin: "Aguardando participantes",
-        running: "Em andamento",
-        paused: "Pausada",
-        results: "Definindo resultados",
-      } as Record<string, string>)[run.status ?? ""] ?? "Partida aberta"
+    ? "Partida aberta"
     : "Disponível para abrir";
   return (
     <article className={`${styles.gameCard} ${run ? styles.gameCardLive : ""}`}>
@@ -600,7 +597,7 @@ function GameCard({
         <span className={styles.gameState}>{runLabel}</span>
       </div>
       <div className={styles.gameCardMeta}>
-        <span>{run ? `${run.participants?.length ?? 0} participantes` : "Nenhuma partida aberta"}</span>
+        <span>{run ? "Sala pronta para gerenciar" : "Nenhuma partida aberta"}</span>
       </div>
       <div className={styles.cardActions}>
         {run ? (
