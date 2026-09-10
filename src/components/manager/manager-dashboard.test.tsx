@@ -235,6 +235,7 @@ describe("ManagerDashboard", () => {
     await user.type(screen.getByLabelText("Nome do evento"), "Caça ao tesouro");
     await user.click(screen.getByRole("button", { name: "Criar evento" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/special-events", expect.objectContaining({ method: "POST", body: JSON.stringify({ title: "Caça ao tesouro", description: "", durationMinutes: 5, targets: ["app"] }) })));
+    expect(fetchMock).not.toHaveBeenCalledWith("/api/v2/manager/special-events/teaser", expect.anything());
   });
 
   it("refreshes checked-in participants while a Radicalidade run is open", async () => {

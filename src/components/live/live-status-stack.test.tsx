@@ -27,6 +27,15 @@ describe("LiveStatusStack", () => {
     expect(screen.queryByLabelText("Atualizações ao vivo")).not.toBeInTheDocument();
   });
 
+  it("uses the teaser timestamp when the app receives a delayed teaser response", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2099-10-18T18:00:20Z"));
+    render(<LiveStatusStack special={{ id: "special-1", title: "Desafio relâmpago", status: "teaser", startsAt: "2099-10-18T18:00:00Z", endsAt: "2099-10-18T19:00:00Z", qrAvailableAt: "2099-10-18T18:00:15Z", teaserSeconds: 30, points: 20 }} />);
+
+    expect(screen.getByLabelText("Atualizações ao vivo")).toHaveTextContent("Encerra em 59:40");
+    expect(screen.getByLabelText("Atualizações ao vivo")).not.toHaveTextContent("QR em");
+  });
+
   it("lets the participant close the special event notice", async () => {
     const user = userEvent.setup();
     render(<LiveStatusStack special={{ id: "special-1", title: "Desafio relâmpago", status: "active", startsAt: "2026-10-18T17:59:45Z", endsAt: "2099-10-18T18:00:00Z", teaserSeconds: 15, points: 20 }} />);

@@ -7,6 +7,7 @@ import {
   type SetStateAction,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -130,6 +131,12 @@ function time(value?: string) {
         minute: "2-digit",
       }).format(new Date(value))
     : "—";
+}
+function countdown(value: string | undefined, nowMs: number) {
+  if (!value) return null;
+  const seconds = Math.max(0, Math.ceil((new Date(value).getTime() - nowMs) / 1000));
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
 }
 function call(
   path: string,
@@ -863,13 +870,51 @@ function SpecialConsole({
   const [duration, setDuration] = useState("5");
   const [customDuration, setCustomDuration] = useState("");
   const [targets, setTargets] = useState<string[]>(["app"]);
-  const [activeQr, setActiveQr] = useState<{
-    eventId: string;
-    title: string;
-    imageUrl: string;
-    expiresAt?: string;
-  } | null>(null);
-  const events = data?.events ?? [];
+  const [operatingEvent, setOperatingEvent] = useState("");
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const events = useMemo(() => data?.events ?? [], [data?.events]);
+  const visibleEvents = useMemo(
+    () =>
+      events.filter(
+        (event) =>
+          ["draft", "teaser", "active"].includes(event.status ?? "") &&
+          (event.status !== "active" ||
+            !event.expiresAt ||
+            new Date(event.expiresAt).getTime() > nowMs),
+      ),
+    [events, nowMs],
+  );
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 1_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const releaseQr = useCallback(
+    async (event: SpecialEvent) => {
+      setOperatingEvent(event.id);
+      try {
+        await api("/manager/special-events/qr", {
+          method: "POST",
+          body: JSON.stringify({ eventId: event.id }),
+        });
+        await refresh();
+      } catch (error) {
+        setError((error as Error).message);
+      } finally {
+        setOperatingEvent("");
+      }
+    },
+    [refresh, setError],
+  );
+  useEffect(() => {
+    const teaser = events.find((event) => event.status === "teaser");
+    if (!teaser || operatingEvent === teaser.id) return;
+    const teaserStartedAt = Date.parse(teaser.qrAvailableAt ?? "");
+    const delay = Number.isNaN(teaserStartedAt)
+      ? 30_000
+      : Math.max(0, teaserStartedAt + 30_000 - Date.now());
+    const timer = window.setTimeout(() => void releaseQr(teaser), delay);
+    return () => window.clearTimeout(timer);
+  }, [events, operatingEvent, releaseQr]);
   function toggleTarget(target: string) {
     setTargets((current) =>
       current.includes(target)
@@ -910,44 +955,15 @@ function SpecialConsole({
           ? "/manager/special-events/qr"
           : "/manager/special-events/close";
     try {
-      const result = (await api(path, {
+      await api(path, {
         method: "POST",
         body: JSON.stringify({ eventId: event.id }),
-      })) as { qrToken?: string; expiresAt?: string };
-      if (result?.qrToken)
-        setActiveQr({
-          eventId: event.id,
-          title: event.title,
-          imageUrl: await toDataURL(result.qrToken, { width: 360, margin: 1 }),
-          expiresAt: result.expiresAt ?? event.expiresAt,
-        });
-      if (event.status === "active")
-        setActiveQr((current) =>
-          current?.eventId === event.id ? null : current,
-        );
-      await refresh();
-    } catch (error) {
-      setError((error as Error).message);
-    }
-  }
-  async function renewQr(event: SpecialEvent) {
-    try {
-      const result = (await api("/manager/special-events/qr", {
-        method: "POST",
-        body: JSON.stringify({ eventId: event.id }),
-      })) as { qrToken: string; expiresAt?: string };
-      setActiveQr({
-        eventId: event.id,
-        title: event.title,
-        imageUrl: await toDataURL(result.qrToken, { width: 360, margin: 1 }),
-        expiresAt: result.expiresAt ?? event.expiresAt,
       });
       await refresh();
     } catch (error) {
       setError((error as Error).message);
     }
   }
-  const visibleQr = activeQr;
   return (
     <div className={styles.stack}>
       <section className={styles.panel}>
@@ -958,7 +974,10 @@ function SpecialConsole({
           </div>
           <Sparkles size={21} />
         </header>
-        <form className={styles.form} onSubmit={(event) => void create(event)}>
+        <form
+          className={`${styles.form} ${styles.specialForm}`}
+          onSubmit={(event) => void create(event)}
+        >
           <label>
             Nome do evento
             <input
@@ -1051,29 +1070,6 @@ function SpecialConsole({
           </button>
         </form>
       </section>
-      {visibleQr ? (
-        <section className={styles.panel}>
-          <div className={styles.qr}>
-            <img
-              src={visibleQr.imageUrl}
-              alt={`QR Code do evento ${visibleQr.title}`}
-              style={{
-                width: 178,
-                height: 178,
-                borderRadius: 12,
-                background: "white",
-                padding: 10,
-              }}
-            />
-            <strong>{visibleQr.title}</strong>
-            <p>
-              {visibleQr.expiresAt
-                ? `QR ativo até ${time(visibleQr.expiresAt)}.`
-                : "QR ativo."}
-            </p>
-          </div>
-        </section>
-      ) : null}
       <section className={styles.panel}>
         <header className={styles.panelHeader}>
           <div>
@@ -1081,10 +1077,13 @@ function SpecialConsole({
             <h2>Eventos preparados</h2>
           </div>
         </header>
-        {events.length ? (
+        {visibleEvents.length ? (
           <ul className={styles.eventList}>
-            {events.map((event) => (
-              <li key={event.id}>
+            {visibleEvents.map((event) => (
+              <li
+                key={event.id}
+                className={event.status === "active" ? styles.eventActive : undefined}
+              >
                 <span className={styles.eventIcon}>
                   <Sparkles size={16} />
                 </span>
@@ -1094,22 +1093,30 @@ function SpecialConsole({
                     {event.status === "teaser"
                       ? "Teaser em andamento"
                       : event.status === "active"
-                        ? "QR ativo"
-                        : "Pronto para o teaser"}
+                        ? `Rodando agora${
+                            countdown(event.expiresAt, nowMs)
+                              ? ` · termina em ${countdown(event.expiresAt, nowMs)}`
+                              : ""
+                          }`
+                        : "Pronto para iniciar"}
                   </small>
                 </span>
                 {event.status === "active" ? (
-                  <span style={{ display: "grid", gap: 4 }}>
-                    <button onClick={() => void renewQr(event)}>
-                      Gerar novo QR
-                    </button>
-                    <button onClick={() => void operate(event)}>
-                      Encerrar
-                    </button>
+                  <span className={styles.eventActions}>
+                    <button onClick={() => void operate(event)}>Encerrar</button>
                   </span>
+                ) : event.status === "teaser" ? (
+                  <small className={styles.eventStatus}>
+                    {operatingEvent === event.id
+                      ? "Gerando QR..."
+                      : "QR será liberado automaticamente"}
+                  </small>
                 ) : (
-                  <button onClick={() => void operate(event)}>
-                    {event.status === "draft" ? "Teaser 15 s" : "Liberar QR"}
+                  <button
+                    className={styles.eventActionButton}
+                    onClick={() => void operate(event)}
+                  >
+                    Iniciar teaser
                   </button>
                 )}
               </li>

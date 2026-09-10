@@ -85,6 +85,29 @@ describe("LiveRankingDisplay", () => {
       screen.getByText("Prepare seu celular. O desafio vai começar."),
     ).toBeInTheDocument();
   });
+  it("uses the teaser timestamp even when the response arrives after its start", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2099-10-18T12:00:20Z"));
+    vi.stubGlobal("fetch", displayFetch({
+      specialEvent: {
+        id: "special-1",
+        title: "Sala Game",
+        status: "teaser",
+        points: 50,
+        endsAt: "2099-10-18T13:00:15Z",
+        readyAt: "2099-10-18T12:00:15Z",
+      },
+    }));
+
+    render(<LiveRankingDisplay target="screen" />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Sala Game")).toBeInTheDocument();
+    expect(screen.getByText("Evento especial ao vivo")).toBeInTheDocument();
+    expect(screen.getByText("Encerra em 59:55")).toBeInTheDocument();
+  });
   it("shows the real special-event QR on a live display", async () => {
     vi.stubGlobal("fetch", displayFetch({
       specialEvent: {

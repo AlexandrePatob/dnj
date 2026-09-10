@@ -13,6 +13,7 @@ export type LiveSpecialEvent = {
   endsAt: string;
   teaserSeconds: number;
   points: number;
+  teaserStartedAt?: string | null;
   qrAvailableAt?: string | null;
 };
 
@@ -68,6 +69,8 @@ export function LiveStatusStack({
   const announcedChallenge = useRef<string | null>(null);
   const specialKey = special ? special.id ?? `${special.title}-${special.startsAt}` : null;
   const visibleSpecial = special && dismissedSpecialKey !== specialKey && new Date(special.endsAt).getTime() > now ? special : null;
+  const teaserEndsAt = visibleSpecial?.qrAvailableAt ?? (visibleSpecial?.teaserStartedAt ? new Date(new Date(visibleSpecial.teaserStartedAt).getTime() + visibleSpecial.teaserSeconds * 1000).toISOString() : null);
+  const teaser = visibleSpecial?.status === "teaser" && Boolean(teaserEndsAt) && new Date(teaserEndsAt).getTime() > now;
   const activeMomentChallenge = momentChallenge && (!momentChallenge.startsAt || new Date(momentChallenge.startsAt).getTime() <= now) && (!momentChallenge.endsAt || new Date(momentChallenge.endsAt).getTime() > now) ? momentChallenge : null;
 
   useEffect(() => {
@@ -82,11 +85,11 @@ export function LiveStatusStack({
   }, [activeMomentChallenge, dismissedMomentChallengeId]);
   if (!visibleSpecial && (!showMomentNotice || !activeMomentChallenge || isDismissedMomentChallenge(activeMomentChallenge.id, dismissedMomentChallengeId)) && !queueNotification && !adminNotification) return null;
   const detail =
-    visibleSpecial?.status === "active" ? (
+    !teaser && visibleSpecial ? (
       <><Timer className="mr-1 inline" size={12} /> Encerra em {countdown(visibleSpecial.endsAt)}</>
     ) : visibleSpecial ? (
       <>
-        <Timer className="mr-1 inline" size={12} /> QR em {countdown(visibleSpecial.qrAvailableAt ?? visibleSpecial.startsAt)}
+        <Timer className="mr-1 inline" size={12} /> QR em {teaserEndsAt ? countdown(teaserEndsAt) : "0:00"}
       </>
     ) : null;
 

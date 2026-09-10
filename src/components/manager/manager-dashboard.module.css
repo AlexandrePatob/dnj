@@ -311,6 +311,17 @@
 .eventList li:first-child {
   border-top: 0;
 }
+.eventActive {
+  background: #eef8df;
+  box-shadow: inset 4px 0 0 #8fbd36;
+}
+.eventActive .eventIcon {
+  background: #b5df55;
+  color: #17352a;
+}
+.eventActive strong {
+  color: #164b35;
+}
 .eventIcon {
   display: grid;
   place-items: center;
@@ -332,14 +343,33 @@
   color: #638277;
   font-size: 0.72rem;
 }
+.eventActions {
+  display: grid;
+  gap: 8px;
+  min-width: 138px;
+}
 .eventList button {
-  border: 0;
-  background: transparent;
+  min-height: 44px;
+  border: 1px solid #c9ded0;
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: #e8f2e8;
   color: #216d4a;
   font: inherit;
   font-size: 0.75rem;
   font-weight: 800;
   cursor: pointer;
+}
+.eventList button:hover {
+  background: #dbead9;
+}
+.eventStatus {
+  justify-self: end;
+  max-width: 190px;
+  text-align: right;
+}
+.eventActionButton {
+  min-width: 138px;
 }
 .qr {
   display: grid;
@@ -486,6 +516,9 @@
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+.specialForm {
+  gap: 15px;
+}
 .participants {
   display: grid;
   gap: 0;
@@ -618,7 +651,12 @@
 .queueMetrics div:last-child { border-right: 0; }
 .queueMetrics dt { color: #6b877c; font-size: 0.68rem; font-weight: 700; }
 .queueMetrics dd { margin: 3px 0 0; color: #183f30; font-size: 1.18rem; font-weight: 900; letter-spacing: -0.045em; }
-.calledArea { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 82px; padding: 14px 20px; background: #f5faef; }
+.queueSection { border-top: 1px solid #edf2ee; }
+.queueSectionHeader { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 20px 8px; background: #fbfdf9; }
+.queueSectionLabel { color: #3f6c59; font-size: 0.68rem; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; }
+.expiryTimer, .queueCount { color: #668278; font-size: 0.72rem; font-variant-numeric: tabular-nums; font-weight: 800; }
+.expiryTimer { color: #b14a2f; }
+.calledArea { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 82px; padding: 10px 20px 16px; background: #f5faef; }
 .calledArea p { margin: auto; color: #627f73; font-size: 0.8rem; }
 .calledArea span, .calledArea strong, .calledArea small { display: block; }
 .calledArea span { color: #587568; font-size: 0.67rem; font-weight: 800; }
@@ -655,6 +693,13 @@
   .form {
     padding: 0 22px 22px;
   }
+  .specialForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .specialForm fieldset,
+  .specialForm > button {
+    grid-column: 1 / -1;
+  }
   .participants {
     padding: 0 22px 22px;
   }
@@ -664,6 +709,31 @@
   .scheduleCards,
   .spaceGroups { padding-right: 22px; padding-left: 22px; }
   .cardActions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 639px) {
+  .eventList li {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 10px 12px;
+    padding: 15px 16px;
+  }
+  .eventActions,
+  .eventStatus,
+  .eventActionButton {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .eventStatus {
+    max-width: none;
+    text-align: left;
+  }
+  .eventActions {
+    min-width: 0;
+  }
+  .eventList button {
+    min-height: 48px;
+    font-size: 0.82rem;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .button,

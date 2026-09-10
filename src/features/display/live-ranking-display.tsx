@@ -23,6 +23,7 @@ type SpecialEvent = {
   title: string;
   status: "teaser" | "active";
   points: number;
+  teaserStartedAt?: string | null;
   endsAt: string;
   readyAt: string | null;
   qrImageUrl: string | null;
@@ -160,12 +161,12 @@ function SpecialEventOverlay({
   event: SpecialEvent;
   now: number;
 }) {
-  const teaser =
-    event.status === "teaser" &&
-    event.readyAt &&
-    new Date(event.readyAt).getTime() > now;
+  const readyAt = event.readyAt ?? (event.teaserStartedAt
+    ? new Date(new Date(event.teaserStartedAt).getTime() + 30_000).toISOString()
+    : null);
+  const teaser = event.status === "teaser" && Boolean(readyAt) && new Date(readyAt).getTime() > now;
   const countdown = teaser
-    ? remaining(event.readyAt!, now)
+    ? remaining(readyAt!, now)
     : remaining(event.endsAt, now);
   return (
     <section
