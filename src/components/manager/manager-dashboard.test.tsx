@@ -160,7 +160,7 @@ describe("ManagerDashboard", () => {
     expect(screen.getByText("Cabo de guerra")).toBeInTheDocument();
     expect(screen.getByText("Disponível")).toBeInTheDocument();
     expect(screen.getByText("Aberta")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Gerenciar partida" }));
+    await user.click(screen.getByRole("button", { name: "Entrar na partida" }));
     expect(screen.queryByRole("heading", { name: "Abrir Radicalidade" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Voltar para atividades" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Iniciar jogo" }));
@@ -179,7 +179,7 @@ describe("ManagerDashboard", () => {
       .mockResolvedValueOnce(new Response(JSON.stringify({ scope: "actions", actions: { games: [{ id: "g1", name: "Corrida do saco", run: { id: "run-1", status: "checkin", participants: [] } }] } })))
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: "run-1", status: "running" })));
     render(<ManagerDashboard />);
-    await user.click(await screen.findByRole("button", { name: "Gerenciar partida" }));
+    await user.click(await screen.findByRole("button", { name: "Entrar na partida" }));
     await user.click(await screen.findByRole("button", { name: "Iniciar jogo" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/runs/run-1/start", expect.objectContaining({ method: "POST", body: undefined })));
   });
@@ -202,7 +202,7 @@ describe("ManagerDashboard", () => {
       .mockResolvedValueOnce(new Response(JSON.stringify({ scope: "actions", actions: { games: [] } })));
 
     render(<ManagerDashboard />);
-    await user.click(await screen.findByRole("button", { name: "Gerenciar partida" }));
+    await user.click(await screen.findByRole("button", { name: "Entrar na partida" }));
     await user.click(await screen.findByRole("button", { name: "Encerrar e definir pontuação" }));
 
     expect(screen.getByRole("button", { name: "Confirmar pontuação e encerrar" })).toBeInTheDocument();
@@ -238,7 +238,7 @@ describe("ManagerDashboard", () => {
       .mockResolvedValueOnce(new Response(JSON.stringify({ scope: "actions", actions: { games: [] } })));
 
     render(<ManagerDashboard />);
-    await user.click(await screen.findByRole("button", { name: "Gerenciar partida" }));
+    await user.click(await screen.findByRole("button", { name: "Entrar na partida" }));
     const firstPlaceButtons = screen.getAllByRole("radio", { name: "1º" });
     const participationButtons = screen.getAllByRole("radio", { name: "Participa" });
 
@@ -340,7 +340,7 @@ describe("ManagerDashboard", () => {
         await Promise.resolve();
       });
       await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: "Gerenciar partida" }));
+        fireEvent.click(screen.getByRole("button", { name: "Entrar na partida" }));
       });
       expect(screen.getByText("Aguardando scans")).toBeInTheDocument();
       fetchMock.mockResolvedValueOnce(

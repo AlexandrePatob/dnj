@@ -613,8 +613,8 @@ function GameCard({
       </div>
       <div className={styles.cardActions}>
         {run ? (
-          <button className={styles.button} aria-label="Gerenciar partida" onClick={() => manageGame(game.id)}>
-            <Gamepad2 size={16} /> Gerenciar
+          <button className={styles.button} aria-label="Entrar na partida" onClick={() => manageGame(game.id)}>
+            <Gamepad2 size={16} /> Entrar
           </button>
         ) : (
           <button className={styles.button} aria-label={mode === "special_events" ? "Liberar QR" : "Iniciar partida"} onClick={() => void openRun(game.id)}>
