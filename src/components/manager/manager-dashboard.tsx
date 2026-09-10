@@ -868,31 +868,34 @@ function ParticipantList({
                 {results[person.id] ?? person.result ?? "Participando"}
               </span>
             ) : (
-              <div className={styles.resultOptions} role="radiogroup" aria-label={`Resultado de ${person.name}`}>
-                {([["first", "1º"], ["second", "2º"], ["third", "3º"], ["participation", "Participante"]] as const).map(([value, label]) => {
-                  const selected = (results[person.id] ?? person.result ?? "participation") === value;
-                  const takenByOther = people.some((other) => other.id !== person.id && (results[other.id] ?? other.result ?? "participation") === value);
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      aria-label={`${label}${takenByOther && !selected ? " indisponível" : ""}`}
-                      disabled={takenByOther && !selected}
-                      className={selected ? styles.resultOptionSelected : styles.resultOption}
-                      onClick={() => onResult((current) => {
-                        const next = { ...current, [person.id]: value };
-                        people.forEach((other) => {
-                          if (other.id !== person.id && (next[other.id] ?? other.result ?? "participation") === value) next[other.id] = "participation";
-                        });
-                        return next;
-                      })}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
+              <div className={styles.resultPicker}>
+                <span className={styles.resultLabel}>Classificação</span>
+                <div className={styles.resultOptions} role="radiogroup" aria-label={`Resultado de ${person.name}`}>
+                  {([["first", "1º"], ["second", "2º"], ["third", "3º"], ["participation", "Participante"]] as const).map(([value, label]) => {
+                    const selected = (results[person.id] ?? person.result ?? "participation") === value;
+                    const takenByOther = value !== "participation" && people.some((other) => other.id !== person.id && (results[other.id] ?? other.result ?? "participation") === value);
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        aria-label={`${label}${takenByOther && !selected ? " indisponível" : ""}`}
+                        disabled={takenByOther && !selected}
+                        className={selected ? styles.resultOptionSelected : styles.resultOption}
+                        onClick={() => onResult((current) => {
+                          const next = { ...current, [person.id]: value };
+                          if (value !== "participation") people.forEach((other) => {
+                            if (other.id !== person.id && (next[other.id] ?? other.result ?? "participation") === value) next[other.id] = "participation";
+                          });
+                          return next;
+                        })}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </li>

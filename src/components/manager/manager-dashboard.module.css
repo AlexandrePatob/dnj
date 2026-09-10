@@ -710,6 +710,17 @@
   color: #68867b;
   font-size: 0.72rem;
 }
+.participants li.participantScored > span:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+.participants li.participantScored > span:first-child small {
+  flex: none;
+  margin-top: 0;
+}
 .participants select {
   border: 1px solid #cddfd2;
   border-radius: 8px;
@@ -724,21 +735,33 @@
 }
 .resultOptions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, 40px) minmax(0, 1fr);
   gap: 6px;
   width: 100%;
-  margin-top: 3px;
+}
+.resultPicker {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  margin-top: 7px;
+}
+.resultLabel {
+  color: #68867b;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 .resultOption,
 .resultOptionSelected {
-  min-height: 44px;
+  min-height: 40px;
   border: 1px solid #cddfd2;
   border-radius: 9px;
-  padding: 7px 5px;
+  padding: 6px 4px;
   background: #f5faf4;
   color: #286047;
   font: inherit;
-  font-size: 0.73rem;
+  font-size: 0.68rem;
   font-weight: 800;
   cursor: pointer;
 }
