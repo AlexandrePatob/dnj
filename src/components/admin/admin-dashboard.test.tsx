@@ -45,11 +45,14 @@ beforeEach(() => {
       return Promise.resolve(jsonResponse({ ok: true }));
     if (input === "/api/v2/admin/notifications" && init?.method === "POST")
       return Promise.resolve(jsonResponse({ recipientCount: "3" }, 201));
-    if (input === "/api/v2/admin/activities")
-      return Promise.resolve(jsonResponse({ data: [
+    if (input.startsWith("/api/v2/admin/activities?kind=") || input === "/api/v2/admin/activities") {
+      const kind = new URL(input, "http://localhost").searchParams.get("kind");
+      const data = [
         { id: "activity-1", name: "Gincana", slug: "gincana", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 10, momentPoints: 20, cooldownSeconds: 60, allowsMoment: true },
         { id: "checkpoint-1", name: "Ponto de presença", slug: "ponto-de-presenca", kind: "checkpoint", status: "active", description: null, spaceId: "space-1", startsAt: null, endsAt: null, checkInPoints: 15, momentPoints: 0, cooldownSeconds: 60, allowsMoment: false },
-      ] }));
+      ].filter((activity) => !kind || activity.kind === kind);
+      return Promise.resolve(jsonResponse({ data }));
+    }
     if (input === "/api/v2/admin/activities/checkpoint-1/qr")
       return Promise.resolve(persistedCheckpointQr ? jsonResponse(persistedCheckpointQr) : new Response(null, { status: 204 }));
     if (input === "/api/v2/manager/runs" && init?.method === "POST")
@@ -82,9 +85,9 @@ describe("AdminDashboard V2", () => {
         return Promise.resolve(jsonResponse({ data: [{ id: "space-2", name: "Pátio", slug: "patio", mapReference: null }], pagination: { currentPage: "2", hasNextPage: false, limit: 20 } }));
       if (input === "/api/v2/admin/spaces")
         return Promise.resolve(jsonResponse({ data: [{ id: "space-1", name: "Capela", slug: "capela", mapReference: null }], pagination: { currentPage: "1", hasNextPage: true, limit: 20 } }));
-      if (input === "/api/v2/admin/activities?page=2")
+      if (input === "/api/v2/admin/activities?kind=challenge&page=2")
         return Promise.resolve(jsonResponse({ data: [{ id: "activity-2", name: "Gincana 2", slug: "gincana-2", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 0, momentPoints: 20, cooldownSeconds: 0, allowsMoment: true }], pagination: { currentPage: "2", hasNextPage: false, limit: 20 } }));
-      if (input === "/api/v2/admin/activities")
+      if (input === "/api/v2/admin/activities?kind=challenge")
         return Promise.resolve(jsonResponse({ data: [{ id: "activity-1", name: "Gincana", slug: "gincana", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 0, momentPoints: 20, cooldownSeconds: 0, allowsMoment: true }], pagination: { currentPage: "1", hasNextPage: true, limit: 20 } }));
       if (input === "/api/v2/admin/moments/moderation?queue=challenge&page=2")
         return Promise.resolve(jsonResponse({ data: [{ momentId: "moment-2", imageUrl: "", capturedAt: "2026-10-18T17:35:00.000Z", participantName: "Beto", activity: null, pointsAwarded: 0, photoStatus: "unavailable", availableActions: ["approve"] }], pagination: { currentPage: "2", hasNextPage: false, limit: 20 } }));
@@ -194,7 +197,7 @@ describe("AdminDashboard V2", () => {
     expect(await screen.findByText("Gincana")).toBeInTheDocument();
     fireEvent.click(navigation.getByRole("button", { name: "Espaços" }));
     expect(await screen.findByText("Capela")).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.anything());
+    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities?kind=challenge", expect.anything());
     expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/spaces", expect.anything());
   });
 
