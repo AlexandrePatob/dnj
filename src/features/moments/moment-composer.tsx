@@ -214,10 +214,14 @@ export function MomentComposer({
         window.clearTimeout(publishStatusTimerRef.current);
         publishStatusTimerRef.current = null;
       }
+      // Free moments never award points, so only a challenge publication
+      // that came back with zero points deserves the "not eligible" notice.
       setStatus(
-        moment.pointsAwarded === undefined || moment.pointsAwarded > 0
-          ? "Publicação concluída."
-          : "published_without_points",
+        mode === "challenge" &&
+          moment.pointsAwarded !== undefined &&
+          moment.pointsAwarded <= 0
+          ? "published_without_points"
+          : "Publicação concluída.",
       );
       window.setTimeout(() => onCreated(moment), 3_000);
     } catch (error) {
@@ -313,6 +317,14 @@ export function MomentComposer({
                     ? "Abrindo câmera..."
                     : "Câmera indisponível"}
                 </strong>
+                {status && status !== "Abrindo câmera..." && (
+                  <span
+                    className="mt-2 text-sm"
+                    style={{ color: "var(--muted-foreground)" }}
+                  >
+                    {status}
+                  </span>
+                )}
               </span>
             )}
           </>
