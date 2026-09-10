@@ -718,7 +718,7 @@
   font: inherit;
   font-size: 0.73rem;
 }
-.participantScored {
+.participants li.participantScored {
   grid-template-columns: 1fr;
   align-items: start;
 }
