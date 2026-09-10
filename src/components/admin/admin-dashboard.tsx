@@ -446,6 +446,7 @@ function DashboardMetric({ value, label, hint, loading }: { value: number | null
 
 function StaffList() {
   const [staff, setStaff] = useState<Staff[] | null>(null);
+  const [candidates, setCandidates] = useState<Staff[]>([]);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [scopeByUser, setScopeByUser] = useState<Record<string, string>>({});
@@ -455,13 +456,15 @@ function StaffList() {
   const [message, setMessage] = useState("");
   const load = useCallback(async () => {
     try {
-      const managers = await api<PaginatedResponse<Staff>>(
-        withPage("/admin/staff?role=EVENT_MANAGER", page),
-      );
+      const [managers, participants] = await Promise.all([
+        api<PaginatedResponse<Staff>>(withPage("/admin/staff?role=EVENT_MANAGER", page)),
+        api<PaginatedResponse<Staff>>(withPage("/admin/staff?role=DEFAULT", 1)),
+      ]);
       const managerItems = managers.data.filter(
         (item) => item.role === "EVENT_MANAGER",
       );
       setStaff(managerItems);
+      setCandidates(participants.data.slice(0, 5));
       setPagination(managers.pagination ?? null);
       setScopeByUser(
         Object.fromEntries(
@@ -521,8 +524,58 @@ function StaffList() {
   }
   if (error && !staff) return <Failure message={error} />;
   if (!staff) return <Loading />;
+  const matchingCandidates = candidates
+    .filter((candidate) => {
+      const query = candidateEmail.trim().toLowerCase();
+      return query && `${candidate.name} ${candidate.email}`.toLowerCase().includes(query);
+    })
+    .slice(0, 5);
+  const managersByScope = managerScopes.map((scope) => ({
+    ...scope,
+    managers: staff.filter((manager) => (manager.scope ?? "actions") === scope.value),
+  }));
   return (
     <div className={styles.dashboard}>
+      <section className={styles.activity}>
+        <SectionTitle kicker="Contas participantes" title="Adicionar gestor" />
+        <p className={styles.help}>
+          Busque uma conta existente e escolha a área operacional. Cada gestor
+          pertence a uma única área e passa a operar tudo daquele escopo.
+        </p>
+        {error && <p role="alert" className={styles.operationError}>{error}</p>}
+        <form
+          className={styles.managerInviteForm}
+          onSubmit={(event) => { event.preventDefault(); void promoteByEmail(); }}
+        >
+          <label>
+            Participante
+            <input
+              aria-label="E-mail do participante"
+              type="email"
+              value={candidateEmail}
+              onChange={(event) => setCandidateEmail(event.target.value)}
+              placeholder="Digite nome ou e-mail…"
+              required
+            />
+          </label>
+          <label>
+            Área
+            <select aria-label="Área do novo gestor" value={candidateScope} onChange={(event) => setCandidateScope(event.target.value)}>
+              {managerScopes.map((scope) => <option key={scope.value} value={scope.value}>{scope.label}</option>)}
+            </select>
+          </label>
+          <button className={styles.primaryButton} type="submit" disabled={!candidateEmail.trim()}>Tornar gestor</button>
+        </form>
+        {candidateEmail.trim() && (
+          <div className={styles.autocompleteList} role="listbox" aria-label="Contas encontradas">
+            {matchingCandidates.length ? matchingCandidates.map((candidate) => (
+              <button key={candidate.id} type="button" onClick={() => setCandidateEmail(candidate.email)}>
+                <strong>{candidate.name}</strong><span>{candidate.email}</span>
+              </button>
+            )) : <p className={styles.help}>Nenhuma das 5 contas carregadas corresponde à busca.</p>}
+          </div>
+        )}
+      </section>
       <section className={styles.activity}>
         <SectionTitle
           kicker="Contas operacionais"
@@ -534,8 +587,12 @@ function StaffList() {
           </p>
         )}
         {staff.length ? (
-          <ol>
-            {staff.map((manager) => (
+          <div className={styles.managerGroups}>
+            {managersByScope.filter((group) => group.managers.length > 0).map((group) => (
+              <section key={group.value} className={styles.managerGroup}>
+                <div className={styles.managerGroupTitle}><h3>{group.label}</h3><span>{group.managers.length}</span></div>
+                <ol>
+                {group.managers.map((manager) => (
               <li key={manager.id}>
                 <span className={styles.activityDot} />
                 <div>
@@ -584,8 +641,11 @@ function StaffList() {
                   </button>
                 </span>
               </li>
+                ))}
+                </ol>
+              </section>
             ))}
-          </ol>
+          </div>
         ) : (
           <Empty text="Nenhum gestor cadastrado." />
         )}
@@ -594,63 +654,6 @@ function StaffList() {
           pagination={pagination}
           onChange={setPage}
         />
-      </section>
-      <section className={styles.activity}>
-        <SectionTitle kicker="Participantes" title="Adicionar gestor" />
-        <p className={styles.help}>
-          Digite o e-mail de uma conta existente. Se não existir, nada será
-          alterado.
-        </p>
-        {error && (
-          <p role="alert" className={styles.operationError}>
-            {error}
-          </p>
-        )}
-        <details>
-          <summary className={styles.primaryButton}>
-            Vincular participante por e-mail
-          </summary>
-          <form
-            className={styles.rowActions}
-            onSubmit={(event) => {
-              event.preventDefault();
-              void promoteByEmail();
-            }}
-          >
-            <label>
-              E-mail do participante
-              <input
-                aria-label="E-mail do participante"
-                type="email"
-                value={candidateEmail}
-                onChange={(event) => setCandidateEmail(event.target.value)}
-                placeholder="participante@exemplo.com"
-                required
-              />
-            </label>
-            <label>
-              Área
-              <select
-                aria-label="Área do novo gestor"
-                value={candidateScope}
-                onChange={(event) => setCandidateScope(event.target.value)}
-              >
-                {managerScopes.map((scope) => (
-                  <option key={scope.value} value={scope.value}>
-                    {scope.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              className={styles.primaryButton}
-              type="submit"
-              disabled={!candidateEmail.trim()}
-            >
-              Tornar gestor
-            </button>
-          </form>
-        </details>
       </section>
     </div>
   );
