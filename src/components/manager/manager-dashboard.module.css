@@ -666,6 +666,35 @@
   font: inherit;
   font-size: 0.73rem;
 }
+.participantScored {
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+.resultOptions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  margin-top: 3px;
+}
+.resultOption,
+.resultOptionSelected {
+  min-height: 44px;
+  border: 1px solid #cddfd2;
+  border-radius: 9px;
+  padding: 7px 5px;
+  background: #f5faf4;
+  color: #286047;
+  font: inherit;
+  font-size: 0.73rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.resultOptionSelected {
+  border-color: #167c56;
+  background: #167c56;
+  color: #fff;
+}
 .notice {
   margin: 0 18px 18px;
   border-radius: 10px;

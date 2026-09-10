@@ -848,7 +848,7 @@ function ParticipantList({
     <ul className={styles.participants}>
       {people.length ? (
         people.map((person) => (
-          <li key={person.id}>
+          <li key={person.id} className={readonly ? undefined : styles.participantScored}>
             <span>
               <strong>{person.name}</strong>
               <small>
@@ -862,21 +862,23 @@ function ParticipantList({
                 {results[person.id] ?? person.result ?? "Participando"}
               </span>
             ) : (
-              <select
-                aria-label={`Resultado de ${person.name}`}
-                value={results[person.id] ?? person.result ?? "participation"}
-                onChange={(event) =>
-                  onResult((current) => ({
-                    ...current,
-                    [person.id]: event.target.value as Participant["result"],
-                  }))
-                }
-              >
-                <option value="first">1º lugar</option>
-                <option value="second">2º lugar</option>
-                <option value="third">3º lugar</option>
-                <option value="participation">Participação</option>
-              </select>
+              <div className={styles.resultOptions} role="radiogroup" aria-label={`Resultado de ${person.name}`}>
+                {([["first", "1º"], ["second", "2º"], ["third", "3º"], ["participation", "Participa"]] as const).map(([value, label]) => {
+                  const selected = (results[person.id] ?? person.result ?? "participation") === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      className={selected ? styles.resultOptionSelected : styles.resultOption}
+                      onClick={() => onResult((current) => ({ ...current, [person.id]: value }))}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
             )}
           </li>
         ))
