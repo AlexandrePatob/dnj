@@ -8,7 +8,7 @@ export type ConfessionPreparationSection = {
 
 export const CONFESSION_PREPARATION: ConfessionPreparationSection[] = [
   {
-    title: "COMO ME PREPARAR PARA A CONFISSÃO?",
+    title: "Como me preparar para a confissão?",
     paragraphs: [
       "A confissão é um encontro com a misericórdia de Deus.",
       "Reserve alguns minutos para silenciar o coração e peça ao Espírito Santo que lhe mostre, com sinceridade, aquilo que precisa ser entregue a Deus.",
@@ -27,7 +27,7 @@ export const CONFESSION_PREPARATION: ConfessionPreparationSection[] = [
     ],
   },
   {
-    title: "ORAÇÃO ANTES DO EXAME DE CONSCIÊNCIA",
+    title: "Oração antes do exame de consciência",
     paragraphs: [
       "Vinde, Espírito Santo.",
       "Iluminai minha inteligência e meu coração para que eu possa olhar com sinceridade para a minha vida.",
@@ -38,7 +38,7 @@ export const CONFESSION_PREPARATION: ConfessionPreparationSection[] = [
     ],
   },
   {
-    title: "FAÇA SEU EXAME DE CONSCIÊNCIA",
+    title: "Faça seu exame de consciência",
     paragraphs: [
       "Aqui eu evitaria uma lista enorme de pecados. O próprio Catecismo orienta que o exame seja feito à luz da Palavra de Deus, especialmente do Decálogo e dos ensinamentos de Jesus.",
       "Minha relação com Deus",
@@ -73,7 +73,7 @@ export const CONFESSION_PREPARATION: ConfessionPreparationSection[] = [
     itemHeadingIndexes: [5, 12, 18],
   },
   {
-    title: "PARA UMA BOA CONFISSÃO",
+    title: "Para uma boa confissão",
     items: [
       "Exame de consciência: Reconhecer com sinceridade os pecados cometidos.",
       "Arrependimento (contrição): Sentir pesar por ter pecado e reconhecê-lo como uma ofensa a Deus. A contrição ocupa o primeiro lugar entre os atos do penitente.",
@@ -86,7 +86,7 @@ export const CONFESSION_PREPARATION: ConfessionPreparationSection[] = [
     ],
   },
   {
-    title: "O QUE EU DIGO AO PADRE?",
+    title: "O que eu digo ao padre?",
     paragraphs: [
       "Ao chegar, você pode dizer:",
       "“Padre, abençoai-me porque pequei. Minha última confissão foi há... (falar há quanto tempo não se confessa)”",
@@ -102,7 +102,7 @@ export const CONFESSION_PREPARATION: ConfessionPreparationSection[] = [
     ],
   },
   {
-    title: "ATO DE CONTRIÇÃO",
+    title: "Ato de contrição",
     paragraphs: [
       "Meu Deus, eu me arrependo de todo o coração de Vos ter ofendido, porque sois tão bom e amável.",
       "Com a vossa graça, quero mudar de vida, evitar o pecado e tudo aquilo que me afasta de Vós.",
