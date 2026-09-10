@@ -363,7 +363,11 @@ export function DnjApp() {
 
   return (
     <AppShell theme={theme}>
-        <AnimatePresence mode="wait">
+        {!sessionReady && screen === "login" ? (
+          <div className="flex min-h-dvh items-center justify-center text-sm" style={{ color: "var(--muted-foreground)" }}>
+            Restaurando sessão…
+          </div>
+        ) : <AnimatePresence mode="wait">
           <motion.div
             key={screen}
             className={isMain ? "absolute inset-0" : "relative min-h-dvh"}
@@ -396,7 +400,7 @@ export function DnjApp() {
               }).catch(() => undefined);
             }} onLogout={() => { void authApi.logout().catch(() => undefined); storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
           </motion.div>
-        </AnimatePresence>
+        </AnimatePresence>}
 
         {isMain && screen !== "home" && <ParticipantHeader user={user} showAvatar={screen !== "account"} onHome={() => navigate("home")} onAccount={() => navigate("account")} onGame={() => navigate("game")} />}
         {isMain && <LiveStatusStack special={specialEvent} momentChallenge={momentChallenge} queueNotification={queueNotification} adminNotification={adminNotification} onOpenGame={() => navigate("game")} onOpenQueue={() => navigate("queue")} onReadAdmin={handleReadAdminNotification} />}
