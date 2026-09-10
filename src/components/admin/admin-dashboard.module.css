@@ -514,9 +514,28 @@
 .managerGroup[open] .managerGroupTitle::after { content: "−"; }
 .managerGroupTitle h3 { color: #1e7958; font-size: .82rem; margin: 0; }
 .managerGroupTitle span { background: #dff19a; border-radius: 999px; color: #31564c; font-size: .7rem; font-weight: 900; padding: 4px 8px; }
-.managerGroup ol { margin: 0; }
+.managerGroup ol { list-style: none; margin: 0; padding: 0; }
+.managerGroup li {
+  align-items: start;
+  border-top: 1px solid #edf2ee;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  padding: 16px 18px;
+}
+.managerGroup li:first-child { border-top: 0; }
+.managerGroup li > .activityDot { justify-self: center; margin-top: 7px; }
+.managerGroup li strong { color: #173f35; display: block; font-size: .9rem; line-height: 1.25; }
+.managerGroup li p { margin: 4px 0 0; }
+.managerGroup li p:first-of-type { color: #668278; font-size: .78rem; }
+.managerGroup li p:last-of-type { color: #88a095; font-size: .7rem; }
+.managerGroup li .rowActions { justify-content: flex-end; }
+.managerGroup li .rowActions label { color: #668278; display: grid; font-size: .67rem; font-weight: 800; gap: 5px; }
+.managerGroup li .rowActions select { min-width: 176px; }
 @media (max-width: 760px) {
   .managerInviteForm { grid-template-columns: 1fr; }
+  .managerGroup li { grid-template-columns: 10px minmax(0, 1fr); padding: 14px 15px; }
+  .managerGroup li > .rowActions { grid-column: 2; justify-content: flex-start; }
 }
 .primaryButton,
 .ghostButton,
