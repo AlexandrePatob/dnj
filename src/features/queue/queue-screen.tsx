@@ -4,6 +4,7 @@ import { CheckCircle2, Clock3, MapPin, Sparkles, X } from "lucide-react";
 import { CONFESSION_FAQ, SPIRITUAL_FAQ } from "@/features/app/fixtures";
 import type { AnimDir, QueueType } from "@/features/app/types";
 import { pastoralFirestore } from "@/lib/pastoral-queue/firebase";
+import { CONFESSION_PREPARATION } from "@/features/queue/confession-preparation";
 import {
   getActiveQueue,
   joinQueue,
@@ -84,6 +85,7 @@ export function QueueScreen({
     };
   }, [user.id]);
   const tracking = stage === "tracking";
+  const queueAccent = type === "confession" ? "var(--queue-confession)" : "var(--game)";
   useEffect(() => {
     const db = pastoralFirestore;
     if (!tracking || !type || !db) return;
@@ -286,6 +288,7 @@ export function QueueScreen({
                       : "Tenha um diálogo de fé e confiança sobre sua vida e discernimento à luz de Deus!"}
                   </p>
                   <button
+                    aria-label={`Preparar para ${label(item)}`}
                     className="mt-4 w-full rounded-full py-3 text-sm font-bold text-white"
                     style={{
                       background:
@@ -456,10 +459,7 @@ export function QueueScreen({
           <section
             className="mt-6 rounded-3xl p-6 text-white"
             style={{
-              background:
-                position <= 3 || position === 0
-                  ? "var(--game)"
-                  : "var(--primary)",
+              background: queueAccent,
             }}
           >
             <span className="text-sm text-white/80">
@@ -478,52 +478,84 @@ export function QueueScreen({
           <p className="mt-3 text-xs">Atualizado em tempo real.</p>
           <button
             disabled={operation === "exit"}
-            className="mt-4 w-full rounded-2xl py-3 font-bold disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-4 w-full rounded-2xl py-3 font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ background: queueAccent }}
             onClick={() => setConfirmingExit(true)}
           >
             Sair da fila
           </button>
           {confirmingExit && (
-            <section
+            <div
               role="dialog"
               aria-label="Confirmar saída da fila"
-              className="mt-4 rounded-2xl p-4"
-              style={{ background: "var(--card)" }}
+              aria-modal="true"
+              className="fixed inset-0 z-[80] flex items-end justify-center bg-black/45 p-4"
             >
-              <p className="text-sm font-bold">Sair da fila?</p>
-              <div className="mt-3 flex gap-3">
+              <section className="w-full max-w-md rounded-3xl p-5" style={{ background: "var(--card)" }}>
+                <p className="text-lg font-black" style={{ color: queueAccent }}>Sair da fila?</p>
+                <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
+                  Você perderá sua posição atual e precisará entrar novamente se quiser continuar aguardando.
+                </p>
+                <div className="mt-5 grid grid-cols-2 gap-3">
                 <button
                   disabled={operation === "exit"}
+                  className="rounded-xl py-3 text-sm font-bold"
+                  style={{ background: "var(--muted)", color: "var(--foreground)" }}
                   onClick={() => setConfirmingExit(false)}
                 >
                   Cancelar
                 </button>
                 <button
                   disabled={operation === "exit"}
+                  className="rounded-xl py-3 text-sm font-bold text-white disabled:opacity-50"
+                  style={{ background: queueAccent }}
                   onClick={() => void exit()}
                 >
                   {operation === "exit" ? "Saindo…" : "Confirmar saída"}
                 </button>
-              </div>
-            </section>
+                </div>
+              </section>
+            </div>
           )}
           <section className="mt-6">
             <h2 className="text-lg font-black">
-              Preparação para {label(type)}
+              {type === "confession" ? "Preparação para a Confissão" : "Preparação para Direção Espiritual"}
             </h2>
-            <div
-              className="mt-3 overflow-hidden rounded-2xl"
-              style={{ background: "var(--card)" }}
-            >
-              {faq.slice(0, 4).map((i) => (
-                <details key={i.q} className="border-b p-4">
-                  <summary className="cursor-pointer text-sm font-bold">
-                    {i.q}
-                  </summary>
-                  <p className="mt-3 text-sm">{i.a}</p>
-                </details>
-              ))}
-            </div>
+            {type === "confession" ? (
+              <div className="mt-3 space-y-2">
+                {CONFESSION_PREPARATION.map((section, index) => (
+                  <details key={section.title} open={index === 0} className="overflow-hidden rounded-2xl" style={{ background: "var(--card)" }}>
+                    <summary className="cursor-pointer px-4 py-4 text-sm font-black" style={{ color: queueAccent }}>
+                      {section.title}
+                    </summary>
+                    <div className="space-y-3 border-t px-4 py-4 text-sm leading-relaxed" style={{ borderColor: "var(--border)" }}>
+                      {section.paragraphs?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                      {section.items && (section.itemHeadingIndexes ? (
+                        <div className="space-y-3">
+                          {section.items.map((item, itemIndex) => section.itemHeadingIndexes?.includes(itemIndex) ? (
+                            <p key={item} className="pt-2 font-black" style={{ color: queueAccent }}>{item}</p>
+                          ) : (
+                            <p key={item} className="pl-4 before:mr-2 before:content-['•']">{item}</p>
+                          ))}
+                        </div>
+                      ) : (
+                        <ol className="list-decimal space-y-2 pl-5">{section.items.map((item) => <li key={item}>{item}</li>)}</ol>
+                      ))}
+                      {section.afterItems?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-3 overflow-hidden rounded-2xl" style={{ background: "var(--card)" }}>
+                {faq.slice(0, 4).map((i) => (
+                  <details key={i.q} className="border-b p-4">
+                    <summary className="cursor-pointer text-sm font-bold">{i.q}</summary>
+                    <p className="mt-3 text-sm">{i.a}</p>
+                  </details>
+                ))}
+              </div>
+            )}
           </section>
         </>
       )}
