@@ -632,7 +632,14 @@
   font-weight: 800;
 }
 .queueConsole { display: grid; gap: 18px; }
+.queueSettings { border: 1px solid #d8e5dc; border-radius: 12px; background: #fbfdf9; }
+.queueSettingsSummary { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 14px; color: #356a50; cursor: pointer; font-size: 0.76rem; font-weight: 800; list-style: none; }
+.queueSettingsSummary::-webkit-details-marker { display: none; }
+.queueSettingsSummary::after { content: ""; width: 7px; height: 7px; margin-left: auto; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); }
+.queueSettings[open] .queueSettingsSummary { border-bottom: 1px solid #e5eee8; }
+.queueSettings[open] .queueSettingsSummary::after { transform: rotate(225deg) translate(-1px, -1px); }
 .queueToolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid #d8e5dc; padding: 0 0 16px; }
+.queueSettings .queueToolbar { margin: 0 14px; padding: 14px 0 16px; }
 .queueToolbar strong, .queueToolbar span { display: block; }
 .queueToolbar strong { margin-top: 3px; color: #1d4e3a; font-size: 1.05rem; }
 .queueToolbar span { margin-top: 3px; color: #668278; font-size: 0.76rem; }
@@ -656,12 +663,15 @@
 .queueSectionLabel { color: #3f6c59; font-size: 0.68rem; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; }
 .expiryTimer, .queueCount { color: #668278; font-size: 0.72rem; font-variant-numeric: tabular-nums; font-weight: 800; }
 .expiryTimer { color: #b14a2f; }
-.calledArea { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 82px; padding: 10px 20px 16px; background: #f5faef; }
+.calledArea { display: grid; gap: 10px; min-height: 82px; padding: 10px 20px 16px; background: #f5faef; }
 .calledArea p { margin: auto; color: #627f73; font-size: 0.8rem; }
 .calledArea span, .calledArea strong, .calledArea small { display: block; }
 .calledArea span { color: #587568; font-size: 0.67rem; font-weight: 800; }
 .calledArea strong { margin-top: 2px; color: #234b3a; font-size: 0.9rem; }
 .calledArea small { margin-top: 2px; color: #708b80; font-size: 0.7rem; }
+.calledCard { display: flex; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid #e1eddc; padding: 5px 0 10px; }
+.calledCard:last-child { border-bottom: 0; padding-bottom: 0; }
+.calledCardSide { display: grid; justify-items: end; gap: 7px; }
 .calledActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
 .calledActions .secondary, .calledActions .danger { min-height: 35px; padding: 7px 9px; font-size: 0.72rem; }
 .queueList { margin: 0; padding: 4px 20px 10px; list-style: none; }
@@ -744,11 +754,13 @@
 }
 @media (max-width: 860px) { .queueGrid { grid-template-columns: 1fr; } }
 @media (max-width: 520px) {
-  .queueToolbar, .queuePanelHeader, .calledArea { align-items: flex-start; flex-direction: column; }
+  .queueToolbar, .queuePanelHeader { align-items: flex-start; flex-direction: column; }
   .queueToolbar .button, .queueToolbar .danger, .callButton { width: 100%; }
   .queuePanelHeader { padding: 18px 16px 14px; }
   .queueMetrics div { padding: 12px 10px; }
   .calledArea { padding: 14px 16px; }
+  .calledCard { align-items: stretch; flex-direction: column; }
+  .calledCardSide { justify-items: stretch; }
   .calledActions { width: 100%; justify-content: stretch; }
   .calledActions .secondary, .calledActions .danger { flex: 1; }
   .queueList { padding-right: 16px; padding-left: 16px; }

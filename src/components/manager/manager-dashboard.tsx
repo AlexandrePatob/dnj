@@ -249,7 +249,7 @@ export function ManagerDashboard() {
       : scope === "special_events"
         ? "Gestor de eventos especiais"
         : scope === "pastoral_queue"
-          ? "Gestor das filas pastorais"
+          ? "Gestor das filas"
         : "Gestor DNJ";
   return (
     <main className={styles.shell}>
@@ -276,7 +276,7 @@ export function ManagerDashboard() {
                 : scope === "actions"
                   ? "Radicalidade"
                 : scope === "pastoral_queue"
-                  ? "Filas pastorais"
+                  ? "Filas"
                   : "Eventos especiais"}
             </h1>
             <p>

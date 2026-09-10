@@ -88,7 +88,7 @@ type SpecialEvent = {
 type DashboardPanel =
   | "Dashboard"
   | AdminPanel
-  | "Filas pastorais"
+  | "Filas"
   | (typeof activityTypes)[number]["label"];
 const navigation: Array<{
   label: DashboardPanel;
@@ -100,7 +100,7 @@ const navigation: Array<{
   { label: "Espaços", icon: UsersRound },
   { label: "Moderação", icon: ShieldCheck },
   { label: "Notificações", icon: Bell },
-  { label: "Filas pastorais", icon: Clock3 },
+  { label: "Filas", icon: Clock3 },
   { label: "Pontuação", icon: BarChart3 },
 ];
 const managerScopes = [
@@ -344,7 +344,7 @@ export function AdminDashboard({
         {panel === "Espaços" && <SpaceList />}
         {panel === "Moderação" && <ModerationList />}
         {panel === "Notificações" && <Notifications />}
-        {panel === "Filas pastorais" && <PastoralQueueOverview />}
+        {panel === "Filas" && <PastoralQueueOverview />}
         {panel === "Pontuação" && <ScoringPanel />}
       </section>
     </main>

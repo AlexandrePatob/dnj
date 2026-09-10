@@ -44,8 +44,8 @@ describe("ManagerDashboard", () => {
 
     render(<ManagerDashboard />);
 
-    expect(await screen.findByText("Gestor das filas pastorais")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Filas pastorais" })).toBeInTheDocument();
+    expect(await screen.findByText("Gestor das filas")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Filas" })).toBeInTheDocument();
     expect(screen.queryByText("Conta sem escopo")).not.toBeInTheDocument();
   });
   it("operates the Cronometrista actions through the V2 API", async () => {

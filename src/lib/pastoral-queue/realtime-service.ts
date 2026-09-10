@@ -12,7 +12,7 @@ function requireFirestore() {
 
 function toEntry(data: DocumentData, id: string, status: QueueEntry["status"]): QueueEntry | null {
   const type = pastoralQueueType(data.queueType);
-  return type ? { id, participantId: data.phone, participantName: data.name, type, status, createdAt: data.createdAt, calledAt: data.calledAt, notificationMilestones: {} } : null;
+  return type ? { id, participantId: data.phone, participantName: data.name, type, status, createdAt: data.createdAt, calledAt: data.calledAt, expiresAt: data.expiresAt, notificationMilestones: {} } : null;
 }
 
 export function subscribeQueue(type: PastoralQueueType | null, onChange: (snapshot: QueueSnapshot) => void, onError?: (error: Error) => void): Unsubscribe {

@@ -17,6 +17,7 @@ export interface QueueEntry {
   status: PastoralEntryStatus;
   createdAt: Timestamp;
   calledAt?: Timestamp;
+  expiresAt?: Timestamp | Date;
   resolvedAt?: Timestamp;
   resolvedBy?: { id: string; name: string };
   notificationMilestones: Partial<Record<NotificationMilestone, true>>;

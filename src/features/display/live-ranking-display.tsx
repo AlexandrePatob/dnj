@@ -161,10 +161,11 @@ function SpecialEventOverlay({
   event: SpecialEvent;
   now: number;
 }) {
-  const readyAt = event.readyAt ?? (event.teaserStartedAt
-    ? new Date(new Date(event.teaserStartedAt).getTime() + 30_000).toISOString()
-    : null);
-  const teaser = event.status === "teaser" && Boolean(readyAt) && new Date(readyAt).getTime() > now;
+  const teaserStartedAt = event.teaserStartedAt;
+  const readyAt = event.readyAt ?? (teaserStartedAt
+    ? new Date(new Date(teaserStartedAt).getTime() + 30_000).toISOString()
+    : "");
+  const teaser = event.status === "teaser" && readyAt !== "" && new Date(readyAt).getTime() > now;
   const countdown = teaser
     ? remaining(readyAt!, now)
     : remaining(event.endsAt, now);
