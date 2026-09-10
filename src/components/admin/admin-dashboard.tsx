@@ -589,8 +589,8 @@ function StaffList() {
         {staff.length ? (
           <div className={styles.managerGroups}>
             {managersByScope.filter((group) => group.managers.length > 0).map((group) => (
-              <section key={group.value} className={styles.managerGroup}>
-                <div className={styles.managerGroupTitle}><h3>{group.label}</h3><span>{group.managers.length}</span></div>
+              <details key={group.value} className={styles.managerGroup}>
+                <summary className={styles.managerGroupTitle}><h3>{group.label}</h3><span>{group.managers.length}</span></summary>
                 <ol>
                 {group.managers.map((manager) => (
               <li key={manager.id}>
@@ -643,7 +643,7 @@ function StaffList() {
               </li>
                 ))}
                 </ol>
-              </section>
+              </details>
             ))}
           </div>
         ) : (

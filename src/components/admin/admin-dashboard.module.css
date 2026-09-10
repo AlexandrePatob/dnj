@@ -508,7 +508,10 @@
 .autocompleteList button span { color: #668278; font-size: .72rem; }
 .managerGroups { display: grid; gap: 16px; margin-top: 16px; }
 .managerGroup { border: 1px solid #dce8e1; border-radius: 12px; overflow: hidden; }
-.managerGroupTitle { align-items: center; background: #f5fae7; display: flex; justify-content: space-between; padding: 11px 14px; }
+.managerGroupTitle { align-items: center; background: #f5fae7; cursor: pointer; display: flex; justify-content: space-between; list-style: none; padding: 11px 14px; }
+.managerGroupTitle::-webkit-details-marker { display: none; }
+.managerGroupTitle::after { color: #668278; content: "+"; font-size: 1.15rem; font-weight: 500; margin-left: auto; padding-left: 10px; }
+.managerGroup[open] .managerGroupTitle::after { content: "−"; }
 .managerGroupTitle h3 { color: #1e7958; font-size: .82rem; margin: 0; }
 .managerGroupTitle span { background: #dff19a; border-radius: 999px; color: #31564c; font-size: .7rem; font-weight: 900; padding: 4px 8px; }
 .managerGroup ol { margin: 0; }
