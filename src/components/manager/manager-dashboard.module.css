@@ -514,18 +514,18 @@
   overflow-y: auto;
 }
 .runControls {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 1fr);
+  display: flex;
   align-items: center;
+  justify-content: center;
   max-width: 620px;
   margin: 0 auto;
   width: 100%;
   gap: 6px;
   padding: 8px 10px 10px;
 }
-.runControls .secondary { grid-column: 1; grid-row: 1; }
-.runControls .button { grid-column: 2; grid-row: 1; }
-.runControls .danger { grid-column: 3; grid-row: 1; }
 .runControls button {
+  flex: 1 1 0;
+  max-width: 170px;
   min-width: 0;
   padding-right: 7px;
   padding-left: 7px;
