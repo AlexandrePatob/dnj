@@ -6,6 +6,10 @@ import type { AnimDir, QueueType } from "@/features/app/types";
 import { pastoralFirestore } from "@/lib/pastoral-queue/firebase";
 import { CONFESSION_PREPARATION } from "@/features/queue/confession-preparation";
 import {
+  SPIRITUAL_PREPARATION,
+  SPIRITUAL_PREPARATION_INTRO,
+} from "@/features/queue/spiritual-preparation";
+import {
   getActiveQueue,
   joinQueue,
   leaveQueue,
@@ -510,41 +514,35 @@ export function QueueScreen({
             <h2 className="text-lg font-black">
               {type === "confession" ? "Preparação para a Confissão" : "Preparação para Direção Espiritual"}
             </h2>
-            {type === "confession" ? (
-              <div className="mt-3 space-y-2">
-                {CONFESSION_PREPARATION.map((section) => (
-                  <details key={section.title} className="overflow-hidden rounded-2xl" style={{ background: "var(--card)" }}>
-                    <summary className="cursor-pointer px-4 py-4 text-sm font-black" style={{ color: queueAccent }}>
-                      {section.title}
-                    </summary>
-                    <div className="max-w-prose space-y-4 border-t px-4 py-4 text-sm leading-7" style={{ borderColor: "var(--border)" }}>
-                      {section.paragraphs?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-                      {section.items && (section.itemHeadingIndexes ? (
-                        <div className="space-y-3">
-                          {section.items.map((item, itemIndex) => section.itemHeadingIndexes?.includes(itemIndex) ? (
-                            <p key={item} className="pt-2 font-black" style={{ color: queueAccent }}>{item}</p>
-                          ) : (
-                            <p key={item} className="pl-4 before:mr-2 before:content-['•']">{item}</p>
-                          ))}
-                        </div>
-                      ) : (
-                        <ol className="list-decimal space-y-2 pl-5">{section.items.map((item) => <li key={item}>{item}</li>)}</ol>
-                      ))}
-                      {section.afterItems?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-                    </div>
-                  </details>
-                ))}
-              </div>
-            ) : (
-              <div className="mt-3 overflow-hidden rounded-2xl" style={{ background: "var(--card)" }}>
-                {faq.slice(0, 4).map((i) => (
-                  <details key={i.q} className="border-b p-4">
-                    <summary className="cursor-pointer text-sm font-bold">{i.q}</summary>
-                    <p className="mt-3 text-sm">{i.a}</p>
-                  </details>
-                ))}
-              </div>
+            {type === "spiritual" && (
+              <p className="mt-3 rounded-2xl px-4 py-4 text-sm leading-7" style={{ background: "var(--card)" }}>
+                {SPIRITUAL_PREPARATION_INTRO}
+              </p>
             )}
+            <div className="mt-3 space-y-2">
+              {(type === "confession" ? CONFESSION_PREPARATION : SPIRITUAL_PREPARATION).map((section) => (
+                <details key={section.title} className="overflow-hidden rounded-2xl" style={{ background: "var(--card)" }}>
+                  <summary className="cursor-pointer px-4 py-4 text-sm font-black" style={{ color: queueAccent }}>
+                    {section.title}
+                  </summary>
+                  <div className="max-w-prose space-y-4 border-t px-4 py-4 text-sm leading-7" style={{ borderColor: "var(--border)" }}>
+                    {section.paragraphs?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                    {section.items && (section.itemHeadingIndexes ? (
+                      <div className="space-y-3">
+                        {section.items.map((item, itemIndex) => section.itemHeadingIndexes?.includes(itemIndex) ? (
+                          <p key={item} className="pt-2 font-black" style={{ color: queueAccent }}>{item}</p>
+                        ) : (
+                          <p key={item} className="pl-4 before:mr-2 before:content-['•']">{item}</p>
+                        ))}
+                      </div>
+                    ) : (
+                      <ol className="list-decimal space-y-2 pl-5">{section.items.map((item) => <li key={item}>{item}</li>)}</ol>
+                    ))}
+                    {section.afterItems?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                  </div>
+                </details>
+              ))}
+            </div>
           </section>
         </>
       )}
