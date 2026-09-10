@@ -120,7 +120,6 @@ export function DnjApp() {
   const [queueNotification, setQueueNotification] = useState<LiveQueueNotification | null>(null);
   const [adminNotification, setAdminNotification] = useState<LiveAdminNotification | null>(null);
   const specialEventsUnavailable = useRef(false);
-  const restoredSession = useRef(false);
   const restoredSnapshot = useRef(false);
 
   const navigate = useCallback((next: Screen) => {
@@ -214,8 +213,6 @@ export function DnjApp() {
   const activeNavScreen = screen === "schedule" || screen === "map" ? "home" : screen;
 
   useEffect(() => {
-    if (restoredSession.current) return;
-    restoredSession.current = true;
     let disposed = false;
     void authApi.getSession().then((identity) => {
       if (disposed) return;
