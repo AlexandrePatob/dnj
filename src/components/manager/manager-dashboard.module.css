@@ -415,7 +415,7 @@
 }
 .gameGridHeader {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 118px;
+  grid-template-columns: minmax(0, 1fr) 108px;
   gap: 12px;
   padding: 0 12px 7px;
   color: #789187;
@@ -429,7 +429,7 @@
 }
 .gameCard {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 118px;
+  grid-template-columns: minmax(0, 1fr) 108px;
   gap: 12px;
   align-items: center;
   border: 1px solid #dce9de;
@@ -496,7 +496,8 @@
 }
 .gameCard .cardActions {
   min-width: 0;
-  padding: 10px 12px;
+  padding: 8px 10px;
+  gap: 5px;
 }
 .gameCard .button,
 .gameCard .secondary,

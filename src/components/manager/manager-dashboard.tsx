@@ -602,7 +602,7 @@ function GameCard({
       <div className={styles.gameCardInfo}>
         <div className={styles.gameCardHeader}>
           <span>
-            <span className={styles.kicker}>{mode === "actions" ? "Radicalidade" : "Evento"}</span>
+            {mode === "special_events" ? <span className={styles.kicker}>Evento</span> : null}
             <strong>{game.name}</strong>
           </span>
           <span className={styles.gameState}>{runLabel}</span>
