@@ -506,6 +506,10 @@ function ActionConsole({
   }
   return (
     <div className={styles.stack}>
+      <button className={styles.button} onClick={() => setEditor({ name: "" })}>
+        <Plus size={16} />
+        {mode === "special_events" ? "Novo evento" : "Novo jogo"}
+      </button>
       <section className={styles.panel}>
         <header className={styles.panelHeader}>
           <div>
@@ -526,10 +530,6 @@ function ActionConsole({
           />
         )}
       </section>
-      <button className={styles.button} onClick={() => setEditor({ name: "" })}>
-        <Plus size={16} />
-        {mode === "special_events" ? "Novo evento" : "Novo jogo"}
-      </button>
       {editor ? (
         <div className={styles.dialogBackdrop} role="presentation">
           <form
