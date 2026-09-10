@@ -138,6 +138,14 @@ describe("apiRequest offline behavior", () => {
     expect(fetch).toHaveBeenCalledWith("/api/v2/auth/refresh", expect.objectContaining({ headers: expect.objectContaining({ "X-CSRF-Token": "published-token" }) }));
   });
 
+  it("prefers the current csrf_token cookie over a stale in-memory token", async () => {
+    setCsrfToken("stale-token");
+    vi.stubGlobal("document", { cookie: "csrf_token=current-token" });
+    vi.mocked(fetch).mockResolvedValueOnce(response({ ok: true }));
+    await apiRequest("/auth/refresh", { method: "POST" });
+    expect(fetch).toHaveBeenCalledWith("/api/v2/auth/refresh", expect.objectContaining({ headers: expect.objectContaining({ "X-CSRF-Token": "current-token" }) }));
+  });
+
   it("uses the CSRF token returned by refresh when replaying a 401 request", async () => {
     vi.stubGlobal("document", { cookie: "csrf_token=stale-token" });
     vi.mocked(fetch)
