@@ -220,7 +220,10 @@ export function DnjApp() {
     void authApi.getSession().then((identity) => {
       if (disposed) return;
       const apiUser = mapIdentityUser(identity.user);
-      const session = { user: apiUser, identityToken: "" };
+      // The session endpoint may have refreshed the short-lived access token.
+      // Keep that token in the in-memory presentation session so every
+      // protected request remains authenticated after a full page reload.
+      const session = { user: apiUser, identityToken: identity.accessToken };
       storage.setSession(session);
       setUser(sessionUserData(session));
       setPrevScreen("login");
