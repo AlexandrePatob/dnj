@@ -444,9 +444,10 @@ export function QueueScreen({
         <>
           <header>
             <button
-              className="float-right rounded-full p-2"
+              className="float-right rounded-full p-2 transition-opacity hover:opacity-70"
               onClick={() => setConfirmingExit(true)}
-              aria-label="Fechar acompanhamento"
+              aria-label="Sair da fila"
+              title="Sair da fila"
             >
               <X />
             </button>
@@ -457,7 +458,7 @@ export function QueueScreen({
             </p>
           </header>
           <section
-            className="mt-6 rounded-3xl p-6 text-white"
+            className="mt-4 rounded-3xl p-4 text-center text-white"
             style={{
               background: queueAccent,
             }}
@@ -467,23 +468,15 @@ export function QueueScreen({
                 ? "Chamado para atendimento"
                 : "Sua posição na fila"}
             </span>
-            <strong className="mt-2 block text-5xl">
+            <strong className="mt-1 block text-4xl">
               {position === 0 ? "Sua vez!" : `${position}º`}
             </strong>
-            <p className="mt-5 flex items-center gap-2 text-sm">
+            <p className="mt-3 flex items-center justify-center gap-2 text-sm">
               <Clock3 size={17} />
               {state}
             </p>
           </section>
-          <p className="mt-3 text-xs">Atualizado em tempo real.</p>
-          <button
-            disabled={operation === "exit"}
-            className="mt-4 w-full rounded-2xl py-3 font-bold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ background: queueAccent }}
-            onClick={() => setConfirmingExit(true)}
-          >
-            Sair da fila
-          </button>
+          <p className="mt-2 text-center text-xs">Atualizado em tempo real.</p>
           {confirmingExit && (
             <div
               role="dialog"
@@ -523,12 +516,12 @@ export function QueueScreen({
             </h2>
             {type === "confession" ? (
               <div className="mt-3 space-y-2">
-                {CONFESSION_PREPARATION.map((section, index) => (
-                  <details key={section.title} open={index === 0} className="overflow-hidden rounded-2xl" style={{ background: "var(--card)" }}>
+                {CONFESSION_PREPARATION.map((section) => (
+                  <details key={section.title} className="overflow-hidden rounded-2xl" style={{ background: "var(--card)" }}>
                     <summary className="cursor-pointer px-4 py-4 text-sm font-black" style={{ color: queueAccent }}>
                       {section.title}
                     </summary>
-                    <div className="space-y-3 border-t px-4 py-4 text-sm leading-relaxed" style={{ borderColor: "var(--border)" }}>
+                    <div className="max-w-prose space-y-4 border-t px-4 py-4 text-sm leading-7" style={{ borderColor: "var(--border)" }}>
                       {section.paragraphs?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
                       {section.items && (section.itemHeadingIndexes ? (
                         <div className="space-y-3">
