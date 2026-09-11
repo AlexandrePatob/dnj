@@ -10,7 +10,6 @@ import {
 } from "@/lib/api/media";
 
 type MomentStep = "capture" | "review";
-type CameraZoom = 0.5 | 1 | 2;
 const CAMERA_START_TIMEOUT_MS = 8_000;
 const publishLabels: Record<Exclude<PublishProgress, "success" | "error">, string> = {
   hashing: "Preparando sua foto…",
@@ -30,6 +29,7 @@ export function MomentComposer({
   onCreated: (moment: Moment) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const nativeCameraInputRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const publishingRef = useRef(false);
   const publishStatusTimerRef = useRef<number | null>(null);
@@ -40,11 +40,14 @@ export function MomentComposer({
   const [cameraOpen, setCameraOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [step, setStep] = useState<MomentStep>("capture");
+  const [useNativeCamera, setUseNativeCamera] = useState(false);
   const [facingMode, setFacingMode] = useState<"environment" | "user">(
     "environment",
   );
-  const [cameraZoom, setCameraZoom] = useState<CameraZoom>(1);
-  const [zoomMenuOpen, setZoomMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setUseNativeCamera(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+  }, []);
 
   useEffect(
     () => () => {
@@ -120,26 +123,8 @@ export function MomentComposer({
       );
     }
   }, [facingMode, stopCamera]);
-  const selectCameraZoom = useCallback(async (zoom: CameraZoom) => {
-    const track = streamRef.current?.getVideoTracks()[0];
-    if (!track) return;
-    const capabilities = track.getCapabilities() as MediaTrackCapabilities & {
-      zoom?: { min?: number; max?: number };
-    };
-    if (!capabilities.zoom) return;
-    const min = capabilities.zoom.min ?? zoom;
-    const max = capabilities.zoom.max ?? zoom;
-    const nativeZoom = Math.min(max, Math.max(min, zoom));
-    try {
-      await track.applyConstraints({
-        advanced: [{ zoom: nativeZoom } as MediaTrackConstraintSet],
-      });
-      setCameraZoom(zoom);
-    } catch {
-      setStatus("Este dispositivo não oferece esse zoom nativo.");
-    }
-  }, []);
   useEffect(() => {
+    if (useNativeCamera) return;
     const timer = window.setTimeout(() => {
       void startCamera();
     }, 0);
@@ -147,17 +132,13 @@ export function MomentComposer({
       window.clearTimeout(timer);
       stopCamera();
     };
-  }, [startCamera, stopCamera]);
+  }, [startCamera, stopCamera, useNativeCamera]);
   useEffect(() => {
     if (cameraOpen && streamRef.current && videoRef.current) {
       videoRef.current.srcObject = streamRef.current;
       void videoRef.current.play();
     }
   }, [cameraOpen]);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- aplica o zoom nativo quando a câmera abre; estado reflete o resultado assíncrono
-    if (cameraOpen) void selectCameraZoom(cameraZoom);
-  }, [cameraOpen, cameraZoom, selectCameraZoom]);
   function selectFile(next: File) {
     if (preview) URL.revokeObjectURL(preview);
     setFile(next);
@@ -185,6 +166,10 @@ export function MomentComposer({
       "image/jpeg",
       0.9,
     );
+  }
+  function openNativeCamera() {
+    stopCamera();
+    nativeCameraInputRef.current?.click();
   }
   function retakePhoto() {
     if (preview) URL.revokeObjectURL(preview);
@@ -238,7 +223,7 @@ export function MomentComposer({
     <section
       role="dialog"
       aria-modal="true"
-      className="absolute inset-0 z-30 flex min-h-0 flex-col items-center overflow-y-auto px-0 pb-[var(--bottom-nav-total-height)]"
+      className="absolute inset-0 z-30 flex min-h-0 flex-col items-center overflow-hidden px-0"
       style={{
         background: "var(--background)",
         paddingTop: "calc(var(--participant-header-height) + var(--safe-area-top))",
@@ -262,6 +247,20 @@ export function MomentComposer({
       >
         <X size={18} />
       </button>
+      <input
+        ref={nativeCameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(event) => {
+          const next = event.currentTarget.files?.[0];
+          if (!next) return;
+          selectFile(next);
+          setStep("review");
+          event.currentTarget.value = "";
+        }}
+      />
       <div className="hidden">
         <h2 className="text-xl font-bold">
           {step === "capture" && mode === "challenge"
@@ -308,13 +307,15 @@ export function MomentComposer({
               muted
               playsInline
               className="h-full w-full object-contain"
-              style={{ display: cameraOpen ? "block" : "none" }}
+              style={{ display: cameraOpen && !useNativeCamera ? "block" : "none" }}
             />
-            {!cameraOpen && (
+            {(!cameraOpen || useNativeCamera) && (
               <span className="flex h-full flex-col items-center justify-center px-6 text-center">
                 <Camera className="mb-3" style={{ color: "var(--primary)" }} />
                 <strong>
-                  {status === "Abrindo câmera..."
+                  {useNativeCamera
+                    ? "Use a câmera do seu celular"
+                    : status === "Abrindo câmera..."
                     ? "Abrindo câmera..."
                     : "Câmera indisponível"}
                 </strong>
@@ -333,52 +334,18 @@ export function MomentComposer({
       </div>
       {step === "capture" ? (
         <>
-          <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-black/65 px-3 py-2 backdrop-blur-sm">
-            <div className="relative" aria-label="Zoom nativo da câmera">
-              <button
-                type="button"
-                disabled={!cameraOpen}
-                onClick={() => setZoomMenuOpen((open) => !open)}
-                className="rounded-full bg-white/20 px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
-                aria-expanded={zoomMenuOpen}
-                aria-haspopup="listbox"
-              >
-                {cameraZoom}x
-              </button>
-              {zoomMenuOpen && (
-                <div className="absolute bottom-full left-0 mb-2 flex flex-col gap-1 rounded-2xl bg-black/75 p-1 backdrop-blur-sm" role="listbox" aria-label="Opções de zoom">
-                  {([0.5, 1, 2] as const)
-                    .filter((zoom) => zoom !== cameraZoom)
-                    .map((zoom) => (
-                <button
-                  key={zoom}
-                  type="button"
-                  disabled={!cameraOpen}
-                  onClick={() => {
-                    setZoomMenuOpen(false);
-                    void selectCameraZoom(zoom);
-                  }}
-                  className="rounded-full px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
-                  aria-label={`Zoom ${zoom}x`}
-                  role="option"
-                >
-                  {zoom}x
-                </button>
-                    ))}
-                </div>
-              )}
-            </div>
+          <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center rounded-2xl bg-black/65 px-3 py-2 backdrop-blur-sm">
             <button
               type="button"
-              disabled={!cameraOpen}
-              onClick={capturePhoto}
+              disabled={!cameraOpen && !useNativeCamera}
+              onClick={useNativeCamera ? openNativeCamera : capturePhoto}
               className="grid h-16 w-16 shrink-0 place-items-center rounded-full border-4 border-white text-sm font-bold shadow-lg disabled:opacity-40"
               style={{ background: "var(--primary)", color: "white" }}
               aria-label="Capturar foto"
             >
               <Camera size={26} />
             </button>
-            <button
+            {!useNativeCamera && <button
               type="button"
               disabled={!cameraOpen}
               onClick={() =>
@@ -386,12 +353,12 @@ export function MomentComposer({
                   value === "environment" ? "user" : "environment",
                 )
               }
-              className="grid h-9 w-9 place-items-center rounded-full bg-white/90 disabled:opacity-40"
+              className="ml-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 disabled:opacity-40"
               style={{ color: "var(--foreground)" }}
               aria-label="Trocar câmera"
             >
               <RefreshCw size={18} />
-            </button>
+            </button>}
           </div>
         </>
       ) : (
