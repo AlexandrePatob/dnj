@@ -251,6 +251,12 @@ function BackdropRanking({ entries, board, clock }: { entries: RankingEntry[]; b
   return (
     <>
       <time className="absolute z-10 text-right text-[1.8vw] font-black tabular-nums text-white" style={{ right: "2.4%", top: "3.3%" }}>{clock}</time>
+      <p
+        className="absolute left-1/2 z-10 -translate-x-1/2 text-[.48vw] font-semibold uppercase tracking-[.22em] text-[#f3f51b]/90"
+        style={{ top: "20.2%" }}
+      >
+        {board === "individual" ? "Individual" : "Grupo"}
+      </p>
       <section aria-label="Pódio" className="absolute inset-x-0" style={{ top: "30.8%", height: "45.3%" }}>
         {places.map((entry, index) => {
           const center = index === 1;
@@ -400,7 +406,7 @@ export function LiveRankingDisplay({
       }`}
       style={{
         ...(format === "side" ? { aspectRatio: "3 / 4" } : isBackdrop ? { aspectRatio: "5 / 2", width: "min(100vw, 250vh)" } : {}),
-        backgroundImage: `url(${isBackdrop ? "/telao-horizontal-ranking-live-v2.png" : format === "side" ? "/telao-vertical-base.png" : "/telao-vertical-reference.png"})`,
+        backgroundImage: `url(${isBackdrop ? "/telao-horizontal-ranking-live-v3.png" : format === "side" ? "/telao-vertical-base.png" : "/telao-vertical-reference.png"})`,
         backgroundPosition: "center",
         backgroundSize: "100% 100%",
         backgroundRepeat: "no-repeat",

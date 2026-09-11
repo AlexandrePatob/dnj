@@ -173,7 +173,8 @@ describe("LiveRankingDisplay", () => {
     render(<LiveRankingDisplay target="screen" screenFormat="backdrop" />);
     await screen.findByRole("main");
     expect(screen.getByRole("main")).toHaveStyle({ aspectRatio: "5 / 2" });
-    expect(screen.getByRole("main")).toHaveStyle({ backgroundImage: "url(/telao-horizontal-ranking-live-v2.png)" });
+    expect(screen.getByRole("main")).toHaveStyle({ backgroundImage: "url(/telao-horizontal-ranking-live-v3.png)" });
+    expect(await screen.findByText("Individual")).toBeInTheDocument();
   });
 
   it("limits the display to the three podium positions", async () => {
