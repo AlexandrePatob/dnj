@@ -16,5 +16,6 @@ describe("DNJ theme tokens", () => {
 
   it("uses high-contrast foreground tokens in dark mode", () => {
     expect(theme).toMatch(/\.dark\s*\{[\s\S]*?--foreground:\s*#f6ffff;[\s\S]*?--muted-foreground:\s*#b9d4d4;/i);
+    expect(theme).toMatch(/\.dark\s*\{[\s\S]*?--background:\s*#000;/i);
   });
 });

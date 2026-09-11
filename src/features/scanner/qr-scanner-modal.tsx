@@ -13,6 +13,7 @@ type CameraFacing = "environment" | "user";
 type ZoomRange = { min: number; max: number; step: number } | null;
 export type QrValidation = Participation & { activityKind: QrActivityKind; qrAction: "joined" | "scored"; qrPoints: number };
 const cameraStartTimeout = "CAMERA_START_TIMEOUT";
+const qrCooldownMessage = "Aproveite o ambiente, engaje e em 10 minutos poderá pontuar novamente.";
 type ZoomCapableTrack = MediaStreamTrack & {
   getCapabilities?: () => {
     zoom?: { min?: number; max?: number; step?: number };
@@ -140,7 +141,7 @@ export function QrScannerModal({
           stopScanner();
           setStatus("warning");
           setWarningTitle("Aguarde 10 minutos");
-          setMessage("Aguarde 10 minutos para poder escanear outro QR Code!");
+          setMessage(qrCooldownMessage);
         } else {
           setStatus("error");
           setMessage(scannerMessage(error));
@@ -375,10 +376,10 @@ export function QrScannerModal({
       {status === "warning" && (
         <QrSuccessCelebration
           points={0}
-          label="Você poderá escanear outro QR Code quando o período de espera terminar."
+          label={qrCooldownMessage}
           warningTitle={warningTitle}
           warning
-          durationMs={3_000}
+          durationMs={5_000}
           onDone={() => onCloseRef.current()}
         />
       )}
