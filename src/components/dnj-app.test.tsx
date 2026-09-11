@@ -93,7 +93,7 @@ describe("DnjApp session restoration", () => {
     render(<DnjApp />);
     expect(await screen.findByText(/Ana!/)).toBeInTheDocument();
     expect(fetch).toHaveBeenCalledWith("https://api.dnj.test/v2/auth/session", expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer restored-token" }) }));
-    expect((vi.mocked(fetch).mock.calls[0][1] as RequestInit)).not.toHaveProperty("credentials");
+    expect((vi.mocked(fetch).mock.calls[0][1] as RequestInit)).toHaveProperty("credentials", "include");
     expect(storage.getSession()?.identityToken).toBe("restored-token");
     expect(storage.getSession()?.user.avatarUrl).toBe("https://images.example/ana.jpg");
     expect(localStorage.getItem("dnj.identity-token.v1")).toBeNull();

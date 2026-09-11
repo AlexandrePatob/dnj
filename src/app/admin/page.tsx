@@ -16,7 +16,7 @@ export default function AdminPage() {
     // The external API restores the session from the stored bearer token
     // (refreshing it once if expired) and is the only authority on the role.
     const restore = async () => {
-      if (!authStorage.getAccessToken() && !authStorage.getRefreshToken()) { setSession(null); return; }
+      if (!authStorage.getAccessToken()) { setSession(null); return; }
       const identity = await authApi.getSession();
       if (!active) return;
       if (identity.user.role !== "ADMIN" || !identity.user.email) { authStorage.clearCredentials(); setSession(null); return; }

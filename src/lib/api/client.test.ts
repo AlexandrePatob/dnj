@@ -117,11 +117,11 @@ describe("apiRequest offline behavior", () => {
     expect(initOf(0).headers).toEqual(expect.objectContaining({ Authorization: "Bearer explicit-token" }));
   });
 
-  it("persists the token pair returned by a login response", async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(response({ ...rotated("login"), user: { id: "1" }, onboardingRequired: false }));
+  it("persists access and CSRF tokens returned by a login response", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(response({ accessToken: "access-login", csrfToken: "csrf-login", tokenType: "Bearer", expiresIn: 900, user: { id: "1" }, onboardingRequired: false }));
     await apiRequest("/auth/google", { method: "POST", body: { idToken: "google" } });
     expect(authStorage.getAccessToken()).toBe("access-login");
-    expect(authStorage.getRefreshToken()).toBe("refresh-login");
+    expect(authStorage.getCsrfToken()).toBe("csrf-login");
   });
 
   it("persists the access token and CSRF token returned by verification without a JSON refresh token", async () => {
@@ -151,11 +151,10 @@ describe("apiRequest offline behavior", () => {
     expect(fetch).toHaveBeenCalledTimes(5);
     const refreshCalls = vi.mocked(fetch).mock.calls.filter(([url]) => url === `${API}/auth/refresh`);
     expect(refreshCalls).toHaveLength(1);
-    expect(refreshCalls[0][1]).toEqual(expect.objectContaining({ method: "POST", body: JSON.stringify({ refreshToken: "refresh-old" }) }));
+    expect(refreshCalls[0][1]).toEqual(expect.objectContaining({ method: "POST", body: undefined, credentials: "include" }));
     expect((refreshCalls[0][1] as RequestInit).headers).not.toHaveProperty("Authorization");
     expect(initOf(3).headers).toEqual(expect.objectContaining({ Authorization: "Bearer access-new" }));
     expect(initOf(4).headers).toEqual(expect.objectContaining({ Authorization: "Bearer access-new" }));
-    expect(authStorage.getRefreshToken()).toBe("refresh-new");
   });
 
   it("clears credentials and propagates the 401 when the refresh is rejected", async () => {
@@ -166,7 +165,6 @@ describe("apiRequest offline behavior", () => {
     await expect(apiRequest("/ranking")).rejects.toMatchObject({ status: 401, code: "UNAUTHENTICATED" });
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(authStorage.getAccessToken()).toBeNull();
-    expect(authStorage.getRefreshToken()).toBeNull();
   });
 
   it("refreshes through the cookie session when no JSON refresh token is stored", async () => {

@@ -1,10 +1,11 @@
-// Persists the bearer credentials issued by the external API. Keeping the
-// refresh token in localStorage is a deliberate product decision; XSS
-// hardening is therefore an operational requirement of this frontend.
+// Only browser-readable session state belongs here. Refresh tokens stay in
+// the API's HttpOnly cookie and must never be persisted by the SPA.
 const accessTokenKey = "dnj.auth.access-token.v1";
-const refreshTokenKey = "dnj.auth.refresh-token.v1";
+const legacyRefreshTokenKey = "dnj.auth.refresh-token.v1";
 const csrfTokenKey = "dnj.auth.csrf-token.v1";
 
+// refreshToken is accepted only to make callers from pre-cookie builds safe;
+// it is intentionally ignored and never persisted.
 export type StoredCredentials = { accessToken: string; refreshToken?: string };
 
 let memory: Partial<StoredCredentials> & { csrfToken?: string } = {};
@@ -37,7 +38,7 @@ function write(key: string, value: string | null) {
 
 export const authStorage = {
   getAccessToken: () => read(accessTokenKey, memory.accessToken) || null,
-  getRefreshToken: () => read(refreshTokenKey, memory.refreshToken) || null,
+  getRefreshToken: () => null,
   getCsrfToken: () => read(csrfTokenKey, memory.csrfToken) || null,
   setAccessToken: (accessToken: string) => {
     memory.accessToken = accessToken;
@@ -49,18 +50,15 @@ export const authStorage = {
   },
   setCredentials: (credentials: StoredCredentials) => {
     authStorage.setAccessToken(credentials.accessToken);
-    if (credentials.refreshToken) {
-      memory.refreshToken = credentials.refreshToken;
-      write(refreshTokenKey, credentials.refreshToken);
-    }
   },
   clearCredentials: () => {
     memory = {};
     write(accessTokenKey, null);
-    write(refreshTokenKey, null);
+    // Clean up sessions created by earlier builds that stored the refresh token.
+    write(legacyRefreshTokenKey, null);
     write(csrfTokenKey, null);
   },
-  hasSession: () => Boolean(authStorage.getAccessToken() || authStorage.getRefreshToken()),
+  hasSession: () => Boolean(authStorage.getAccessToken()),
 };
 
 export function isStoredCredentials(data: unknown): data is StoredCredentials {

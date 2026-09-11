@@ -37,6 +37,5 @@ describe("AdminPage session restore", () => {
     render(<AdminPage />);
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/admin/login"));
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(authStorage.getRefreshToken()).toBeNull();
   });
 });

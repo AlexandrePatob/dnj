@@ -15,33 +15,33 @@ describe("authApi session lifecycle", () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  it("stores the token pair after verifying an e-mail code", async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(json({ accessToken: "a1", refreshToken: "r1", tokenType: "Bearer", expiresIn: 900, refreshExpiresIn: 2592000, user: { id: "1", role: "DEFAULT" }, onboardingRequired: true }));
+  it("stores the access and CSRF tokens after verifying an e-mail code", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(json({ accessToken: "a1", csrfToken: "csrf-1", tokenType: "Bearer", expiresIn: 900, user: { id: "1", role: "DEFAULT" }, onboardingRequired: true }));
     await authApi.verifyCode("ana@example.com", "123456");
     expect(authStorage.getAccessToken()).toBe("a1");
-    expect(authStorage.getRefreshToken()).toBe("r1");
+    expect(authStorage.getCsrfToken()).toBe("csrf-1");
   });
 
-  it("rotates the pair on refresh and clears it when the refresh is refused", async () => {
+  it("refreshes through the HttpOnly cookie and clears state when refused", async () => {
     authStorage.setCredentials({ accessToken: "a1", refreshToken: "r1" });
-    vi.mocked(fetch).mockResolvedValueOnce(json({ accessToken: "a2", refreshToken: "r2", tokenType: "Bearer", expiresIn: 900, refreshExpiresIn: 2592000, user: { id: "1" }, onboardingRequired: false }));
+    authStorage.setCsrfToken("csrf-1");
+    vi.mocked(fetch).mockResolvedValueOnce(json({ accessToken: "a2", csrfToken: "csrf-2", tokenType: "Bearer", expiresIn: 900, user: { id: "1" }, onboardingRequired: false }));
     await authApi.refresh();
-    expect(fetch).toHaveBeenCalledWith(`${API}/auth/refresh`, expect.objectContaining({ method: "POST", body: JSON.stringify({ refreshToken: "r1" }) }));
-    expect(authStorage.getRefreshToken()).toBe("r2");
+    expect(fetch).toHaveBeenCalledWith(`${API}/auth/refresh`, expect.objectContaining({ method: "POST", body: undefined, credentials: "include", headers: expect.objectContaining({ "X-CSRF-Token": "csrf-1" }) }));
+    expect(authStorage.getCsrfToken()).toBe("csrf-2");
 
     vi.mocked(fetch).mockResolvedValueOnce(json({ code: "INVALID_REFRESH_TOKEN", message: "Sessão inválida." }, 401));
     await expect(authApi.refresh()).rejects.toMatchObject({ status: 401 });
     expect(authStorage.getAccessToken()).toBeNull();
-    expect(authStorage.getRefreshToken()).toBeNull();
   });
 
   it("clears local credentials on logout even when the API is unreachable", async () => {
     authStorage.setCredentials({ accessToken: "a1", refreshToken: "r1" });
+    authStorage.setCsrfToken("csrf-logout");
     vi.mocked(fetch).mockRejectedValue(new TypeError("network down"));
     await expect(authApi.logout()).resolves.toBeUndefined();
-    expect(fetch).toHaveBeenCalledWith(`${API}/auth/logout`, expect.objectContaining({ method: "POST", body: JSON.stringify({ refreshToken: "r1" }) }));
+    expect(fetch).toHaveBeenCalledWith(`${API}/auth/logout`, expect.objectContaining({ method: "POST", body: undefined, credentials: "include", headers: expect.objectContaining({ "X-CSRF-Token": "csrf-logout" }) }));
     expect(authStorage.getAccessToken()).toBeNull();
-    expect(authStorage.getRefreshToken()).toBeNull();
   });
 
   it("skips the logout call when nothing is stored", async () => {
