@@ -294,6 +294,47 @@ function BackdropRanking({ entries, board, clock }: { entries: RankingEntry[]; b
   );
 }
 
+function TvRanking({ entries, board, clock }: { entries: RankingEntry[]; board: "individual" | "groups"; clock: string }) {
+  const places = [entries[1], entries[0], entries[2]];
+  const tones = ["#d9e0e2", "#f3f51b", "#ff9656"];
+
+  return (
+    <>
+      <time className="absolute z-10 text-right font-black tabular-nums text-white" style={{ right: "3.4%", top: "4.1%", fontSize: "2.15cqw" }}>{clock}</time>
+      <p className="absolute left-1/2 z-10 -translate-x-1/2 font-semibold uppercase tracking-[.22em] text-[#f3f51b]/90" style={{ top: "20.5%", fontSize: ".62cqw" }}>
+        {board === "individual" ? "Individual" : "Grupo"}
+      </p>
+      <section aria-label="Pódio" className="absolute inset-x-0" style={{ top: "28.5%", height: "43%" }}>
+        {places.map((entry, index) => {
+          const center = index === 1;
+          const tone = tones[index];
+          const left = [17.5, 39, 64.5][index];
+          const width = center ? 22 : 18;
+          return (
+            <article
+              key={entry?.id ?? `empty-${index}`}
+              className="absolute flex flex-col items-center rounded-[1.5cqw] border-[.13cqw] px-[1cqw] pt-[1.7cqw] text-center"
+              style={{ left: `${left}%`, top: center ? "0" : "12%", width: `${width}%`, height: center ? "100%" : "78%", borderColor: tone, backgroundColor: center ? "#4d5414" : "#061d17", backgroundImage: center ? "linear-gradient(145deg,#4d5414,#061d17)" : "linear-gradient(145deg,#16342c,#061d17)", boxShadow: center ? "0 0 22px #f3f51b88" : undefined }}
+            >
+              {center ? <Crown aria-hidden className="absolute fill-[#f3f51b]/20 text-[#f3f51b]" style={{ top: "-3.15cqw", height: "3.6cqw", width: "3.6cqw" }} strokeWidth={2.2} /> : null}
+              <span className="absolute flex items-center justify-center rounded-full font-black text-black" style={{ right: ".8cqw", top: ".8cqw", height: "2.8cqw", width: "2.8cqw", fontSize: "1.35cqw", background: tone }}>{index === 0 ? "2º" : center ? "1º" : "3º"}</span>
+              <span className="mt-[.1cqw] flex shrink-0 items-center justify-center overflow-hidden rounded-full border-[.18cqw] bg-[#19372e]" style={{ height: center ? "8.6cqw" : "7.2cqw", width: center ? "8.6cqw" : "7.2cqw", borderColor: tone, boxShadow: `0 0 12px ${tone}77` }}>
+                {entry?.avatarUrl ? <img src={entry.avatarUrl} alt={`Foto de ${entry.name}`} className="h-full w-full object-cover" /> : entry ? <span className="font-black" style={{ fontSize: center ? "2.25cqw" : "1.85cqw", color: tone }}>{initials(entry.name)}</span> : <span aria-hidden />}
+              </span>
+              <h2 className="mt-[.9cqw] max-w-full truncate font-bold leading-tight text-white" style={{ fontSize: center ? "1.55cqw" : "1.3cqw" }}>{entry?.name}</h2>
+              <div className="mt-[.7cqw]">
+                <strong className="font-black leading-none tabular-nums" style={{ fontSize: center ? "3.6cqw" : "3cqw", color: center ? "#f3f51b" : "white" }}>{entry?.points}</strong>
+                <small className="ml-[.35cqw] font-bold text-white" style={{ fontSize: "1cqw" }}>PTS</small>
+              </div>
+              {center && entry ? <p className="mt-[.7cqw] max-w-[90%] font-bold uppercase tracking-[.15em] text-white/80" style={{ fontSize: ".52cqw" }}>{board === "individual" ? entry.group : `${entry.members ?? 0} participantes`}</p> : null}
+            </article>
+          );
+        })}
+      </section>
+    </>
+  );
+}
+
 function SideRanking({ entries, board, clock }: { entries: RankingEntry[]; board: "individual" | "groups"; clock: string }) {
   const places = [entries[1], entries[0], entries[2]];
   const tones = ["#d9e0e2", "#f3f51b", "#ff9656"];
@@ -407,8 +448,6 @@ export function LiveRankingDisplay({
   }, [data?.specialEvent]);
 
   const entries = useMemo(() => data?.rankings[board] ?? [], [board, data]);
-  const title =
-    board === "individual" ? "Ranking individual" : "Ranking dos grupos";
   const format = target === "tv" ? "tv" : screenFormat ?? "side";
   const isBackdrop = format === "backdrop";
   const isStageScreen = target === "screen";
@@ -424,8 +463,8 @@ export function LiveRankingDisplay({
             : "min-h-screen px-8 py-10 md:px-14"
       }`}
       style={{
-        ...(format === "side" ? { aspectRatio: "3 / 4", width: "min(100vw, 75vh)", containerType: "inline-size", fontSize: "1cqw" } : isBackdrop ? { aspectRatio: "5 / 2", width: "min(100vw, 250vh)" } : {}),
-        backgroundImage: `url(${isBackdrop ? "/telao-horizontal-ranking-live-v3.png" : format === "side" ? "/telao-vertical-ranking-live-v2.png" : "/telao-vertical-reference.png"})`,
+        ...(format === "side" ? { aspectRatio: "3 / 4", width: "min(100vw, 75vh)", containerType: "inline-size", fontSize: "1cqw" } : isBackdrop ? { aspectRatio: "5 / 2", width: "min(100vw, 250vh)" } : format === "tv" ? { aspectRatio: "16 / 9", width: "min(100vw, calc(100svh * 16 / 9))", containerType: "inline-size", fontSize: "1cqw" } : {}),
+        backgroundImage: `url(${isBackdrop || format === "tv" ? "/telao-horizontal-ranking-live-v3.png" : format === "side" ? "/telao-vertical-ranking-live-v2.png" : "/telao-vertical-reference.png"})`,
         backgroundPosition: "center",
         backgroundSize: "100% 100%",
         backgroundRepeat: "no-repeat",
@@ -439,7 +478,7 @@ export function LiveRankingDisplay({
       {data?.specialEvent ? (
         <SpecialEventOverlay event={data.specialEvent} now={now} />
       ) : null}
-      {isStageScreen ? (isBackdrop ? <BackdropRanking entries={entries} board={board} clock={clock} /> : data ? <SideRanking entries={entries} board={board} clock={clock} /> : null) : <><header className="relative z-0 mx-auto flex max-w-7xl items-center justify-between gap-8 pb-6">
+      {target === "tv" ? <TvRanking entries={entries} board={board} clock={clock} /> : isStageScreen ? (isBackdrop ? <BackdropRanking entries={entries} board={board} clock={clock} /> : data ? <SideRanking entries={entries} board={board} clock={clock} /> : null) : <><header className="relative z-0 mx-auto flex max-w-7xl items-center justify-between gap-8 pb-6">
         <BrandSticker
           decorative
           variant="header"
@@ -467,7 +506,7 @@ export function LiveRankingDisplay({
             className="hidden text-[#f6c945] md:block"
             size={52}
           />
-          {title}
+          {board === "individual" ? "Ranking individual" : "Ranking dos grupos"}
         </h1>
         <div className="mx-auto mt-3 h-1 w-28 rounded-full bg-[#f3f51b] shadow-[0_0_16px_#f3f51b]" />
         {data ? (

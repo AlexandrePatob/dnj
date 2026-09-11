@@ -62,7 +62,7 @@ describe("LiveRankingDisplay", () => {
     expect(await screen.findByText("Ana")).toBeInTheDocument();
     expect(screen.getAllByText("Jovens da Luz").length).toBeGreaterThan(0);
     expect(screen.getByText("30")).toBeInTheDocument();
-    expect(screen.getByLabelText("Pódio")).toHaveTextContent("1º lugar");
+    expect(screen.getByLabelText("Pódio")).toHaveTextContent("1º");
     expect(screen.queryByText("4º")).not.toBeInTheDocument();
   });
 
@@ -156,15 +156,11 @@ describe("LiveRankingDisplay", () => {
     await act(async () => {
       await Promise.resolve();
     });
-    expect(
-      screen.getByRole("heading", { name: "Ranking individual" }),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Individual")).toBeInTheDocument();
     act(() => {
       vi.advanceTimersByTime(12_000);
     });
-    expect(
-      screen.getByRole("heading", { name: "Ranking dos grupos" }),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Grupo")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
