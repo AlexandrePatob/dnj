@@ -20,3 +20,8 @@ it("uses the participant photo and falls back to initials when it fails, keeping
   expect(account.querySelector("img")).toHaveAttribute("src", "https://example.test/new.jpg");
   expect(screen.getByRole("button", { name: "800 pontos. Abrir DNJ Game" })).toBeInTheDocument();
 });
+
+it("keeps the DNJ logo visible on internal participant screens", () => {
+  render(<ParticipantHeader user={{ name: "Ana Souza", cpf: "", email: "", group: "", points: 0, rankPosition: 1 }} onHome={vi.fn()} onAccount={vi.fn()} onGame={vi.fn()} />);
+  expect(screen.getByRole("button", { name: "Ir para Home" })).toBeInTheDocument();
+});

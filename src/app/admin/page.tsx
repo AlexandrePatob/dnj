@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { authApi } from "@/lib/api/auth";
+import { authStorage } from "@/lib/auth-storage";
 import type { AdminSession } from "@/types/admin";
 
 export default function AdminPage() {
@@ -12,26 +13,14 @@ export default function AdminPage() {
 
   useEffect(() => {
     let active = true;
+    // The external API restores the session from the stored bearer token
+    // (refreshing it once if expired) and is the only authority on the role.
     const restore = async () => {
-      let response = await fetch("/api/admin/session", { cache: "no-store", credentials: "include" });
-      if (!response.ok) {
-        try {
-          const identity = await authApi.refresh();
-          response = await fetch("/api/admin/session", {
-            method: "POST",
-            cache: "no-store",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ accessToken: identity.accessToken }),
-          });
-        } catch {
-          // The refresh token is unavailable or expired; login is required.
-        }
-      }
+      if (!authStorage.getAccessToken()) { setSession(null); return; }
+      const identity = await authApi.getSession();
       if (!active) return;
-      if (!response.ok) { setSession(null); return; }
-      const body = await response.json() as { session: AdminSession };
-      setSession(body.session);
+      if (identity.user.role !== "ADMIN" || !identity.user.email) { authStorage.clearCredentials(); setSession(null); return; }
+      setSession({ email: identity.user.email, name: identity.user.name || "Administração DNJ" });
     };
     void restore().catch(() => { if (active) setSession(null); });
     return () => { active = false; };

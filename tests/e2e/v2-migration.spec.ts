@@ -12,26 +12,26 @@ test.describe("V2 participant migration journeys", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("dnj.onboarding.2k26", "1"));
     await page.route("**/api/v1/**", (route) => route.abort());
-    await page.route("**/api/v2/auth/session", (route) => route.fulfill({ json: identity }));
-    await page.route("**/api/v2/schedule**", (route) => route.fulfill({ json: { items: [] } }));
+    await page.route("**/v2/auth/session", (route) => route.fulfill({ json: identity }));
+    await page.route("**/v2/schedule**", (route) => route.fulfill({ json: { items: [] } }));
   });
 
   test("bootstraps a valid V2 session and renders an empty Game without V1 calls", async ({ page }) => {
-    await page.route("**/api/v2/game/overview", (route) => route.fulfill({ json: { individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 0 } } }));
-    await page.route("**/api/v2/activity-runs/current", (route) => route.fulfill({ status: 204 }));
-    await page.route("**/api/v2/participations/current", (route) => route.fulfill({ status: 204 }));
+    await page.route("**/v2/game/overview", (route) => route.fulfill({ json: { individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 0 } } }));
+    await page.route("**/v2/activity-runs/current", (route) => route.fulfill({ status: 204 }));
+    await page.route("**/v2/participations/current", (route) => route.fulfill({ status: 204 }));
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: /Dia Nacional da Juventude/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Olá, Participante!" })).toBeVisible();
     await page.getByRole("button", { name: "DNJ Game", exact: true }).click();
     await expect(page.getByText("Ainda não há pontos registrados.")).toBeVisible();
   });
 
   test("opens the QR scanner and keeps gallery on the V2 empty feed", async ({ page }) => {
-    await page.route("**/api/v2/game/overview", (route) => route.fulfill({ json: { individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 0 } } }));
-    await page.route("**/api/v2/activity-runs/current", (route) => route.fulfill({ status: 204 }));
-    await page.route("**/api/v2/participations/current", (route) => route.fulfill({ status: 204 }));
-    await page.route("**/api/v2/moments?scope=feed", (route) => route.fulfill({ json: { items: [], nextCursor: "opaque-next" } }));
+    await page.route("**/v2/game/overview", (route) => route.fulfill({ json: { individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 0 } } }));
+    await page.route("**/v2/activity-runs/current", (route) => route.fulfill({ status: 204 }));
+    await page.route("**/v2/participations/current", (route) => route.fulfill({ status: 204 }));
+    await page.route("**/v2/moments?scope=feed", (route) => route.fulfill({ json: { items: [], nextCursor: "opaque-next" } }));
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.getByRole("button", { name: "DNJ Game", exact: true }).click();
     const updateToast = page.getByRole("status").filter({ hasText: "Nova versão disponível" });
@@ -50,28 +50,33 @@ test.describe("V2 participant migration journeys", () => {
 
   test("keeps onboarding action visible and searches groups on demand on mobile", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.route("**/api/v2/auth/session", (route) => route.fulfill({
+    await page.route("**/v2/auth/session", (route) => route.fulfill({
       json: {
         user: { ...identity.user, mobilePhone: "", documentMasked: "", group: null, onboardingComplete: false },
         onboardingRequired: true,
       },
     }));
     let groupSearches = 0;
-    await page.route("**/api/v2/groups?search=*", (route) => {
+    await page.route("**/v2/groups?search=*", (route) => {
       groupSearches += 1;
       return route.fulfill({ json: [{ id: "group-1", groupName: "Jovens da Luz" }] });
     });
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByRole("heading", { name: "Seu grupo jovem" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /precisamos de mais algumas informações/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Continuar para grupo" })).toBeInViewport();
+    await page.getByLabel("Nome completo").fill("Participante Teste");
+    await page.getByLabel("CPF").fill("52998224725");
+    await page.getByLabel("Telefone WhatsApp").fill("41999990000");
+    await page.getByRole("button", { name: "Continuar para grupo" }).click();
     await expect(page.getByText("Digite parte do nome para encontrar seu grupo.")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Continuar" })).toBeInViewport();
+    await expect(page.getByRole("button", { name: "Confirmar grupo" })).toBeInViewport();
     expect(groupSearches).toBe(0);
 
     await page.getByPlaceholder("Buscar grupo...").fill("Luz");
     await expect(page.getByRole("button", { name: "Jovens da Luz" })).toBeVisible();
     expect(groupSearches).toBe(1);
-    await expect(page.getByRole("button", { name: "Continuar" })).toBeInViewport();
+    await expect(page.getByRole("button", { name: "Confirmar grupo" })).toBeInViewport();
   });
 });

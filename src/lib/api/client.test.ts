@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, apiMutation, apiRequest, setCsrfToken } from "./client";
+import { authStorage } from "../auth-storage";
+import { ApiError, apiMutation, apiRequest } from "./client";
+
+const API = "https://api.dnj.test/v2";
 
 function response(body: unknown, init: { status?: number; contentType?: string } = {}) {
   const contentType = init.contentType ?? "application/json";
@@ -10,9 +13,13 @@ function response(body: unknown, init: { status?: number; contentType?: string }
   });
 }
 
+const unauthorized = () => response({ code: "UNAUTHENTICATED", message: "expired" }, { status: 401 });
+const rotated = (suffix: string) => ({ accessToken: `access-${suffix}`, refreshToken: `refresh-${suffix}`, tokenType: "Bearer", expiresIn: 900, refreshExpiresIn: 2592000 });
+const initOf = (index: number) => vi.mocked(fetch).mock.calls[index][1] as RequestInit & { headers: Record<string, string> };
+
 describe("apiRequest offline behavior", () => {
   beforeEach(() => {
-    setCsrfToken();
+    authStorage.clearCredentials();
     vi.stubGlobal("window", { setTimeout, clearTimeout });
     vi.stubGlobal("navigator", { onLine: true });
     vi.stubGlobal("fetch", vi.fn());
@@ -82,39 +89,98 @@ describe("apiRequest offline behavior", () => {
     await expect(apiRequest("/status")).resolves.toBeNull();
   });
 
-  it("preserves authentication, JSON, accept, and caller headers", async () => {
+  it("calls the external API with the stored bearer token and cookie refresh session", async () => {
+    authStorage.setCredentials({ accessToken: "stored-access", refreshToken: "stored-refresh" });
     vi.mocked(fetch).mockResolvedValueOnce(response({ ok: true }));
     await apiRequest("/groups", {
       method: "POST",
-      token: "test-token",
       body: { group: "São José" },
       headers: { "X-Request-ID": "test-request" },
     });
-    expect(fetch).toHaveBeenCalledWith("/api/v2/groups", expect.objectContaining({
-      credentials: "include",
+    expect(fetch).toHaveBeenCalledWith(`${API}/groups`, expect.objectContaining({
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: "Bearer test-token",
+        Authorization: "Bearer stored-access",
         "X-Request-ID": "test-request",
       },
       body: JSON.stringify({ group: "São José" }),
     }));
+    expect(initOf(0)).toHaveProperty("credentials", "include");
+    expect(initOf(0).headers).not.toHaveProperty("X-CSRF-Token");
   });
 
-  it("does exactly one concurrent refresh and replays each original request once", async () => {
+  it("lets an explicit token override the stored one", async () => {
+    authStorage.setCredentials({ accessToken: "stored-access", refreshToken: "stored-refresh" });
+    vi.mocked(fetch).mockResolvedValueOnce(response({ ok: true }));
+    await apiRequest("/profile", { token: "explicit-token" });
+    expect(initOf(0).headers).toEqual(expect.objectContaining({ Authorization: "Bearer explicit-token" }));
+  });
+
+  it("persists access and CSRF tokens returned by a login response", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(response({ accessToken: "access-login", csrfToken: "csrf-login", tokenType: "Bearer", expiresIn: 900, user: { id: "1" }, onboardingRequired: false }));
+    await apiRequest("/auth/google", { method: "POST", body: { idToken: "google" } });
+    expect(authStorage.getAccessToken()).toBe("access-login");
+    expect(authStorage.getCsrfToken()).toBe("csrf-login");
+  });
+
+  it("persists the access token and CSRF token returned by verification without a JSON refresh token", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(response({ accessToken: "access-verify", csrfToken: "csrf-verify", user: { id: "1" }, onboardingRequired: false }));
+    await apiRequest("/auth/signup/verify", { method: "POST", body: { email: "ana@example.com", code: "123456" } });
+    expect(authStorage.getAccessToken()).toBe("access-verify");
+    expect(authStorage.getRefreshToken()).toBeNull();
+    expect(authStorage.getCsrfToken()).toBe("csrf-verify");
+
+    vi.mocked(fetch).mockResolvedValueOnce(response({ ok: true }));
+    await apiRequest("/profile");
+    expect(initOf(1)).toEqual(expect.objectContaining({
+      credentials: "include",
+      headers: expect.objectContaining({ Authorization: "Bearer access-verify", "X-CSRF-Token": "csrf-verify" }),
+    }));
+  });
+
+  it("does exactly one concurrent refresh and replays each original request with the rotated token", async () => {
+    authStorage.setCredentials({ accessToken: "access-old", refreshToken: "refresh-old" });
     vi.mocked(fetch)
-      .mockResolvedValueOnce(response({ code: "AUTH_EXPIRED", message: "expired" }, { status: 401 }))
-      .mockResolvedValueOnce(response({ code: "AUTH_EXPIRED", message: "expired" }, { status: 401 }))
-      .mockResolvedValueOnce(response({ ok: true }))
+      .mockResolvedValueOnce(unauthorized())
+      .mockResolvedValueOnce(unauthorized())
+      .mockResolvedValueOnce(response(rotated("new")))
       .mockResolvedValueOnce(response({ value: 1 }))
       .mockResolvedValueOnce(response({ value: 2 }));
     await expect(Promise.all([apiRequest("/one"), apiRequest("/two")])).resolves.toEqual([{ value: 1 }, { value: 2 }]);
     expect(fetch).toHaveBeenCalledTimes(5);
-    expect(vi.mocked(fetch).mock.calls.filter(([url]) => url === "/api/v2/auth/refresh")).toHaveLength(1);
+    const refreshCalls = vi.mocked(fetch).mock.calls.filter(([url]) => url === `${API}/auth/refresh`);
+    expect(refreshCalls).toHaveLength(1);
+    expect(refreshCalls[0][1]).toEqual(expect.objectContaining({ method: "POST", body: undefined, credentials: "include" }));
+    expect((refreshCalls[0][1] as RequestInit).headers).not.toHaveProperty("Authorization");
+    expect(initOf(3).headers).toEqual(expect.objectContaining({ Authorization: "Bearer access-new" }));
+    expect(initOf(4).headers).toEqual(expect.objectContaining({ Authorization: "Bearer access-new" }));
+  });
+
+  it("clears credentials and propagates the 401 when the refresh is rejected", async () => {
+    authStorage.setCredentials({ accessToken: "access-old", refreshToken: "refresh-old" });
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(unauthorized())
+      .mockResolvedValueOnce(response({ code: "REFRESH_TOKEN_REUSE", message: "revoked" }, { status: 401 }));
+    await expect(apiRequest("/ranking")).rejects.toMatchObject({ status: 401, code: "UNAUTHENTICATED" });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(authStorage.getAccessToken()).toBeNull();
+  });
+
+  it("refreshes through the cookie session when no JSON refresh token is stored", async () => {
+    authStorage.setAccessToken("access-old");
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(unauthorized())
+      .mockResolvedValueOnce(response({ accessToken: "access-new", user: { id: "1" }, onboardingRequired: false }))
+      .mockResolvedValueOnce(response({ ok: true }));
+    await expect(apiRequest("/ranking")).resolves.toEqual({ ok: true });
+    expect(initOf(1)).toEqual(expect.objectContaining({ method: "POST", credentials: "include" }));
+    expect(initOf(1)).toHaveProperty("body", undefined);
+    expect(initOf(2).headers).toEqual(expect.objectContaining({ Authorization: "Bearer access-new" }));
   });
 
   it("does not refresh an unauthenticated session probe", async () => {
+    authStorage.setCredentials({ accessToken: "access-old", refreshToken: "refresh-old" });
     vi.mocked(fetch).mockResolvedValueOnce(response({ code: "AUTH_REQUIRED", message: "login required" }, { status: 401 }));
     await expect(apiRequest("/auth/session", { refreshOnUnauthorized: false })).rejects.toMatchObject({ status: 401 });
     expect(fetch).toHaveBeenCalledTimes(1);
@@ -129,34 +195,6 @@ describe("apiRequest offline behavior", () => {
     vi.mocked(fetch).mockResolvedValueOnce(response({ code: "IDEMPOTENCY_KEY_REUSED", message: "Conflito", requestId: "req-2" }, { status: 409 }));
     await expect(apiMutation("/moments", { method: "POST", body: {}, idempotencyKey: "same-key" })).rejects.toMatchObject({ status: 409, code: "IDEMPOTENCY_KEY_REUSED", requestId: "req-2" });
     expect(fetch).toHaveBeenCalledTimes(1);
-  });
-
-  it("reads the published csrf_token cookie", async () => {
-    vi.stubGlobal("document", { cookie: "csrf_token=published-token" });
-    vi.mocked(fetch).mockResolvedValueOnce(response({ ok: true }));
-    await apiRequest("/auth/refresh", { method: "POST" });
-    expect(fetch).toHaveBeenCalledWith("/api/v2/auth/refresh", expect.objectContaining({ headers: expect.objectContaining({ "X-CSRF-Token": "published-token" }) }));
-  });
-
-  it("prefers the current csrf_token cookie over a stale in-memory token", async () => {
-    setCsrfToken("stale-token");
-    vi.stubGlobal("document", { cookie: "csrf_token=current-token" });
-    vi.mocked(fetch).mockResolvedValueOnce(response({ ok: true }));
-    await apiRequest("/auth/refresh", { method: "POST" });
-    expect(fetch).toHaveBeenCalledWith("/api/v2/auth/refresh", expect.objectContaining({ headers: expect.objectContaining({ "X-CSRF-Token": "current-token" }) }));
-  });
-
-  it("uses the CSRF token returned by refresh when replaying a 401 request", async () => {
-    vi.stubGlobal("document", { cookie: "csrf_token=stale-token" });
-    vi.mocked(fetch)
-      .mockResolvedValueOnce(response({ code: "AUTH_EXPIRED", message: "expired" }, { status: 401 }))
-      .mockResolvedValueOnce(response({ csrfToken: "rotated-token" }))
-      .mockResolvedValueOnce(response({ value: 1 }));
-
-    await expect(apiRequest("/ranking")).resolves.toEqual({ value: 1 });
-
-    expect(vi.mocked(fetch).mock.calls[1][0]).toBe("/api/v2/auth/refresh");
-    expect((vi.mocked(fetch).mock.calls[2][1] as RequestInit).headers).toEqual(expect.objectContaining({ "X-CSRF-Token": "rotated-token" }));
   });
 
   it("retries transient mutations three times with the same idempotency key", async () => {

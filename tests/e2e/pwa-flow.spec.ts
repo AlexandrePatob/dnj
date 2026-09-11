@@ -14,9 +14,8 @@ test.describe("PWA browser integration", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /Bem-vindo/ })).toBeVisible();
     await page.waitForLoadState("networkidle");
-    await page.getByPlaceholder("000.000.000-00").fill("12345678901");
     await page.getByPlaceholder("seu@email.com").fill("jovem@dnj.test");
-    await expect(page.getByRole("button", { name: "Entrar", exact: true })).toBeEnabled();
+    await expect(page.getByRole("button", { name: "Continuar com e-mail", exact: true })).toBeEnabled();
   });
 
   test("announces offline and reconnection states without blocking the shell", async ({ page, context }) => {

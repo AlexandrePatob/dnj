@@ -8,7 +8,7 @@ import { GalleryScreen } from "./gallery-screen";
 vi.mock("@/lib/api/moments", () => ({
   momentsApi: {
     list: async (scope: string, cursor?: string) => {
-      const response = await fetch(`/api/v2/moments?scope=${scope}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`);
+      const response = await fetch(`https://api.dnj.test/v2/moments?scope=${scope}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`);
       if (!response.ok) throw new Error("network");
       return response.json();
     },
@@ -49,7 +49,7 @@ describe("GalleryScreen", () => {
         name: "Não foi possível carregar Momentos",
       }),
     ).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/v2/moments?scope=feed");
+    expect(fetchMock).toHaveBeenNthCalledWith(1, "https://api.dnj.test/v2/moments?scope=feed");
     await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
     expect(
       await screen.findByRole("heading", { name: "Ainda não há momentos" }),
@@ -256,7 +256,7 @@ describe("GalleryScreen", () => {
     await user.click(screen.getByRole("button", { name: "Carregar mais momentos" }));
 
     expect(screen.getByRole("button", { name: "Carregando mais momentos..." })).toBeDisabled();
-    expect(fetch).toHaveBeenLastCalledWith("/api/v2/moments?scope=feed&cursor=cursor-1");
+    expect(fetch).toHaveBeenLastCalledWith("https://api.dnj.test/v2/moments?scope=feed&cursor=cursor-1");
 
     resolveNextPage({
       ok: true,
@@ -294,13 +294,13 @@ describe("GalleryScreen", () => {
     expect(screen.getByRole("button", { name: "Carregar mais momentos" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Carregar mais momentos" }));
     expect(await screen.findByText("Sala antiga")).toBeInTheDocument();
-    expect(fetch).toHaveBeenLastCalledWith("/api/v2/moments?scope=mine&cursor=mine-cursor");
+    expect(fetch).toHaveBeenLastCalledWith("https://api.dnj.test/v2/moments?scope=mine&cursor=mine-cursor");
 
     await user.click(screen.getByRole("button", { name: "Grupo" }));
     expect(await screen.findByText("Quadra")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Carregar mais momentos" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Carregar mais momentos" }));
     expect(await screen.findByText("Quadra antiga")).toBeInTheDocument();
-    expect(fetch).toHaveBeenLastCalledWith("/api/v2/moments?scope=group&cursor=group-cursor");
+    expect(fetch).toHaveBeenLastCalledWith("https://api.dnj.test/v2/moments?scope=group&cursor=group-cursor");
   });
 });

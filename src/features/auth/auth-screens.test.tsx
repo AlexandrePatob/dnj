@@ -138,17 +138,18 @@ describe("entry feedback", () => {
     expect(
       screen.getByLabelText("Dígito 6 do código de verificação"),
     ).toHaveValue("6");
-    expect(
-      screen.getByRole("button", { name: "Verificar código" }),
-    ).toBeEnabled();
     expect(screen.getByText("a***@example.com")).toBeInTheDocument();
     expect(
       screen.getByText(/Enviamos um código de 6 dígitos/),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Verificar código" }));
+    // A complete paste submits automatically; the validation message stays visible.
     expect(
       await screen.findByText("Código inválido. Confira os 6 dígitos."),
     ).toBeInTheDocument();
+    expect(onNext).toHaveBeenCalledWith("123456");
+    expect(
+      screen.getByRole("button", { name: "Verificar código" }),
+    ).toBeEnabled();
   });
 
   it("shows the API-provided code only for local homologation", () => {
@@ -167,8 +168,9 @@ describe("GroupScreen", () => {
     });
     vi.spyOn(groupsApi, "search").mockResolvedValue([]);
     const create = vi.spyOn(groupsApi, "create").mockResolvedValue({ id: "group-new", groupName: "Jovens da Serra" });
-    render(<GroupScreen animDir="up" onBack={vi.fn()} onNext={vi.fn()} />);
+    render(<GroupScreen animDir="up" onBack={vi.fn()} onNext={vi.fn()} initialName="Ana Silva" />);
 
+    fireEvent.click(screen.getByRole("button", { name: "Grupo" }));
     fireEvent.click(screen.getByRole("button", { name: "Não encontrei meu grupo" }));
     fireEvent.change(screen.getByPlaceholderText("Nome do seu grupo"), { target: { value: "Jovens da Serra" } });
     fireEvent.click(screen.getByRole("button", { name: "Criar grupo" }));
@@ -192,9 +194,10 @@ describe("GroupScreen", () => {
     expect(screen.getByLabelText("CPF")).toHaveValue("086.212.319-48");
     expect(screen.getByLabelText("Telefone WhatsApp")).toHaveValue("(41) 99978-6268");
 
+    fireEvent.click(screen.getByRole("button", { name: "Continuar para grupo" }));
     fireEvent.change(screen.getByPlaceholderText("Buscar grupo..."), { target: { value: "Jovens" } });
     fireEvent.click(await screen.findByRole("button", { name: "Jovens da Luz" }));
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar grupo" }));
     expect(onNext).toHaveBeenCalledWith("Ana Silva", "08621231948", "41999786268", "Jovens da Luz", "group-1");
   });
 
@@ -216,8 +219,9 @@ describe("GroupScreen", () => {
       { id: "group-2", groupName: "GJC Santa Teresinha" },
     ]);
 
-    render(<GroupScreen animDir="up" onBack={vi.fn()} onNext={vi.fn()} />);
+    render(<GroupScreen animDir="up" onBack={vi.fn()} onNext={vi.fn()} initialName="Ana Silva" />);
 
+    fireEvent.click(screen.getByRole("button", { name: "Grupo" }));
     expect(search).not.toHaveBeenCalled();
     expect(screen.getByText("Digite parte do nome para encontrar seu grupo.")).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText("Buscar grupo..."), { target: { value: "Luz" } });
@@ -225,6 +229,6 @@ describe("GroupScreen", () => {
       await screen.findByRole("button", { name: "Jovens da Luz" }),
     ).toBeInTheDocument();
     expect(search).toHaveBeenCalledWith("Luz", "participant-token");
-    expect(screen.getByRole("button", { name: "Continuar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirmar grupo" })).toBeInTheDocument();
   });
 });

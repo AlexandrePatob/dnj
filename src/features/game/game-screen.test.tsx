@@ -21,16 +21,16 @@ const { scannedValidation } = vi.hoisted(() => ({
 vi.mock("@/lib/api/game", () => ({
   gameApi: {
     currentParticipation: async () => {
-      const response = await fetch("/api/v2/participations/current");
+      const response = await fetch("https://api.dnj.test/v2/participations/current");
       return response.status === 204 ? null : response.json();
     },
     overview: async () => {
-      const response = await fetch("/api/v2/game/overview");
+      const response = await fetch("https://api.dnj.test/v2/game/overview");
       return response.json();
     },
     currentRun: async (runId?: string) => {
       const response = await fetch(
-        `/api/v2/activity-runs/current${runId ? `?runId=${runId}` : ""}`,
+        `https://api.dnj.test/v2/activity-runs/current${runId ? `?runId=${runId}` : ""}`,
       );
       return response.status === 204 ? null : response.json();
     },
@@ -444,7 +444,7 @@ describe("GameScreen scanner entry", () => {
       expect(fetchMock).toHaveBeenCalledTimes(4);
       expect(fetchMock).toHaveBeenNthCalledWith(
         4,
-        "/api/v2/activity-runs/current?runId=run-1",
+        "https://api.dnj.test/v2/activity-runs/current?runId=run-1",
       );
       expect(screen.queryByRole("dialog", { name: "Status da partida" })).not.toBeInTheDocument();
     } finally {
@@ -513,9 +513,7 @@ describe("GameScreen scanner entry", () => {
       await act(async () => {
         await vi.advanceTimersByTimeAsync(2_000);
       });
-      expect(screen.getByLabelText("Pontos creditados")).toHaveTextContent(
-        "+50 pontos",
-      );
+      expect(screen.getByRole("heading", { name: /50 pontos/ })).toBeInTheDocument();
 
     } finally {
       vi.useRealTimers();
@@ -624,7 +622,7 @@ describe("GameScreen scanner entry", () => {
     await user.click(screen.getByRole("button", { name: "Escanear QR Code" }));
     await user.click(screen.getByRole("button", { name: "Simular leitura" }));
 
-    expect(await screen.findByLabelText("Pontos creditados")).toHaveTextContent("+15 pontos");
+    expect(await screen.findByRole("heading", { name: /15 pontos/ })).toBeInTheDocument();
     expect(screen.queryByRole("dialog", { name: "Status da partida" })).not.toBeInTheDocument();
   });
 

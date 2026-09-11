@@ -61,11 +61,11 @@ export function BottomNav({
 
   return (
     <motion.nav
-      className="absolute bottom-0 left-0 right-0 flex items-stretch z-40"
+      className="absolute bottom-0 left-0 right-0 z-40 flex items-stretch"
       style={{
         background: "var(--card)",
-        borderTop:  "1px solid var(--border)",
-        height:     "var(--bottom-nav-total-height)",
+        borderTop: "1px solid var(--border)",
+        height: "var(--bottom-nav-total-height)",
         paddingBottom: "var(--safe-area-bottom)",
       }}
       initial={{ y: "100%" }}
@@ -88,7 +88,7 @@ export function BottomNav({
               <motion.span
                 layoutId="active-nav"
                 className="absolute inset-1 z-0 rounded-2xl"
-                style={{ background: "var(--primary)", boxShadow: "0 6px 20px var(--primary-alpha-40)" }}
+                style={{ background: "var(--primary)" }}
                 transition={{ type: "spring", stiffness: 380, damping: 30 }}
               />
             )}
@@ -107,5 +107,5 @@ export function BottomNav({
   );
 }
 export function AppShell({ children, theme }: { children: ReactNode; theme: Theme }) {
-  return <div className={theme === "dark" ? "dark" : ""} style={{ minHeight: "100dvh", background: theme === "dark" ? "#050e0e" : "#e8e8e8", color: "var(--foreground)", display: "flex", justifyContent: "center", alignItems: "flex-start" }}><div className="game-shell relative w-full max-w-md overflow-hidden" style={{ minHeight: "100dvh", background: "var(--background)" }}><div className="game-atmosphere" aria-hidden="true"><span /><span /><span /></div>{children}</div></div>;
+  return <div className={theme === "dark" ? "dark" : ""} style={{ minHeight: "100dvh", background: theme === "dark" ? "#000" : "#e8e8e8", color: "var(--foreground)", display: "flex", justifyContent: "center", alignItems: "flex-start" }}><div className="game-shell relative w-full max-w-md overflow-hidden" style={{ minHeight: "100dvh", background: "var(--background)" }}><div className="game-atmosphere" aria-hidden="true"><span /><span /><span /></div>{children}</div></div>;
 }

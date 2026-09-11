@@ -100,6 +100,8 @@ const PREFETCH_ASSETS = [
   "/images/Topo_Inicio_App-mobile.webp",
   "/images/participant/home.webp",
   "/images/participant/top.webp",
+  "/images/participant/header-light.png",
+  "/images/participant/header-dark.png",
   "/images/queue/CRUZ.png",
   "/images/queue/MAOS.png",
 ];

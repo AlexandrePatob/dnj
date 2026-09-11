@@ -28,7 +28,7 @@ function animStyle(dir: AnimDir): React.CSSProperties {
   return { animation: map[dir] };
 }
 function AuthHeader({ onBack }: { onBack: () => void }) {
-  return <header className="relative -mx-6 flex h-24 shrink-0 items-center px-6" style={{ background: "linear-gradient(to bottom, transparent 74%, var(--background) 100%), url('/images/participant/top.webp') center / 100% 100% no-repeat" }}>
+  return <header className="dnj-header-art relative -mx-6 flex h-24 shrink-0 items-center px-6">
     <div className="-translate-y-3">
       <BackButton onClick={onBack} className="rounded-full bg-white/20 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm" style={{ color: "white" }} />
     </div>

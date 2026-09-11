@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { authStorage } from "@/lib/auth-storage";
 import { AdminDashboard } from "./admin-dashboard";
 
 vi.mock("@/lib/pastoral-queue/firebase", () => ({ pastoralFirestore: {} }));
@@ -39,13 +40,13 @@ beforeEach(() => {
   persistedCheckpointQr = null;
   fetchMock.mockReset();
   fetchMock.mockImplementation((input: string, init?: RequestInit) => {
-    if (input === "/api/v2/admin/moments/moderation?queue=challenge&page=1" || input === "/api/v2/admin/moments/moderation?queue=general&page=1")
+    if (input === "https://api.dnj.test/v2/admin/moments/moderation?queue=challenge&page=1" || input === "https://api.dnj.test/v2/admin/moments/moderation?queue=general&page=1")
       return Promise.resolve(jsonResponse({ data: [{ momentId: "moment-1", imageUrl: "https://image.test/moment-1.jpg", capturedAt: "2026-10-18T17:35:00.000Z", participantName: "Alex", activity: { id: "activity-1", name: "Gincana" }, pointsAwarded: 30, photoStatus: "available", availableActions: ["approve", "deny_points", "delete_photo"] }] }));
-    if (input === "/api/v2/admin/moments/moment-1/moderation")
+    if (input === "https://api.dnj.test/v2/admin/moments/moment-1/moderation")
       return Promise.resolve(jsonResponse({ ok: true }));
-    if (input === "/api/v2/admin/notifications" && init?.method === "POST")
+    if (input === "https://api.dnj.test/v2/admin/notifications" && init?.method === "POST")
       return Promise.resolve(jsonResponse({ recipientCount: "3" }, 201));
-    if (input.startsWith("/api/v2/admin/activities?kind=") || input === "/api/v2/admin/activities") {
+    if (input.startsWith("https://api.dnj.test/v2/admin/activities?kind=") || input === "https://api.dnj.test/v2/admin/activities") {
       const kind = new URL(input, "http://localhost").searchParams.get("kind");
       const data = [
         { id: "activity-1", name: "Gincana", slug: "gincana", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 10, momentPoints: 20, cooldownSeconds: 60, allowsMoment: true },
@@ -53,13 +54,13 @@ beforeEach(() => {
       ].filter((activity) => !kind || activity.kind === kind);
       return Promise.resolve(jsonResponse({ data }));
     }
-    if (input === "/api/v2/admin/activities/checkpoint-1/qr")
+    if (input === "https://api.dnj.test/v2/admin/activities/checkpoint-1/qr")
       return Promise.resolve(persistedCheckpointQr ? jsonResponse(persistedCheckpointQr) : new Response(null, { status: 204 }));
-    if (input === "/api/v2/manager/runs" && init?.method === "POST")
+    if (input === "https://api.dnj.test/v2/manager/runs" && init?.method === "POST")
       return Promise.resolve(jsonResponse({ id: "run-checkpoint" }, 201));
-    if (input === "/api/v2/manager/runs/run-checkpoint/qr" && init?.method === "POST")
+    if (input === "https://api.dnj.test/v2/manager/runs/run-checkpoint/qr" && init?.method === "POST")
       return Promise.resolve(jsonResponse({ qrToken: "checkpoint-token" }, 201));
-    if (input === "/api/v2/admin/spaces")
+    if (input === "https://api.dnj.test/v2/admin/spaces")
       return Promise.resolve(jsonResponse({ data: [{ id: "space-1", name: "Capela", slug: "capela", mapReference: null }] }));
     return Promise.resolve(jsonResponse({ data: [{ id: "staff-1", name: "Ana Gestora", email: "ana.gestora@example.com", role: "EVENT_MANAGER", onboardingComplete: true }] }));
   });
@@ -71,27 +72,27 @@ afterEach(() => vi.useRealTimers());
 describe("AdminDashboard V2", () => {
   it("navigates through paginated admin results", async () => {
     fetchMock.mockImplementation((input: string) => {
-      if (input === "/api/v2/admin/staff?role=EVENT_MANAGER&page=2")
+      if (input === "https://api.dnj.test/v2/admin/staff?role=EVENT_MANAGER&page=2")
         return Promise.resolve(jsonResponse({
           data: [{ id: "staff-2", name: "Bia Gestora", email: "bia.gestora@example.com", role: "EVENT_MANAGER", onboardingComplete: true }],
           pagination: { currentPage: "2", hasNextPage: false, limit: 20 },
         }));
-      if (input === "/api/v2/admin/staff?role=EVENT_MANAGER")
+      if (input === "https://api.dnj.test/v2/admin/staff?role=EVENT_MANAGER")
         return Promise.resolve(jsonResponse({
           data: [{ id: "staff-1", name: "Ana Gestora", email: "ana.gestora@example.com", role: "EVENT_MANAGER", onboardingComplete: true }],
           pagination: { currentPage: "1", hasNextPage: true, limit: 20 },
         }));
-      if (input === "/api/v2/admin/spaces?page=2")
+      if (input === "https://api.dnj.test/v2/admin/spaces?page=2")
         return Promise.resolve(jsonResponse({ data: [{ id: "space-2", name: "Pátio", slug: "patio", mapReference: null }], pagination: { currentPage: "2", hasNextPage: false, limit: 20 } }));
-      if (input === "/api/v2/admin/spaces")
+      if (input === "https://api.dnj.test/v2/admin/spaces")
         return Promise.resolve(jsonResponse({ data: [{ id: "space-1", name: "Capela", slug: "capela", mapReference: null }], pagination: { currentPage: "1", hasNextPage: true, limit: 20 } }));
-      if (input === "/api/v2/admin/activities?kind=challenge&page=2")
+      if (input === "https://api.dnj.test/v2/admin/activities?kind=challenge&page=2")
         return Promise.resolve(jsonResponse({ data: [{ id: "activity-2", name: "Gincana 2", slug: "gincana-2", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 0, momentPoints: 20, cooldownSeconds: 0, allowsMoment: true }], pagination: { currentPage: "2", hasNextPage: false, limit: 20 } }));
-      if (input === "/api/v2/admin/activities?kind=challenge")
+      if (input === "https://api.dnj.test/v2/admin/activities?kind=challenge")
         return Promise.resolve(jsonResponse({ data: [{ id: "activity-1", name: "Gincana", slug: "gincana", kind: "challenge", status: "draft", description: null, spaceId: null, startsAt: null, endsAt: null, checkInPoints: 0, momentPoints: 20, cooldownSeconds: 0, allowsMoment: true }], pagination: { currentPage: "1", hasNextPage: true, limit: 20 } }));
-      if (input === "/api/v2/admin/moments/moderation?queue=challenge&page=2")
+      if (input === "https://api.dnj.test/v2/admin/moments/moderation?queue=challenge&page=2")
         return Promise.resolve(jsonResponse({ data: [{ momentId: "moment-2", imageUrl: "", capturedAt: "2026-10-18T17:35:00.000Z", participantName: "Beto", activity: null, pointsAwarded: 0, photoStatus: "unavailable", availableActions: ["approve"] }], pagination: { currentPage: "2", hasNextPage: false, limit: 20 } }));
-      if (input === "/api/v2/admin/moments/moderation?queue=challenge&page=1")
+      if (input === "https://api.dnj.test/v2/admin/moments/moderation?queue=challenge&page=1")
         return Promise.resolve(jsonResponse({ data: [{ momentId: "moment-1", imageUrl: "", capturedAt: "2026-10-18T17:35:00.000Z", participantName: "Alex", activity: null, pointsAwarded: 0, photoStatus: "unavailable", availableActions: ["approve"] }], pagination: { currentPage: "1", hasNextPage: true, limit: 20 } }));
       if (input.includes("/managers"))
         return Promise.resolve(jsonResponse({ data: [], pagination: { currentPage: "1", hasNextPage: false, limit: 20 } }));
@@ -104,7 +105,7 @@ describe("AdminDashboard V2", () => {
     fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
 
     expect(await screen.findByText("Bia Gestora")).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/staff?role=EVENT_MANAGER&page=2", expect.anything());
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/staff?role=EVENT_MANAGER&page=2", expect.anything());
     expect(screen.getByText("Página 2")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Página anterior" }));
     expect(await screen.findByText("Ana Gestora")).toBeInTheDocument();
@@ -113,7 +114,7 @@ describe("AdminDashboard V2", () => {
     fireEvent.click(navigation.getByRole("button", { name: "Atividades" }));
     expect(await screen.findByText("Gincana")).toBeInTheDocument();
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/staff?role=EVENT_MANAGER&page=2", expect.anything());
+      expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/staff?role=EVENT_MANAGER&page=2", expect.anything());
     });
 
     fireEvent.click(navigation.getByRole("button", { name: "Espaços" }));
@@ -130,13 +131,13 @@ describe("AdminDashboard V2", () => {
   it("starts the teaser and releases the special-event QR automatically", async () => {
     let status: "draft" | "teaser" | "active" = "draft";
     fetchMock.mockImplementation((input: string, init?: RequestInit) => {
-      if (input === "/api/v2/manager/special-events" && !init?.method)
+      if (input === "https://api.dnj.test/v2/manager/special-events" && !init?.method)
         return Promise.resolve(jsonResponse({ events: [{ id: "special-1", title: "Desafio surpresa", points: 100, status, qrAvailableAt: "2026-09-03T15:00:00.000Z" }] }));
-      if (input === "/api/v2/manager/special-events/teaser") {
+      if (input === "https://api.dnj.test/v2/manager/special-events/teaser") {
         status = "teaser";
         return Promise.resolve(jsonResponse({ id: "special-1", status, qrAvailableAt: "2026-09-03T15:00:00.000Z" }));
       }
-      if (input === "/api/v2/manager/special-events/qr") {
+      if (input === "https://api.dnj.test/v2/manager/special-events/qr") {
         status = "active";
         return Promise.resolve(jsonResponse({ qrToken: "special-token", expiresAt: "2026-09-03T15:05:00.000Z" }));
       }
@@ -155,18 +156,18 @@ describe("AdminDashboard V2", () => {
     expect(screen.queryByRole("button", { name: "Liberar QR" })).not.toBeInTheDocument();
     await act(async () => vi.advanceTimersByTimeAsync(30_000));
 
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/special-events/qr", expect.objectContaining({ method: "POST", body: JSON.stringify({ eventId: "special-1" }) }));
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/manager/special-events/qr", expect.objectContaining({ method: "POST", body: JSON.stringify({ eventId: "special-1" }) }));
     vi.useRealTimers();
     expect(await screen.findByRole("img", { name: "QR Code do evento Desafio surpresa" })).toBeInTheDocument();
   });
 
   it("renews and closes an active special event", async () => {
     fetchMock.mockImplementation((input: string, init?: RequestInit) => {
-      if (input === "/api/v2/manager/special-events" && !init?.method)
+      if (input === "https://api.dnj.test/v2/manager/special-events" && !init?.method)
         return Promise.resolve(jsonResponse({ events: [{ id: "special-1", title: "Desafio surpresa", status: "active" }] }));
-      if (input === "/api/v2/manager/special-events/qr")
+      if (input === "https://api.dnj.test/v2/manager/special-events/qr")
         return Promise.resolve(jsonResponse({ qrToken: "renewed-token" }));
-      if (input === "/api/v2/manager/special-events/close")
+      if (input === "https://api.dnj.test/v2/manager/special-events/close")
         return Promise.resolve(jsonResponse({ ok: true }));
       return Promise.resolve(jsonResponse({ data: [] }));
     });
@@ -178,8 +179,8 @@ describe("AdminDashboard V2", () => {
     expect(await screen.findByRole("img", { name: "QR Code do evento Desafio surpresa" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Encerrar" }));
 
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/special-events/qr", expect.objectContaining({ method: "POST" }));
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/special-events/close", expect.objectContaining({ method: "POST", body: JSON.stringify({ eventId: "special-1" }) }));
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/manager/special-events/qr", expect.objectContaining({ method: "POST" }));
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/manager/special-events/close", expect.objectContaining({ method: "POST", body: JSON.stringify({ eventId: "special-1" }) }));
   });
 
   it("loads the documented staff endpoint by default", async () => {
@@ -187,7 +188,7 @@ describe("AdminDashboard V2", () => {
     fireEvent.click(screen.getByRole("button", { name: "Gestores" }));
     expect(await screen.findByText("Ana Gestora")).toBeInTheDocument();
     expect(screen.getByText("ana.gestora@example.com")).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/staff?role=EVENT_MANAGER", expect.anything());
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/staff?role=EVENT_MANAGER", expect.anything());
   });
 
   it("loads documented activities and spaces from the navigation", async () => {
@@ -197,8 +198,8 @@ describe("AdminDashboard V2", () => {
     expect(await screen.findByText("Gincana")).toBeInTheDocument();
     fireEvent.click(navigation.getByRole("button", { name: "Espaços" }));
     expect(await screen.findByText("Capela")).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities?kind=challenge", expect.anything());
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/spaces", expect.anything());
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/activities?kind=challenge", expect.anything());
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/spaces", expect.anything());
   });
 
   it("creates a run and requests its QR for a checkpoint activity", async () => {
@@ -208,8 +209,8 @@ describe("AdminDashboard V2", () => {
     expect(await screen.findByText("Ponto de presença")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Gerar QR Code" }));
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/runs", expect.objectContaining({ method: "POST", body: JSON.stringify({ gameId: "checkpoint-1" }) })));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/runs/run-checkpoint/qr", expect.objectContaining({ method: "POST" })));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/manager/runs", expect.objectContaining({ method: "POST", body: JSON.stringify({ gameId: "checkpoint-1" }) })));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/manager/runs/run-checkpoint/qr", expect.objectContaining({ method: "POST" })));
     expect(await screen.findByRole("img", { name: "QR Code de Ponto de presença" })).toBeInTheDocument();
   });
 
@@ -219,7 +220,7 @@ describe("AdminDashboard V2", () => {
     fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Estáticos" }));
 
     expect(await screen.findByRole("img", { name: "QR Code de Ponto de presença" })).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities/checkpoint-1/qr", expect.anything());
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/activities/checkpoint-1/qr", expect.anything());
     expect(screen.getByRole("button", { name: "Baixar PNG" })).toBeInTheDocument();
   });
 
@@ -246,15 +247,20 @@ describe("AdminDashboard V2", () => {
     await waitFor(() => expect(queueConfig.updateQueueConfig).toHaveBeenCalledWith({ isQueueOpen: false }));
   });
 
-  it("keeps session logout outside the V2 proxy and hides unsupported panels", async () => {
+  it("revokes the cookie session on logout, clears credentials and hides unsupported panels", async () => {
     const onExit = vi.fn();
+    authStorage.setCredentials({ accessToken: "admin-access", refreshToken: "admin-refresh" });
     render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={onExit} />);
     expect(screen.queryByRole("button", { name: "Visão geral" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Eventos especiais" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Participantes" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Sair" }));
-    expect(fetchMock).toHaveBeenCalledWith("/api/admin/session", { method: "DELETE", credentials: "include" });
     await waitFor(() => expect(onExit).toHaveBeenCalledOnce());
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/auth/logout", expect.objectContaining({ method: "POST", body: undefined, credentials: "include" }));
+    const logoutInit = fetchMock.mock.calls.find(([url]) => url === "https://api.dnj.test/v2/auth/logout")?.[1] as RequestInit;
+    expect(logoutInit.headers).not.toHaveProperty("Authorization");
+    expect(logoutInit).toHaveProperty("credentials", "include");
+    expect(authStorage.getAccessToken()).toBeNull();
   });
 
   it("creates spaces and activities with documented V2 payloads", async () => {
@@ -265,7 +271,7 @@ describe("AdminDashboard V2", () => {
     fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Quadra São José" } });
     expect(screen.getByLabelText("Slug")).toHaveValue("quadra-sao-jose");
     fireEvent.click(screen.getByRole("button", { name: "Criar espaço" }));
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/spaces", expect.objectContaining({ method: "POST", headers: expect.objectContaining({ "Idempotency-Key": expect.stringMatching(/^[0-9a-f-]{36}$/i) }), body: JSON.stringify({ name: "Quadra São José", slug: "quadra-sao-jose" }) }));
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/spaces", expect.objectContaining({ method: "POST", headers: expect.objectContaining({ "Idempotency-Key": expect.stringMatching(/^[0-9a-f-]{36}$/i) }), body: JSON.stringify({ name: "Quadra São José", slug: "quadra-sao-jose" }) }));
 
     fireEvent.click(navigation.getByRole("button", { name: "Atividades" }));
     await screen.findByText("Gincana");
@@ -280,7 +286,7 @@ describe("AdminDashboard V2", () => {
     fireEvent.change(screen.getByLabelText("Início"), { target: { value: "2026-08-24T18:00" } });
     fireEvent.change(screen.getByLabelText("Duração (minutos)"), { target: { value: "60" } });
     fireEvent.click(screen.getByRole("button", { name: "Criar atividade" }));
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.objectContaining({ method: "POST", headers: expect.objectContaining({ "Idempotency-Key": expect.stringMatching(/^[0-9a-f-]{36}$/i) }), body: JSON.stringify({ name: "Corrida", slug: "corrida", description: "Registre um momento no local.", kind: "challenge", spaceId: null, checkInPoints: 0, momentPoints: 20, cooldownSeconds: 0, allowsMoment: true, startsAt: new Date("2026-08-24T18:00").toISOString(), endsAt: new Date("2026-08-24T19:00").toISOString() }) }));
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/activities", expect.objectContaining({ method: "POST", headers: expect.objectContaining({ "Idempotency-Key": expect.stringMatching(/^[0-9a-f-]{36}$/i) }), body: JSON.stringify({ name: "Corrida", slug: "corrida", description: "Registre um momento no local.", kind: "challenge", spaceId: null, checkInPoints: 0, momentPoints: 20, cooldownSeconds: 0, allowsMoment: true, startsAt: new Date("2026-08-24T18:00").toISOString(), endsAt: new Date("2026-08-24T19:00").toISOString() }) }));
   });
 
   it("disables moments when creating a schedule activity", async () => {
@@ -296,7 +302,7 @@ describe("AdminDashboard V2", () => {
     fireEvent.change(screen.getByLabelText("Fim / duração"), { target: { value: "2026-09-03T12:43" } });
     fireEvent.click(screen.getByRole("button", { name: "Criar atividade" }));
 
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities", expect.objectContaining({
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/activities", expect.objectContaining({
       method: "POST",
       body: JSON.stringify({ name: "Agenda 3/09", slug: "agenda-3-09", description: "Agenda teste", kind: "schedule", spaceId: "space-1", checkInPoints: 10, momentPoints: 0, cooldownSeconds: 60, allowsMoment: false, startsAt: new Date("2026-09-03T11:43").toISOString(), endsAt: new Date("2026-09-03T12:43").toISOString() }),
     }));
@@ -308,19 +314,19 @@ describe("AdminDashboard V2", () => {
     fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Atividades" }));
     await screen.findByText("Gincana");
     fireEvent.click(screen.getByRole("button", { name: "Ativar" }));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities/activity-1", expect.objectContaining({ method: "PATCH", body: JSON.stringify({ status: "active" }) })));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/activities/activity-1", expect.objectContaining({ method: "PATCH", body: JSON.stringify({ status: "active" }) })));
     expect(await screen.findByRole("status")).toHaveTextContent("Atividade ativada.");
     fireEvent.click(screen.getByRole("button", { name: "Pausar" }));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities/activity-1", expect.objectContaining({ method: "PATCH", body: JSON.stringify({ status: "paused" }) })));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/activities/activity-1", expect.objectContaining({ method: "PATCH", body: JSON.stringify({ status: "paused" }) })));
     expect(await screen.findByRole("status")).toHaveTextContent("Atividade pausada.");
     fireEvent.click(screen.getByRole("button", { name: "Editar" }));
     expect(screen.getByRole("dialog", { name: "Editar Gincana" })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Fim (opcional)"), { target: { value: "2026-08-24T19:00" } });
     fireEvent.click(screen.getByRole("button", { name: "Salvar alterações" }));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities/activity-1", expect.objectContaining({ method: "PATCH", body: expect.stringContaining('"endsAt":"2026-08-24T22:00:00.000Z"') })));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/activities/activity-1", expect.objectContaining({ method: "PATCH", body: expect.stringContaining('"endsAt":"2026-08-24T22:00:00.000Z"') })));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "Excluir" }));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/activities/activity-1", expect.objectContaining({ method: "PATCH", body: JSON.stringify({ status: "archived" }) })));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/activities/activity-1", expect.objectContaining({ method: "PATCH", body: JSON.stringify({ status: "archived" }) })));
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Atividade arquivada."));
     expect(screen.queryByText("Gincana")).not.toBeInTheDocument();
   });
@@ -339,7 +345,7 @@ describe("AdminDashboard V2", () => {
     expect(within(dialog).getByRole("button", { name: "Aceitar" })).toBeInTheDocument();
     expect(within(dialog).getByRole("button", { name: "Excluir foto" })).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("button", { name: "Aceitar" }));
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/moments/moment-1/moderation", expect.objectContaining({ method: "POST", body: JSON.stringify({ action: "approve" }) }));
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/moments/moment-1/moderation", expect.objectContaining({ method: "POST", body: JSON.stringify({ action: "approve" }) }));
     expect(within(dialog).getByRole("button", { name: "Retirar pontos" })).toBeInTheDocument();
   });
 
@@ -347,9 +353,9 @@ describe("AdminDashboard V2", () => {
     render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={vi.fn()} />);
     fireEvent.click(within(screen.getByRole("navigation", { name: "Navegação administrativa" })).getByRole("button", { name: "Moderação" }));
     await screen.findByText("Alex");
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/moments/moderation?queue=challenge&page=1", expect.anything());
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/moments/moderation?queue=challenge&page=1", expect.anything());
     fireEvent.change(screen.getByLabelText("Fila"), { target: { value: "general" } });
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/moments/moderation?queue=general&page=1", expect.anything()));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/moments/moderation?queue=general&page=1", expect.anything()));
   });
 
   it("sends notifications with the documented payload", async () => {
@@ -359,6 +365,6 @@ describe("AdminDashboard V2", () => {
     fireEvent.change(screen.getByLabelText("Mensagem"), { target: { value: "Chegue cedo" } });
     fireEvent.click(screen.getByRole("button", { name: "Enviar para inscritos" }));
     expect(await screen.findByText("Notificação enfileirada para 3 destinatário(s). Confirme o recebimento em um dispositivo inscrito.")).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith("/api/v2/admin/notifications", expect.objectContaining({ method: "POST", body: JSON.stringify({ title: "Aviso", body: "Chegue cedo" }) }));
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/admin/notifications", expect.objectContaining({ method: "POST", body: JSON.stringify({ title: "Aviso", body: "Chegue cedo" }) }));
   });
 });

@@ -33,6 +33,7 @@ import {
 import { useRouter } from "next/navigation";
 import { toDataURL } from "qrcode";
 import { authApi } from "@/lib/api/auth";
+import { authStorage } from "@/lib/auth-storage";
 import { apiMutation, apiRequest } from "@/lib/api/client";
 import styles from "./manager-dashboard.module.css";
 import { PastoralQueueConsole } from "./pastoral-queue-console";
@@ -123,6 +124,10 @@ async function api(path: string, init?: RequestInit) {
     );
   return response.status === 204 ? null : response.json();
 }
+const managerScopes: readonly Scope[] = ["space", "actions", "special_events", "pastoral_queue"];
+function readManagerScope(value: unknown): Scope | undefined {
+  return typeof value === "string" && managerScopes.includes(value as Scope) ? (value as Scope) : undefined;
+}
 function getScope(session: Session, overview: Overview): Scope | undefined {
   if (session.manager?.scope) return session.manager.scope;
   if (overview.scope) return overview.scope;
@@ -162,19 +167,13 @@ export function ManagerDashboard() {
   const overviewPollInFlight = useRef(false);
   const load = useCallback(async () => {
     try {
-      let sessionResponse = await fetch("/api/manager/session", { cache: "no-store", credentials: "include" });
-      if (!sessionResponse.ok) {
-        const identity = await authApi.refresh();
-        sessionResponse = await fetch("/api/manager/session", {
-          method: "POST",
-          cache: "no-store",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accessToken: identity.accessToken }),
-        });
-      }
-      if (!sessionResponse.ok) throw new Error("Sessão expirada.");
-      const sessionData = await sessionResponse.json() as Session;
+      // The external API restores the session from the stored bearer token
+      // and is the only authority on the EVENT_MANAGER role and its scope.
+      if (!authStorage.getAccessToken()) throw new Error("Sessão expirada.");
+      const identity = await authApi.getSession();
+      if (identity.user.role !== "EVENT_MANAGER") { authStorage.clearCredentials(); throw new Error("Esta conta não tem acesso a esta área."); }
+      const manager = { name: identity.user.name || identity.user.email, email: identity.user.email, scope: readManagerScope(identity.user.scope) };
+      const sessionData: Session = { manager, ...manager };
       const scope = sessionData.manager?.scope ?? sessionData.scope;
       const overviewData = scope === "pastoral_queue"
         ? { scope }
@@ -238,7 +237,7 @@ export function ManagerDashboard() {
     return () => { active = false; window.clearInterval(timer); };
   }, [managerScope]);
   async function signOut() {
-    await fetch("/api/manager/session", { method: "DELETE" }).catch(() => null);
+    await authApi.logout();
     router.replace("/manager/login");
   }
   if (!session || !overview)

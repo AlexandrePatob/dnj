@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Calendar, ChevronRight, MapPin, Sprout, Footprints, BookOpen, Send, Hammer, Church, LockKeyhole } from "lucide-react";
 import type { AnimDir, UserData } from "@/features/app/types";
 import { DNJ_LEVELS, getDnjLevel } from "@/lib/levels";
@@ -64,6 +65,9 @@ export function HomeScreen({ user, animDir, onOpenSchedule, onOpenMap, onOpenGam
       </section>
 
       <section className="rounded-2xl p-4" style={{ background: "var(--card)", border: "1px solid var(--border)" }}><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl" style={{ background: "var(--primary-alpha-15)", color: "var(--primary)" }}><MapPin size={20} /></span><div className="min-w-0 flex-1"><h2 className="font-bold">Mapa do evento</h2><p className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>Consulte o mapa oficial do DNJ.</p></div><button type="button" onClick={onOpenMap} className="shrink-0 text-sm font-bold" style={{ color: "var(--primary)" }}>Abrir</button></div></section>
+      <section aria-label="Patrocinadores e parceiros" className="overflow-hidden rounded-2xl" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <Image src="/images/patrocinadores-dnj.png" alt="Patrocinadores, apoiadores, media partner e parceiros do DNJ" width={1125} height={660} sizes="(max-width: 448px) calc(100vw - 40px), 408px" className="h-auto w-full" />
+      </section>
     </main>
   </div>;
 }

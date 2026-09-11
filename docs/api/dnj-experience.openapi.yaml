@@ -278,30 +278,6 @@ paths:
         '400': { $ref: '#/components/responses/InvalidRequest' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '404': { $ref: '#/components/responses/MomentNotFound' }
-  /api/admin/session:
-    get:
-      tags: [Admin operation]
-      summary: Reads the current Next admin-cookie session
-      security: [{ adminCookie: [] }]
-      responses:
-        '200': { description: Session, content: { application/json: { schema: { $ref: '#/components/schemas/AdminSessionEnvelope' } } } }
-        '401': { $ref: '#/components/responses/AdminUnauthorized' }
-    post:
-      tags: [Admin operation]
-      summary: Creates an admin-cookie session in the Next homologation environment
-      security: []
-      requestBody:
-        required: true
-        content: { application/json: { schema: { $ref: '#/components/schemas/AdminLoginRequest' } } }
-      responses:
-        '200': { description: Cookie session created, content: { application/json: { schema: { $ref: '#/components/schemas/AdminSessionEnvelope' } } } }
-        '401': { $ref: '#/components/responses/AdminUnauthorized' }
-    delete:
-      tags: [Admin operation]
-      summary: Clears the admin-cookie session
-      security: [{ adminCookie: [] }]
-      responses:
-        '200': { description: Session cleared, content: { application/json: { schema: { $ref: '#/components/schemas/Ok' } } } }
   /api/admin/overview:
     get:
       tags: [Admin operation]
@@ -407,7 +383,7 @@ components:
       type: apiKey
       in: cookie
       name: dnj_admin_session
-      description: Current Next-only admin session. Replace with a server-validated ADMIN identity in production.
+      description: Legacy Next-only admin session (retired). The admin area now restores its identity from the external API with a bearer token and validates the ADMIN role from GET /auth/session.
   parameters:
     Cursor: { name: cursor, in: query, schema: { type: string }, description: Opaque cursor from a previous page. }
     Limit: { name: limit, in: query, schema: { type: integer, default: 20, minimum: 1, maximum: 50 } }
@@ -551,19 +527,6 @@ components:
           properties: { scope: { type: string, enum: [feed, mine, group] } }
     ParticipationEnvelope: { type: object, required: [participation], properties: { participation: { $ref: '#/components/schemas/Participation' } } }
     MomentEnvelope: { type: object, required: [moment], properties: { moment: { $ref: '#/components/schemas/Moment' } } }
-    AdminLoginRequest:
-      type: object
-      additionalProperties: false
-      required: [email, password]
-      properties: { email: { type: string, format: email }, password: { type: string, format: password } }
-    AdminSessionEnvelope:
-      type: object
-      required: [session]
-      properties:
-        session:
-          type: object
-          required: [email, name]
-          properties: { email: { type: string, format: email }, name: { type: string } }
     AdminOverview:
       type: object
       required: [activeUsers, ranking, pendingModeration, interactionsToday, activity]
