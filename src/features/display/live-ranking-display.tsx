@@ -17,6 +17,7 @@ type RankingEntry = {
   points: number;
   group?: string;
   members?: number;
+  avatarUrl?: string;
 };
 type SpecialEvent = {
   id: string;
@@ -42,6 +43,9 @@ type RankingPage = {
     points: number;
     groupName?: string | null;
     members?: number;
+    avatarUrl?: string | null;
+    imageUrl?: string | null;
+    photoUrl?: string | null;
   }>;
 };
 
@@ -51,7 +55,20 @@ function rankingEntries(page: RankingPage, board: "individual" | "groups"): Rank
     name: entry.name,
     points: entry.points,
     ...(board === "individual" ? { group: entry.groupName ?? "Sem grupo" } : { members: entry.members ?? 0 }),
+    ...(entry.avatarUrl || entry.imageUrl || entry.photoUrl
+      ? { avatarUrl: entry.avatarUrl ?? entry.imageUrl ?? entry.photoUrl ?? undefined }
+      : {}),
   }));
+}
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 }
 
 function remaining(target: string, now: number) {
@@ -95,15 +112,15 @@ function RankRows({
   );
 
   return (
-    <div
-      className={`mx-auto w-full ${
-        isBackdrop ? "mt-5 grid max-w-none grid-cols-1 gap-5 lg:grid-cols-[1.05fr_1fr] lg:items-end" : "mt-8 max-w-7xl"
-      }`}
-    >
+    <div className={`mx-auto w-full ${isBackdrop ? "mt-5" : "mt-8 max-w-7xl"}`}>
       <section
         aria-label="Pódio"
         className={`mx-auto grid w-full grid-cols-3 items-end px-2 text-center ${
-          isBackdrop ? "max-w-none gap-3" : isSide ? "max-w-3xl gap-4 md:gap-7" : "max-w-4xl gap-3 md:gap-6"
+          isBackdrop
+            ? "max-w-[1120px] gap-5"
+            : isSide
+              ? "max-w-5xl gap-5 md:gap-8"
+              : "max-w-4xl gap-3 md:gap-6"
         }`}
       >
         {podium.map(({ entry, position, tone, height }) => (
@@ -127,11 +144,11 @@ function RankRows({
                 : `${entry.members ?? 0} participantes`}
             </p>
             <div
-              className={`mt-3 flex flex-col justify-end rounded-t-[2rem] border border-b-0 px-2 md:px-5 ${isBackdrop ? "pb-2 pt-3" : "pb-4 pt-5"}`}
+              className={`relative mt-3 flex flex-col justify-end overflow-hidden rounded-t-[2rem] border border-b-0 px-2 md:px-5 ${isBackdrop ? "pb-2 pt-3" : "pb-4 pt-5"}`}
               style={{
                 minHeight: height,
                 borderColor: `${tone}88`,
-                background: `linear-gradient(180deg, ${tone}40, ${tone}16)`,
+                background: `linear-gradient(180deg, ${tone}42, ${tone}12)`,
               }}
             >
               <span
@@ -227,6 +244,92 @@ function SpecialEventOverlay({
   );
 }
 
+function BackdropRanking({ entries, board, clock }: { entries: RankingEntry[]; board: "individual" | "groups"; clock: string }) {
+  const places = [entries[1], entries[0], entries[2]];
+  const tones = ["#d9e0e2", "#f3f51b", "#ff9656"];
+
+  return (
+    <>
+      <time className="absolute z-10 text-right text-[1.8vw] font-black tabular-nums text-white" style={{ right: "2.4%", top: "3.3%" }}>{clock}</time>
+      <p
+        className="absolute left-1/2 z-10 -translate-x-1/2 text-[.48vw] font-semibold uppercase tracking-[.22em] text-[#f3f51b]/90"
+        style={{ top: "20.2%" }}
+      >
+        {board === "individual" ? "Individual" : "Grupo"}
+      </p>
+      <section aria-label="Pódio" className="absolute inset-x-0" style={{ top: "30.8%", height: "45.3%" }}>
+        {places.map((entry, index) => {
+          const center = index === 1;
+          const left = [25.8, 42.2, 59.2][index];
+          const width = center ? 15.9 : 15.4;
+          const top = center ? 0 : 9.4;
+          return (
+            <article
+              key={entry?.id ?? `empty-${index}`}
+              className="absolute flex flex-col items-center rounded-[1.5vw] border-[.13vw] px-[1vw] pt-[1.7vw] text-center"
+              style={{ left: `${left}%`, top: `${top}%`, zIndex: 1, width: `${width}%`, height: center ? "98%" : "84.2%", borderColor: tones[index], backgroundColor: center ? "#4d5414" : "#061d17", backgroundImage: center ? "linear-gradient(145deg,#4d5414,#061d17)" : "linear-gradient(145deg,#16342c,#061d17)", boxShadow: center ? "0 0 22px #f3f51b88" : undefined }}
+            >
+              {center ? <Crown aria-hidden className="absolute fill-[#f3f51b]/20 text-[#f3f51b]" style={{ top: "-3.15vw", height: "3.6vw", width: "3.6vw" }} strokeWidth={2.2} /> : null}
+              <span className="absolute flex items-center justify-center rounded-full text-[1.35vw] font-black text-black" style={{ right: ".8vw", top: ".8vw", height: "2.8vw", width: "2.8vw", background: tones[index] }}>{index === 0 ? "2º" : center ? "1º" : "3º"}</span>
+              <span className={`mt-[.1vw] flex shrink-0 items-center justify-center overflow-hidden rounded-full border-[.18vw] bg-[#19372e] ${center ? "h-[7.8vw] w-[7.8vw]" : "h-[6.6vw] w-[6.6vw]"}`} style={{ borderColor: tones[index], boxShadow: `0 0 12px ${tones[index]}77` }}>
+                {entry?.avatarUrl ? (
+                  <img src={entry.avatarUrl} alt={`Foto de ${entry.name}`} className="h-full w-full object-cover" />
+                ) : entry ? (
+                  <span className={`${center ? "text-[2.1vw]" : "text-[1.7vw]"} font-black`} style={{ color: tones[index] }}>{initials(entry.name)}</span>
+                ) : (
+                  <span aria-hidden />
+                )}
+              </span>
+              <h2 className={`${center ? "mt-[.9vw] text-[1.35vw]" : "mt-[.75vw] text-[1.15vw]"} max-w-full truncate font-bold leading-tight text-white`}>{entry?.name}</h2>
+              <div className={`${center ? "mt-[.7vw]" : "mt-[.55vw]"}`}>
+                <strong className={`${center ? "text-[3vw]" : "text-[2.55vw]"} font-black leading-none tabular-nums`} style={{ color: center ? "#f3f51b" : "white" }}>{entry?.points}</strong>
+                <small className="ml-[.35vw] text-[1vw] font-bold text-white">PTS</small>
+              </div>
+              {center && board === "individual" && entry ? <p className="mt-[.7vw] max-w-[90%] text-[.52vw] font-bold uppercase tracking-[.15em] text-white/80">{entry.group}</p> : null}
+            </article>
+          );
+        })}
+      </section>
+    </>
+  );
+}
+
+function SideRanking({ entries, board, clock }: { entries: RankingEntry[]; board: "individual" | "groups"; clock: string }) {
+  const places = [entries[1], entries[0], entries[2]];
+  const tones = ["#d9e0e2", "#f3f51b", "#ff9656"];
+
+  return <>
+    <time className="absolute z-10 text-right font-black tabular-nums text-white" style={{ right: "5.4%", top: "3.35%", fontSize: "2.25cqw", backgroundColor: "#00271c", padding: ".45cqw .5cqw" }}>{clock}</time>
+    <section aria-label="Pódio" className="absolute inset-x-0" style={{ top: "32.5%", height: "21.8%" }}>
+      {places.map((entry, index) => {
+        const center = index === 1;
+        const tone = tones[index];
+        const left = [7.3, 34.8, 65.8][index];
+        const width = center ? 30.5 : 26.3;
+        return (
+          <article
+            key={entry?.id ?? `empty-${index}`}
+            className="absolute text-center"
+            style={{ left: `${left}%`, top: center ? "0" : "7%", width: `${width}%`, height: center ? "100%" : "82%", border: ".16cqw solid", borderRadius: "1.7cqw", padding: "2cqw 1.15cqw 0", borderColor: tone, background: center ? "linear-gradient(145deg,#534f12,#062219)" : "linear-gradient(145deg,#1c392e,#062219)", boxShadow: center ? "0 0 22px #f3f51b88" : undefined }}
+          >
+            {center ? <Crown aria-hidden className="absolute fill-[#f3f51b]/20 text-[#f3f51b]" style={{ left: "50%", transform: "translateX(-50%)", top: "-2.6cqw", height: "3.5cqw", width: "3.5cqw" }} strokeWidth={2.2} /> : null}
+            <span className="absolute flex items-center justify-center rounded-full font-black text-black" style={{ right: "7%", top: "7%", height: "3.3cqw", width: "3.3cqw", fontSize: "1.65cqw", background: tone }}>{index === 0 ? "2º" : center ? "1º" : "3º"}</span>
+            <span className="absolute flex items-center justify-center overflow-hidden rounded-full bg-[#19372e]" style={{ left: "50%", top: "10%", transform: "translateX(-50%)", width: center ? "47%" : "50%", aspectRatio: "1 / 1", border: "2px solid", borderColor: tone, boxShadow: `0 0 12px ${tone}77` }}>
+              {entry?.avatarUrl ? <img src={entry.avatarUrl} alt={`Foto de ${entry.name}`} className="h-full w-full object-cover" /> : entry ? <span className="font-black" style={{ fontSize: center ? "3.3cqw" : "2.8cqw", color: tone }}>{initials(entry.name)}</span> : <span aria-hidden />}
+            </span>
+            <h2 className="absolute left-[7%] right-[7%] truncate font-bold leading-tight text-white" style={{ top: center ? "59%" : "58%", fontSize: center ? "2.2cqw" : "1.85cqw" }}>{entry?.name}</h2>
+            <div className="absolute inset-x-0" style={{ top: center ? "72%" : "71%" }}>
+              <strong className="font-black leading-none tabular-nums" style={{ fontSize: center ? "5cqw" : "4.25cqw", color: center ? "#f3f51b" : "white" }}>{entry?.points}</strong>
+              <small className="ml-[.45cqw] font-bold text-white" style={{ fontSize: "1.5cqw" }}>PTS</small>
+            </div>
+            {center && entry ? <p className="absolute inset-x-[7%] font-bold uppercase tracking-[.15em] text-white/80" style={{ top: "90%", fontSize: ".7cqw" }}>{board === "individual" ? entry.group : `${entry.members ?? 0} participantes`}</p> : null}
+          </article>
+        );
+      })}
+    </section>
+  </>;
+}
+
 export function LiveRankingDisplay({
   target,
   screenFormat,
@@ -308,48 +411,57 @@ export function LiveRankingDisplay({
     board === "individual" ? "Ranking individual" : "Ranking dos grupos";
   const format = target === "tv" ? "tv" : screenFormat ?? "side";
   const isBackdrop = format === "backdrop";
+  const isStageScreen = target === "screen";
+  const clock = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(now);
 
   return (
     <main
-      className={`relative min-h-screen overflow-hidden bg-[#0b3028] text-white ${
+      className={`relative overflow-hidden bg-[#031c16] text-white ${
         format === "side"
-          ? "mx-auto max-w-[1440px] px-8 py-10 md:px-14"
+          ? "mx-auto"
           : isBackdrop
-            ? "px-10 py-8 md:px-20"
-            : "px-8 py-10 md:px-14"
+            ? "mx-auto"
+            : "min-h-screen px-8 py-10 md:px-14"
       }`}
-      style={format === "side" ? { aspectRatio: "3 / 4" } : isBackdrop ? { aspectRatio: "5 / 2" } : undefined}
+      style={{
+        ...(format === "side" ? { aspectRatio: "3 / 4", width: "min(100vw, 75vh)", containerType: "inline-size", fontSize: "1cqw" } : isBackdrop ? { aspectRatio: "5 / 2", width: "min(100vw, 250vh)" } : {}),
+        backgroundImage: `url(${isBackdrop ? "/telao-horizontal-ranking-live-v3.png" : format === "side" ? "/telao-vertical-ranking-live-v2.png" : "/telao-vertical-reference.png"})`,
+        backgroundPosition: "center",
+        backgroundSize: "100% 100%",
+        backgroundRepeat: "no-repeat",
+      }}
     >
-      <span
+      {!isStageScreen ? <span aria-hidden className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_18%_12%,#0e654a_0,transparent_29%),radial-gradient(circle_at_86%_92%,#0b553f_0,transparent_36%),linear-gradient(118deg,transparent_0_28%,#0a392c_28%_34%,transparent_34%_58%,#0a382b_58%_65%,transparent_65%)]" /> : null}
+      {!isBackdrop ? <span
         aria-hidden
         className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-[#f37822] via-[#d7ef74] to-[#f37822]"
-      />
+      /> : null}
       {data?.specialEvent ? (
         <SpecialEventOverlay event={data.specialEvent} now={now} />
       ) : null}
-      <header className={`relative z-0 mx-auto flex items-center justify-between gap-8 border-b border-white/15 ${isBackdrop ? "max-w-none pb-5" : "max-w-7xl pb-7"}`}>
+      {isStageScreen ? (isBackdrop ? <BackdropRanking entries={entries} board={board} clock={clock} /> : data ? <SideRanking entries={entries} board={board} clock={clock} /> : null) : <><header className="relative z-0 mx-auto flex max-w-7xl items-center justify-between gap-8 pb-6">
         <BrandSticker
           decorative
           variant="header"
-          className="h-14 max-w-[9rem]"
+          className="h-16 max-w-[10rem]"
         />
-        <div className="text-right">
-          <p className="text-sm font-bold uppercase tracking-[0.22em] text-[#d7ef74]">
-            DNJ Game ao vivo
-          </p>
-          <p className="mt-1 text-lg text-white/65">
-            {target === "tv" ? "TV" : isBackdrop ? "Telão · Fundo" : "Telão · Lateral"}
-          </p>
+        <div className="flex items-center gap-5 text-right">
+          <span className="hidden h-3 w-3 rounded-full bg-[#f3f51b] shadow-[0_0_18px_#f3f51b] sm:block" />
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/90">DNJ Game ao vivo</p>
+            <p className="sr-only">{target === "tv" ? "TV" : isBackdrop ? "Telão · Fundo" : "Telão · Lateral"}</p>
+            <p className="mt-1 text-2xl font-bold tabular-nums text-white">{clock}</p>
+          </div>
         </div>
       </header>
       <section
         className={`relative z-0 mx-auto ${isBackdrop ? "max-w-none py-6" : "max-w-7xl py-12"}`}
         aria-live="polite"
       >
-        <p className="text-center text-sm font-bold uppercase tracking-[0.28em] text-[#d7ef74]">
+        <p className="text-center text-sm font-bold uppercase tracking-[0.42em] text-white/90">
           DNJ 2K26
         </p>
-        <h1 className={`mt-3 flex items-center justify-center gap-4 text-center font-bold tracking-[-0.06em] ${isBackdrop ? "text-4xl md:text-6xl" : "text-5xl md:text-7xl"}`}>
+        <h1 className={`mt-2 flex items-center justify-center gap-4 text-center font-bold tracking-[-0.06em] ${isBackdrop ? "text-4xl md:text-6xl" : "text-5xl md:text-7xl"}`}>
           <Trophy
             aria-hidden
             className="hidden text-[#f6c945] md:block"
@@ -357,6 +469,7 @@ export function LiveRankingDisplay({
           />
           {title}
         </h1>
+        <div className="mx-auto mt-3 h-1 w-28 rounded-full bg-[#f3f51b] shadow-[0_0_16px_#f3f51b]" />
         {data ? (
           <RankRows entries={entries} board={board} format={format} />
         ) : (
@@ -370,6 +483,11 @@ export function LiveRankingDisplay({
           </p>
         ) : null}
       </section>
+      <footer className={`relative z-0 mx-auto mt-auto flex items-center justify-between border-t border-white/15 pt-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/60 ${isBackdrop ? "max-w-none" : "max-w-7xl"}`}>
+        <span>Mais que pontos</span>
+        <span className="text-[#f3f51b]">Uma geração para Deus</span>
+      </footer>
+      </>}
     </main>
   );
 }
