@@ -13,7 +13,7 @@ export function ParticipantHeader({ user, home = false, showAvatar = true, onHom
     {showAvatar ? <button type="button" className={styles.avatar} onClick={onAccount} aria-label="Abrir minha conta">
       {user.avatarUrl && failedAvatar !== user.avatarUrl ? <img src={user.avatarUrl} alt="" onError={() => setFailedAvatar(user.avatarUrl)} referrerPolicy="no-referrer" /> : <span>{initials}</span>}
     </button> : null}
-    {home && <button type="button" className={`${styles.logo} border-0 bg-transparent p-0`} onClick={onHome} aria-label="Ir para Home"><BrandSticker className="h-full w-full" /></button>}
+    <button type="button" className={`${styles.logo} border-0 bg-transparent p-0`} onClick={onHome} aria-label="Ir para Home"><BrandSticker className="h-full w-full" /></button>
     <button type="button" className={`${styles.points} ${!showAvatar ? "ml-auto" : ""}`} onClick={onGame} aria-label={`${user.points.toLocaleString("pt-BR")} pontos. Abrir DNJ Game`}><Trophy size={22} aria-hidden="true" /><span>{user.points.toLocaleString("pt-BR")} <small>pts</small></span></button>
   </header>;
 }
