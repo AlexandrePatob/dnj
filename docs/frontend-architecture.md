@@ -8,7 +8,7 @@ O cliente HTTP centraliza URL base externa, timeout, parsing, bearer token, refr
 
 ## Sessão
 
-A API externa devolve `accessToken` (JWT de 15 minutos) e `refreshToken` (opaco, 30 dias). O frontend persiste os dois em `localStorage` (`src/lib/auth-storage.ts`) e envia `Authorization: Bearer` em toda chamada. Um `401` dispara um único refresh compartilhado entre requisições concorrentes (`POST /auth/refresh` com `{ "refreshToken" }`, rotação do par) e repete a requisição original; se a renovação falhar, as credenciais são removidas e o `401` é propagado. O logout envia o refresh token para revogação e limpa o armazenamento local mesmo com a API indisponível. Não há cookies, CSRF nem sessão no Next — Participante, Admin e Gestor restauram a sessão por `GET /auth/session` e validam o papel retornado.
+A API externa devolve `accessToken` (JWT de 15 minutos) e `csrfToken`, enquanto mantém o refresh em cookie. O frontend persiste o bearer no `localStorage` (`src/lib/auth-storage.ts`), envia `Authorization: Bearer` e inclui as credenciais/CSRF da API. Um `401` dispara um único refresh compartilhado entre requisições concorrentes (`POST /auth/refresh`), persiste o bearer rotacionado e repete a requisição original; se a renovação falhar, as credenciais locais são removidas e o `401` é propagado. O logout limpa o armazenamento local mesmo com a API indisponível. Não há sessão no Next — Participante, Admin e Gestor restauram a sessão por `GET /auth/session` e validam o papel retornado.
 
 ## Novos domínios
 

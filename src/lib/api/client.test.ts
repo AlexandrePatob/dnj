@@ -89,7 +89,7 @@ describe("apiRequest offline behavior", () => {
     await expect(apiRequest("/status")).resolves.toBeNull();
   });
 
-  it("calls the external API with the stored bearer token and no cookies or CSRF", async () => {
+  it("calls the external API with the stored bearer token and cookie refresh session", async () => {
     authStorage.setCredentials({ accessToken: "stored-access", refreshToken: "stored-refresh" });
     vi.mocked(fetch).mockResolvedValueOnce(response({ ok: true }));
     await apiRequest("/groups", {
@@ -106,7 +106,7 @@ describe("apiRequest offline behavior", () => {
       },
       body: JSON.stringify({ group: "São José" }),
     }));
-    expect(initOf(0)).not.toHaveProperty("credentials");
+    expect(initOf(0)).toHaveProperty("credentials", "include");
     expect(initOf(0).headers).not.toHaveProperty("X-CSRF-Token");
   });
 
@@ -122,6 +122,21 @@ describe("apiRequest offline behavior", () => {
     await apiRequest("/auth/google", { method: "POST", body: { idToken: "google" } });
     expect(authStorage.getAccessToken()).toBe("access-login");
     expect(authStorage.getRefreshToken()).toBe("refresh-login");
+  });
+
+  it("persists the access token and CSRF token returned by verification without a JSON refresh token", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(response({ accessToken: "access-verify", csrfToken: "csrf-verify", user: { id: "1" }, onboardingRequired: false }));
+    await apiRequest("/auth/signup/verify", { method: "POST", body: { email: "ana@example.com", code: "123456" } });
+    expect(authStorage.getAccessToken()).toBe("access-verify");
+    expect(authStorage.getRefreshToken()).toBeNull();
+    expect(authStorage.getCsrfToken()).toBe("csrf-verify");
+
+    vi.mocked(fetch).mockResolvedValueOnce(response({ ok: true }));
+    await apiRequest("/profile");
+    expect(initOf(1)).toEqual(expect.objectContaining({
+      credentials: "include",
+      headers: expect.objectContaining({ Authorization: "Bearer access-verify", "X-CSRF-Token": "csrf-verify" }),
+    }));
   });
 
   it("does exactly one concurrent refresh and replays each original request with the rotated token", async () => {
@@ -154,10 +169,16 @@ describe("apiRequest offline behavior", () => {
     expect(authStorage.getRefreshToken()).toBeNull();
   });
 
-  it("does not attempt a refresh without a stored refresh token", async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(unauthorized());
-    await expect(apiRequest("/ranking")).rejects.toMatchObject({ status: 401 });
-    expect(fetch).toHaveBeenCalledTimes(1);
+  it("refreshes through the cookie session when no JSON refresh token is stored", async () => {
+    authStorage.setAccessToken("access-old");
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(unauthorized())
+      .mockResolvedValueOnce(response({ accessToken: "access-new", user: { id: "1" }, onboardingRequired: false }))
+      .mockResolvedValueOnce(response({ ok: true }));
+    await expect(apiRequest("/ranking")).resolves.toEqual({ ok: true });
+    expect(initOf(1)).toEqual(expect.objectContaining({ method: "POST", credentials: "include" }));
+    expect(initOf(1)).toHaveProperty("body", undefined);
+    expect(initOf(2).headers).toEqual(expect.objectContaining({ Authorization: "Bearer access-new" }));
   });
 
   it("does not refresh an unauthenticated session probe", async () => {
