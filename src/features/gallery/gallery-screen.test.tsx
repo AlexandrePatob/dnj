@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { apiRequest } from "@/lib/api/client";
+import { momentsApi } from "@/lib/api/moments";
 import { GalleryScreen } from "./gallery-screen";
 
 vi.mock("@/lib/api/moments", () => ({
@@ -13,6 +14,7 @@ vi.mock("@/lib/api/moments", () => ({
       return response.json();
     },
     like: async () => ({ momentId: "moment", liked: true, likesCount: 1 }),
+    delete: vi.fn(async (momentId: string) => ({ momentId })),
   },
 }));
 
@@ -30,7 +32,9 @@ const emptyPage = { items: [], nextCursor: null };
 
 describe("GalleryScreen", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.stubGlobal("fetch", vi.fn());
+    vi.stubGlobal("confirm", vi.fn(() => true));
   });
 
   it("shows a retryable error when Moments cannot be loaded", async () => {
@@ -302,5 +306,26 @@ describe("GalleryScreen", () => {
     await user.click(screen.getByRole("button", { name: "Carregar mais momentos" }));
     expect(await screen.findByText("Quadra antiga")).toBeInTheDocument();
     expect(fetch).toHaveBeenLastCalledWith("https://api.dnj.test/v2/moments?scope=group&cursor=group-cursor");
+  });
+
+  it("allows a user to delete a photo only from personal moments", async () => {
+    const user = userEvent.setup();
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({ ok: true, json: async () => emptyPage } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [{ id: "mine-delete", placeName: "Capela", imageUrl: "/mock/moments/dnj-feed-01.png" }],
+          nextCursor: null,
+        }),
+      } as Response);
+
+    render(<GalleryScreen animDir="up" />);
+    expect(screen.queryByRole("button", { name: "Excluir foto" })).not.toBeInTheDocument();
+    await user.click(await screen.findByRole("button", { name: "Meus Momentos" }));
+    await user.click(await screen.findByRole("button", { name: "Excluir foto" }));
+
+    expect(momentsApi.delete).toHaveBeenCalledWith("mine-delete");
+    expect(screen.queryByAltText("Momento em Capela")).not.toBeInTheDocument();
   });
 });

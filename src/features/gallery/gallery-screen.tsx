@@ -2,7 +2,7 @@
 
 import NextImage from "next/image";
 import { useEffect, useState } from "react";
-import { Heart, Plus, Send, Trophy, X } from "lucide-react";
+import { Heart, Plus, Send, Trash2, Trophy, X } from "lucide-react";
 import { BrandSticker } from "@/components/brand/brand-sticker";
 import stickerLogo from "../../../Logo_DNJ_semsombra.png";
 import { OperationFeedback } from "@/components/ui/operation-feedback";
@@ -238,6 +238,38 @@ function LikeButton({
   );
 }
 
+function DeleteMomentButton({ moment, onDeleted }: { moment: Moment; onDeleted: (momentId: string) => void }) {
+  const [deleting, setDeleting] = useState(false);
+  const [message, setMessage] = useState("");
+  async function remove() {
+    if (deleting || !window.confirm("Excluir esta foto? Esta ação não pode ser desfeita.")) return;
+    setDeleting(true);
+    setMessage("");
+    try {
+      await momentsApi.delete(moment.id);
+      onDeleted(moment.id);
+    } catch {
+      setMessage("Não foi possível excluir a foto.");
+      setDeleting(false);
+    }
+  }
+  return (
+    <span className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={() => void remove()}
+        disabled={deleting}
+        aria-label="Excluir foto"
+        className="disabled:opacity-50"
+        style={{ color: "var(--destructive)" }}
+      >
+        <Trash2 size={18} />
+      </button>
+      {message && <small role="alert" className="text-[.6rem]" style={{ color: "var(--destructive)" }}>{message}</small>}
+    </span>
+  );
+}
+
 function AuthorAvatar({ moment }: { moment: Moment }) {
   const [failed, setFailed] = useState(false);
   if (!moment.authorAvatarUrl || failed) {
@@ -324,12 +356,14 @@ function PassportGrid({
   socialView = false,
   onOpen,
   onChanged,
+  onDeleted,
 }: {
   moments: Moment[];
   groupView?: boolean;
   socialView?: boolean;
   onOpen: (value: Moment) => void;
   onChanged?: () => void;
+  onDeleted?: (momentId: string) => void;
 }) {
   return (
     <div
@@ -363,7 +397,7 @@ function PassportGrid({
           {socialView && onChanged && !moment.moderationMessage && (
             <div className="mt-2 flex items-center justify-between border-t pt-2" style={{ borderColor: "var(--border)" }}>
               <LikeButton moment={moment} onChanged={onChanged} />
-              <ShareButton moment={moment} />
+              <span className="flex items-center gap-4"><ShareButton moment={moment} />{onDeleted && <DeleteMomentButton moment={moment} onDeleted={onDeleted} />}</span>
             </div>
           )}
           {moment.moderationMessage && (
@@ -588,6 +622,7 @@ export function GalleryScreen({
                   socialView
                   onOpen={setSelected}
                   onChanged={() => setAttempt((value) => value + 1)}
+                  onDeleted={tab === "mine" ? (momentId) => setPage((current) => ({ ...current, items: current.items.filter((item) => item.id !== momentId) })) : undefined}
                 />
                 {page.nextCursor && (
                   <button
