@@ -513,9 +513,7 @@ describe("GameScreen scanner entry", () => {
       await act(async () => {
         await vi.advanceTimersByTimeAsync(2_000);
       });
-      expect(screen.getByLabelText("Pontos creditados")).toHaveTextContent(
-        "+50 pontos",
-      );
+      expect(screen.getByRole("heading", { name: /50 pontos/ })).toBeInTheDocument();
 
     } finally {
       vi.useRealTimers();
@@ -624,7 +622,7 @@ describe("GameScreen scanner entry", () => {
     await user.click(screen.getByRole("button", { name: "Escanear QR Code" }));
     await user.click(screen.getByRole("button", { name: "Simular leitura" }));
 
-    expect(await screen.findByLabelText("Pontos creditados")).toHaveTextContent("+15 pontos");
+    expect(await screen.findByRole("heading", { name: /15 pontos/ })).toBeInTheDocument();
     expect(screen.queryByRole("dialog", { name: "Status da partida" })).not.toBeInTheDocument();
   });
 

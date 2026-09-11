@@ -477,6 +477,7 @@ function StaffList() {
     }
   }, [page]);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de dados no mount; o estado reflete a resposta assíncrona
     void load();
   }, [load]);
   async function changeRole(user: Staff, role: "DEFAULT" | "EVENT_MANAGER") {
@@ -880,6 +881,7 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
     }
   }, [kind, page, statusFilter]);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de dados no mount; o estado reflete a resposta assíncrona
     void load();
   }, [load]);
   useEffect(() => {
@@ -1443,6 +1445,7 @@ function SpecialEventsPanel() {
     }
   }, []);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de dados no mount; o estado reflete a resposta assíncrona
     void load();
   }, [load]);
   const releaseQr = useCallback(
@@ -2061,6 +2064,7 @@ function ScoringPanel() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de dados no mount; o estado reflete a resposta assíncrona
     loadStatus();
   }, [loadStatus]);
 

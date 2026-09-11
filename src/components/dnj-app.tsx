@@ -236,6 +236,7 @@ export function DnjApp() {
     if (!sessionReady || screen === "login" || screen === "group") return;
     const target = new URLSearchParams(window.location.search).get("screen") as Screen | null;
     if (!target || !pushScreens.has(target)) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sincroniza estado com URL/localStorage no mount
     setPrevScreen(screen);
     setScreen(target);
     window.history.replaceState(null, "", window.location.pathname);
@@ -246,6 +247,7 @@ export function DnjApp() {
     if (!key) return;
     try {
       const ids: unknown = JSON.parse(localStorage.getItem(key) ?? "[]");
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sincroniza estado com URL/localStorage no mount
       setCompletedMomentChallengeIds(new Set(Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : []));
     } catch {
       setCompletedMomentChallengeIds(new Set());

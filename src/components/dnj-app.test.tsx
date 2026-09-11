@@ -110,7 +110,7 @@ describe("DnjApp session restoration", () => {
 
     render(<DnjApp />);
 
-    expect(await screen.findByRole("heading", { name: "Seu grupo jovem" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /precisamos de mais algumas informações/i })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Verificar código" })).not.toBeInTheDocument();
   });
 });

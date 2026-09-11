@@ -22,7 +22,7 @@ test.describe("V2 participant migration journeys", () => {
     await page.route("**/v2/participations/current", (route) => route.fulfill({ status: 204 }));
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: /Dia Nacional da Juventude/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Olá, Participante!" })).toBeVisible();
     await page.getByRole("button", { name: "DNJ Game", exact: true }).click();
     await expect(page.getByText("Ainda não há pontos registrados.")).toBeVisible();
   });
@@ -64,14 +64,19 @@ test.describe("V2 participant migration journeys", () => {
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByRole("heading", { name: "Seu grupo jovem" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /precisamos de mais algumas informações/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Continuar para grupo" })).toBeInViewport();
+    await page.getByLabel("Nome completo").fill("Participante Teste");
+    await page.getByLabel("CPF").fill("52998224725");
+    await page.getByLabel("Telefone WhatsApp").fill("41999990000");
+    await page.getByRole("button", { name: "Continuar para grupo" }).click();
     await expect(page.getByText("Digite parte do nome para encontrar seu grupo.")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Continuar" })).toBeInViewport();
+    await expect(page.getByRole("button", { name: "Confirmar grupo" })).toBeInViewport();
     expect(groupSearches).toBe(0);
 
     await page.getByPlaceholder("Buscar grupo...").fill("Luz");
     await expect(page.getByRole("button", { name: "Jovens da Luz" })).toBeVisible();
     expect(groupSearches).toBe(1);
-    await expect(page.getByRole("button", { name: "Continuar" })).toBeInViewport();
+    await expect(page.getByRole("button", { name: "Confirmar grupo" })).toBeInViewport();
   });
 });
