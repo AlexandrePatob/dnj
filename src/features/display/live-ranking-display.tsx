@@ -17,6 +17,7 @@ type RankingEntry = {
   points: number;
   group?: string;
   members?: number;
+  avatarUrl?: string;
 };
 type SpecialEvent = {
   id: string;
@@ -42,6 +43,9 @@ type RankingPage = {
     points: number;
     groupName?: string | null;
     members?: number;
+    avatarUrl?: string | null;
+    imageUrl?: string | null;
+    photoUrl?: string | null;
   }>;
 };
 
@@ -51,7 +55,20 @@ function rankingEntries(page: RankingPage, board: "individual" | "groups"): Rank
     name: entry.name,
     points: entry.points,
     ...(board === "individual" ? { group: entry.groupName ?? "Sem grupo" } : { members: entry.members ?? 0 }),
+    ...(entry.avatarUrl || entry.imageUrl || entry.photoUrl
+      ? { avatarUrl: entry.avatarUrl ?? entry.imageUrl ?? entry.photoUrl ?? undefined }
+      : {}),
   }));
+}
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 }
 
 function remaining(target: string, now: number) {
@@ -233,37 +250,36 @@ function BackdropRanking({ entries, board, clock }: { entries: RankingEntry[]; b
 
   return (
     <>
-      <div className="absolute right-[5.6%] top-[10.5%] flex items-center gap-[1.1vw]">
-        <span className="h-[.8vw] w-[.8vw] rounded-full bg-[#f3f51b] shadow-[0_0_18px_#f3f51b]" />
-        <span className="text-[1.05vw] font-bold tabular-nums text-white">{clock}</span>
-      </div>
-      <div className="absolute right-[5.5%] top-[17%] flex min-w-[15.8%] items-center justify-center gap-[.8vw] rounded-full border-2 border-[#f3f51b] bg-[#08251d]/85 px-[1vw] py-[.55vw] text-white shadow-[0_0_18px_#f3f51b55]">
-        <span className="text-[1.45vw]">♟</span>
-        <strong className="text-[2vw] leading-none text-[#f3f51b]">{board === "individual" ? entries.length : entries.reduce((sum, entry) => sum + (entry.members ?? 0), 0)}</strong>
-        <span className="text-[.9vw] font-bold uppercase tracking-wide">participantes</span>
-      </div>
-      <section aria-label="Pódio" className="absolute inset-x-0 top-[35%] h-[46%]">
+      <time className="absolute z-10 text-right text-[1.8vw] font-black tabular-nums text-white" style={{ right: "2.4%", top: "3.3%" }}>{clock}</time>
+      <section aria-label="Pódio" className="absolute inset-x-0" style={{ top: "30.8%", height: "45.3%" }}>
         {places.map((entry, index) => {
           const center = index === 1;
-          const left = [22.9, 41.2, 59.5][index];
-          const width = center ? 18.5 : 17.6;
-          const top = center ? 0 : 4.2;
-          if (!entry) return null;
+          const left = [25.8, 42.2, 59.2][index];
+          const width = center ? 15.9 : 15.4;
+          const top = center ? 0 : 9.4;
           return (
             <article
-              key={entry.id}
-              className="absolute flex flex-col items-center overflow-hidden rounded-[1.5vw] border-[.13vw] px-[1vw] pt-[1.4vw] text-center"
-              style={{ left: `${left}%`, top: `${top}%`, width: `${width}%`, height: center ? "79%" : "72%", borderColor: tones[index], background: center ? "linear-gradient(145deg,#555b16e6,#071b15ed)" : "linear-gradient(145deg,#17352ee8,#071b15ed)", boxShadow: center ? "0 0 22px #f3f51b88" : undefined }}
+              key={entry?.id ?? `empty-${index}`}
+              className="absolute flex flex-col items-center rounded-[1.5vw] border-[.13vw] px-[1vw] pt-[1.7vw] text-center"
+              style={{ left: `${left}%`, top: `${top}%`, zIndex: 1, width: `${width}%`, height: center ? "98%" : "84.2%", borderColor: tones[index], backgroundColor: center ? "#4d5414" : "#061d17", backgroundImage: center ? "linear-gradient(145deg,#4d5414,#061d17)" : "linear-gradient(145deg,#16342c,#061d17)", boxShadow: center ? "0 0 22px #f3f51b88" : undefined }}
             >
-              <span className="absolute right-[.8vw] top-[.8vw] flex h-[2.8vw] w-[2.8vw] items-center justify-center rounded-full text-[1.35vw] font-black text-black" style={{ background: tones[index] }}>{index === 0 ? "2º" : center ? "1º" : "3º"}</span>
-              <span className="mt-[.1vw] flex h-[7.2vw] w-[7.2vw] items-center justify-center rounded-full border-[.18vw] bg-[#19372e]" style={{ borderColor: tones[index], boxShadow: `0 0 12px ${tones[index]}77` }}>
-                {center ? <Crown size="55%" color={tones[index]} /> : <Medal size="48%" color={tones[index]} />}
+              {center ? <Crown aria-hidden className="absolute fill-[#f3f51b]/20 text-[#f3f51b]" style={{ top: "-3.15vw", height: "3.6vw", width: "3.6vw" }} strokeWidth={2.2} /> : null}
+              <span className="absolute flex items-center justify-center rounded-full text-[1.35vw] font-black text-black" style={{ right: ".8vw", top: ".8vw", height: "2.8vw", width: "2.8vw", background: tones[index] }}>{index === 0 ? "2º" : center ? "1º" : "3º"}</span>
+              <span className={`mt-[.1vw] flex shrink-0 items-center justify-center overflow-hidden rounded-full border-[.18vw] bg-[#19372e] ${center ? "h-[7.8vw] w-[7.8vw]" : "h-[6.6vw] w-[6.6vw]"}`} style={{ borderColor: tones[index], boxShadow: `0 0 12px ${tones[index]}77` }}>
+                {entry?.avatarUrl ? (
+                  <img src={entry.avatarUrl} alt={`Foto de ${entry.name}`} className="h-full w-full object-cover" />
+                ) : entry ? (
+                  <span className={`${center ? "text-[2.1vw]" : "text-[1.7vw]"} font-black`} style={{ color: tones[index] }}>{initials(entry.name)}</span>
+                ) : (
+                  <span aria-hidden />
+                )}
               </span>
-              <h2 className="mt-[.8vw] max-w-full truncate text-[1.25vw] font-bold leading-tight text-white">{entry.name}</h2>
-              <div className="mt-[.7vw]">
-                <strong className="text-[3vw] font-black leading-none tabular-nums" style={{ color: center ? "#f3f51b" : "white" }}>{entry.points}</strong>
+              <h2 className={`${center ? "mt-[.9vw] text-[1.35vw]" : "mt-[.75vw] text-[1.15vw]"} max-w-full truncate font-bold leading-tight text-white`}>{entry?.name}</h2>
+              <div className={`${center ? "mt-[.7vw]" : "mt-[.55vw]"}`}>
+                <strong className={`${center ? "text-[3vw]" : "text-[2.55vw]"} font-black leading-none tabular-nums`} style={{ color: center ? "#f3f51b" : "white" }}>{entry?.points}</strong>
                 <small className="ml-[.35vw] text-[1vw] font-bold text-white">PTS</small>
               </div>
+              {center && board === "individual" && entry ? <p className="mt-[.7vw] max-w-[90%] text-[.52vw] font-bold uppercase tracking-[.15em] text-white/80">{entry.group}</p> : null}
             </article>
           );
         })}
@@ -375,30 +391,30 @@ export function LiveRankingDisplay({
 
   return (
     <main
-      className={`relative min-h-screen overflow-hidden bg-[#031c16] text-white ${
+      className={`relative overflow-hidden bg-[#031c16] text-white ${
         format === "side"
-          ? "mx-auto max-w-[1440px] px-8 py-10 md:px-14"
+          ? "mx-auto min-h-screen max-w-[1440px] px-8 py-10 md:px-14"
           : isBackdrop
-            ? "px-10 py-8 md:px-20"
-            : "px-8 py-10 md:px-14"
+            ? "mx-auto"
+            : "min-h-screen px-8 py-10 md:px-14"
       }`}
       style={{
-        ...(format === "side" ? { aspectRatio: "3 / 4" } : isBackdrop ? { aspectRatio: "5 / 2" } : {}),
-        backgroundImage: `url(${isBackdrop ? "/telao-horizontal-base.png" : format === "side" ? "/telao-vertical-base.png" : "/telao-vertical-reference.png"})`,
+        ...(format === "side" ? { aspectRatio: "3 / 4" } : isBackdrop ? { aspectRatio: "5 / 2", width: "min(100vw, 250vh)" } : {}),
+        backgroundImage: `url(${isBackdrop ? "/telao-horizontal-ranking-live-v2.png" : format === "side" ? "/telao-vertical-base.png" : "/telao-vertical-reference.png"})`,
         backgroundPosition: "center",
         backgroundSize: "100% 100%",
         backgroundRepeat: "no-repeat",
       }}
     >
       {!isStageScreen ? <span aria-hidden className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_18%_12%,#0e654a_0,transparent_29%),radial-gradient(circle_at_86%_92%,#0b553f_0,transparent_36%),linear-gradient(118deg,transparent_0_28%,#0a392c_28%_34%,transparent_34%_58%,#0a382b_58%_65%,transparent_65%)]" /> : null}
-      <span
+      {!isBackdrop ? <span
         aria-hidden
         className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-[#f37822] via-[#d7ef74] to-[#f37822]"
-      />
+      /> : null}
       {data?.specialEvent ? (
         <SpecialEventOverlay event={data.specialEvent} now={now} />
       ) : null}
-      {isStageScreen ? (data ? isBackdrop ? <BackdropRanking entries={entries} board={board} clock={clock} /> : <SideRanking entries={entries} board={board} clock={clock} /> : null) : <><header className="relative z-0 mx-auto flex max-w-7xl items-center justify-between gap-8 pb-6">
+      {isStageScreen ? (isBackdrop ? <BackdropRanking entries={entries} board={board} clock={clock} /> : data ? <SideRanking entries={entries} board={board} clock={clock} /> : null) : <><header className="relative z-0 mx-auto flex max-w-7xl items-center justify-between gap-8 pb-6">
         <BrandSticker
           decorative
           variant="header"

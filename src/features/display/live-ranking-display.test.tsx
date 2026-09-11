@@ -171,8 +171,9 @@ describe("LiveRankingDisplay", () => {
   it("renders the horizontal backdrop format for the stage screen", async () => {
     vi.stubGlobal("fetch", displayFetch({}));
     render(<LiveRankingDisplay target="screen" screenFormat="backdrop" />);
-    expect(await screen.findByText("Telão · Fundo")).toBeInTheDocument();
+    await screen.findByRole("main");
     expect(screen.getByRole("main")).toHaveStyle({ aspectRatio: "5 / 2" });
+    expect(screen.getByRole("main")).toHaveStyle({ backgroundImage: "url(/telao-horizontal-ranking-live-v2.png)" });
   });
 
   it("limits the display to the three podium positions", async () => {
@@ -182,6 +183,7 @@ describe("LiveRankingDisplay", () => {
         name: `Participante ${index + 1}`,
         points: 90 - index,
         groupName: "DNJ",
+        ...(index === 0 ? { avatarUrl: "https://images.example/participante-1.jpg" } : {}),
       })),
     }));
 
@@ -189,5 +191,9 @@ describe("LiveRankingDisplay", () => {
 
     expect(await screen.findByText("Participante 1")).toBeInTheDocument();
     expect(screen.queryByText("Participante 9")).not.toBeInTheDocument();
+    expect(screen.getByAltText("Foto de Participante 1")).toHaveAttribute(
+      "src",
+      "https://images.example/participante-1.jpg",
+    );
   });
 });
