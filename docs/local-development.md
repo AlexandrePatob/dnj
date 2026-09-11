@@ -39,15 +39,16 @@ O comando imprime uma URL `https://…trycloudflare.com` para o frontend e outra
 para o MinIO. A URL do frontend é a única que deve ser usada no navegador:
 
 - `https://…trycloudflare.com` → Next.js local;
-- `https://…trycloudflare.com/api/v2` → proxy Next.js → API local (`8081`);
+- o navegador chama a API local (`NEXT_PUBLIC_API_URL=http://localhost:8081/v2`) diretamente, com bearer token;
 - a API assina uploads e downloads para a URL temporária do MinIO;
 - PostgreSQL fica em `localhost:55432` e o console MinIO em
   `http://localhost:59001`.
 
 O script injeta os valores temporários somente no processo da API:
-`FRONTEND_URL`, `CORS_ALLOWED_ORIGINS` e `S3_PUBLIC_ENDPOINT`. Assim, cookies,
-proxy de API e URLs S3 usam o ambiente atual sem gravar a URL aleatória de um
-túnel no repositório. Os arquivos de log ficam em `.local/logs/`.
+`FRONTEND_URL`, `CORS_ALLOWED_ORIGINS` e `S3_PUBLIC_ENDPOINT`. Assim, CORS e
+URLs S3 usam o ambiente atual sem gravar a URL aleatória de um túnel no
+repositório. A origem do túnel precisa estar em `CORS_ALLOWED_ORIGINS`, pois a
+API é chamada cross-origin pelo navegador. Os arquivos de log ficam em `.local/logs/`.
 
 ## Parar
 

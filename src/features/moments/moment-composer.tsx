@@ -155,6 +155,7 @@ export function MomentComposer({
     }
   }, [cameraOpen]);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- aplica o zoom nativo quando a câmera abre; estado reflete o resultado assíncrono
     if (cameraOpen) void selectCameraZoom(cameraZoom);
   }, [cameraOpen, cameraZoom, selectCameraZoom]);
   function selectFile(next: File) {

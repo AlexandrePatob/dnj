@@ -24,6 +24,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import { authApi } from "@/lib/api/auth";
 import { apiMutation, apiRequest } from "@/lib/api/client";
 import { qrImageUrl } from "@/lib/manager-qr";
 import { PastoralQueueOverview } from "./pastoral-queue-overview";
@@ -219,10 +220,7 @@ export function AdminDashboard({
   const [activitiesOpen, setActivitiesOpen] = useState(true);
   const [activityKind, setActivityKind] = useState<ActivityKind>("schedule");
   async function signOut() {
-    await fetch("/api/admin/session", {
-      method: "DELETE",
-      credentials: "include",
-    });
+    await authApi.logout();
     onExit();
   }
   return (
@@ -479,6 +477,7 @@ function StaffList() {
     }
   }, [page]);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de dados no mount; o estado reflete a resposta assíncrona
     void load();
   }, [load]);
   async function changeRole(user: Staff, role: "DEFAULT" | "EVENT_MANAGER") {
@@ -882,6 +881,7 @@ function ActivityList({ kind }: { kind: ActivityKind }) {
     }
   }, [kind, page, statusFilter]);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de dados no mount; o estado reflete a resposta assíncrona
     void load();
   }, [load]);
   useEffect(() => {
@@ -1445,6 +1445,7 @@ function SpecialEventsPanel() {
     }
   }, []);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de dados no mount; o estado reflete a resposta assíncrona
     void load();
   }, [load]);
   const releaseQr = useCallback(
@@ -2063,6 +2064,7 @@ function ScoringPanel() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de dados no mount; o estado reflete a resposta assíncrona
     loadStatus();
   }, [loadStatus]);
 

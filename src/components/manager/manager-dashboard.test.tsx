@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { authStorage } from "@/lib/auth-storage";
 import { ManagerDashboard } from "./manager-dashboard";
 
 const replace = vi.fn();
@@ -9,13 +10,32 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
 describe("ManagerDashboard", () => {
   beforeEach(() => {
     replace.mockReset();
+    authStorage.setCredentials({ accessToken: "manager-access", refreshToken: "manager-refresh" });
     vi.stubGlobal("fetch", vi.fn());
+  });
+  it("redirects to the login when the stored identity is not a manager", async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ user: { name: "Ana", email: "ana@dnj.test", role: "DEFAULT" } })));
+
+    render(<ManagerDashboard />);
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/manager/login"));
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/auth/session", expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer manager-access" }) }));
+    expect(authStorage.getAccessToken()).toBeNull();
+  });
+  it("redirects to the login when there are no stored credentials", async () => {
+    authStorage.clearCredentials();
+
+    render(<ManagerDashboard />);
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/manager/login"));
+    expect(fetch).not.toHaveBeenCalled();
   });
   it("does not expose unsupported manager scopes", async () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ name: "Lia", scope: "space" })),
+        new Response(JSON.stringify({ user: { name: "Lia", email: "lia@dnj.test", role: "EVENT_MANAGER", scope: "legacy_scope" } })),
       )
       .mockResolvedValueOnce(
         new Response(
@@ -38,7 +58,7 @@ describe("ManagerDashboard", () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ name: "Geovane", scope: "pastoral_queue" })),
+        new Response(JSON.stringify({ user: { name: "Geovane", email: "geovane@dnj.test", role: "EVENT_MANAGER", scope: "pastoral_queue" } })),
       )
       .mockResolvedValueOnce(new Response(JSON.stringify({})));
 
@@ -52,17 +72,17 @@ describe("ManagerDashboard", () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
     fetchMock
-      .mockResolvedValueOnce(new Response(JSON.stringify({ manager: { name: "Lia", scope: "space" }, name: "Lia", scope: "space" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ user: { name: "Lia", email: "lia@dnj.test", role: "EVENT_MANAGER", scope: "space" } })))
       .mockResolvedValueOnce(new Response(JSON.stringify({ scope: "space", space: { now: [], upcoming: [{ id: "item-1", title: "Abertura", startsAt: "2999-10-18T14:00:00Z", endsAt: "2999-10-18T15:00:00Z", status: "active", spaceName: "Palco Juventude" }] } })));
     render(<ManagerDashboard />);
     await user.click(await screen.findByRole("button", { name: "Iniciar agora" }));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/space/start", expect.objectContaining({ method: "POST", body: JSON.stringify({ itemId: "item-1" }) })));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/manager/space/start", expect.objectContaining({ method: "POST", body: JSON.stringify({ itemId: "item-1" }) })));
   });
   it("shows simultaneous activities and adjusts a real start time", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
     fetchMock
-      .mockResolvedValueOnce(new Response(JSON.stringify({ name: "Lia", scope: "space" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ user: { name: "Lia", email: "lia@dnj.test", role: "EVENT_MANAGER", scope: "space" } })))
       .mockResolvedValueOnce(new Response(JSON.stringify({
         scope: "space",
         space: {
@@ -81,15 +101,15 @@ describe("ManagerDashboard", () => {
     await user.click(screen.getAllByRole("button", { name: "Ajustar início" })[0]);
     expect(screen.getByRole("dialog", { name: "Início real" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Salvar início" }));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/space/start", expect.objectContaining({ method: "POST" })));
-    const request = fetchMock.mock.calls.find(([path]) => path === "/api/v2/manager/space/start");
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/manager/space/start", expect.objectContaining({ method: "POST" })));
+    const request = fetchMock.mock.calls.find(([path]) => path === "https://api.dnj.test/v2/manager/space/start");
     expect(request?.[1]?.body).toMatch(/"itemId":"now-a"/);
     expect(request?.[1]?.body).toMatch(/"startedAt":"/);
   });
   it("only offers manual adjustment after the planned start time", async () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock
-      .mockResolvedValueOnce(new Response(JSON.stringify({ name: "Lia", scope: "space" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ user: { name: "Lia", email: "lia@dnj.test", role: "EVENT_MANAGER", scope: "space" } })))
       .mockResolvedValueOnce(new Response(JSON.stringify({ scope: "space", space: { now: [{ id: "late", title: "Atrasada", status: "active", spaceName: "Palco A", startsAt: "2020-10-18T14:00:00Z", endsAt: "2999-10-18T15:00:00Z" }], upcoming: [] } })));
     render(<ManagerDashboard />);
     expect(await screen.findByText("Atrasada")).toBeInTheDocument();
@@ -101,7 +121,7 @@ describe("ManagerDashboard", () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ name: "Bia", scope: "actions" })),
+        new Response(JSON.stringify({ user: { name: "Bia", email: "bia@dnj.test", role: "EVENT_MANAGER", scope: "actions" } })),
       )
       .mockResolvedValueOnce(
         new Response(
@@ -118,7 +138,7 @@ describe("ManagerDashboard", () => {
         new Response(JSON.stringify({ qrToken: "run-1-token" })),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ name: "Bia", scope: "actions" })),
+        new Response(JSON.stringify({ user: { name: "Bia", email: "bia@dnj.test", role: "EVENT_MANAGER", scope: "actions" } })),
       )
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ scope: "actions", actions: { games: [] } })),
@@ -126,12 +146,12 @@ describe("ManagerDashboard", () => {
     await user.click(screen.getByRole("button", { name: "Iniciar partida" }));
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
-        "/api/v2/manager/runs",
+        "https://api.dnj.test/v2/manager/runs",
         expect.objectContaining({ method: "POST" }),
       ),
     );
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/v2/manager/runs/run-1/qr",
+      "https://api.dnj.test/v2/manager/runs/run-1/qr",
       expect.objectContaining({ method: "POST" }),
     );
   });
@@ -140,7 +160,7 @@ describe("ManagerDashboard", () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
     fetchMock
-      .mockResolvedValueOnce(new Response(JSON.stringify({ name: "Bia", scope: "actions" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ user: { name: "Bia", email: "bia@dnj.test", role: "EVENT_MANAGER", scope: "actions" } })))
       .mockResolvedValueOnce(new Response(JSON.stringify({
         scope: "actions",
         actions: {
@@ -151,7 +171,7 @@ describe("ManagerDashboard", () => {
         },
       })))
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: "run-2", status: "running" })))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ name: "Bia", scope: "actions" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ user: { name: "Bia", email: "bia@dnj.test", role: "EVENT_MANAGER", scope: "actions" } })))
       .mockResolvedValueOnce(new Response(JSON.stringify({ scope: "actions", actions: { games: [] } })));
 
     render(<ManagerDashboard />);
@@ -166,7 +186,7 @@ describe("ManagerDashboard", () => {
     await user.click(screen.getByRole("button", { name: "Iniciar jogo" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
-      "/api/v2/manager/runs/run-2/start",
+      "https://api.dnj.test/v2/manager/runs/run-2/start",
       expect.objectContaining({ method: "POST", body: undefined }),
     ));
   });
@@ -175,20 +195,20 @@ describe("ManagerDashboard", () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
     fetchMock
-      .mockResolvedValueOnce(new Response(JSON.stringify({ name: "Bia", scope: "actions" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ user: { name: "Bia", email: "bia@dnj.test", role: "EVENT_MANAGER", scope: "actions" } })))
       .mockResolvedValueOnce(new Response(JSON.stringify({ scope: "actions", actions: { games: [{ id: "g1", name: "Corrida do saco", run: { id: "run-1", status: "checkin", participants: [] } }] } })))
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: "run-1", status: "running" })));
     render(<ManagerDashboard />);
     await user.click(await screen.findByRole("button", { name: "Entrar na partida" }));
     await user.click(await screen.findByRole("button", { name: "Iniciar jogo" }));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/runs/run-1/start", expect.objectContaining({ method: "POST", body: undefined })));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/manager/runs/run-1/start", expect.objectContaining({ method: "POST", body: undefined })));
   });
 
   it("only closes a scored run by confirming all participant results", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
     fetchMock
-      .mockResolvedValueOnce(new Response(JSON.stringify({ name: "Bia", scope: "actions" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ user: { name: "Bia", email: "bia@dnj.test", role: "EVENT_MANAGER", scope: "actions" } })))
       .mockResolvedValueOnce(new Response(JSON.stringify({
         scope: "actions", actions: {
           games: [{ id: "g1", name: "Corrida do saco", run: {
@@ -211,7 +231,7 @@ describe("ManagerDashboard", () => {
     await user.click(screen.getByRole("button", { name: "Confirmar pontuação e encerrar" }));
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
-        "/api/v2/manager/runs/run-1/results",
+        "https://api.dnj.test/v2/manager/runs/run-1/results",
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({ results: [{ participantId: "participant-1", result: "participation" }] }),
@@ -224,7 +244,7 @@ describe("ManagerDashboard", () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
     fetchMock
-      .mockResolvedValueOnce(new Response(JSON.stringify({ name: "Bia", scope: "actions" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ user: { name: "Bia", email: "bia@dnj.test", role: "EVENT_MANAGER", scope: "actions" } })))
       .mockResolvedValueOnce(new Response(JSON.stringify({
         scope: "actions", actions: { games: [{ id: "g1", name: "Corrida do saco", run: {
           id: "run-1", status: "results", participants: [
@@ -247,7 +267,7 @@ describe("ManagerDashboard", () => {
     await user.click(screen.getByRole("button", { name: "Confirmar pontuação e encerrar" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
-      "/api/v2/manager/runs/run-1/results",
+      "https://api.dnj.test/v2/manager/runs/run-1/results",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({ results: [
@@ -264,7 +284,7 @@ describe("ManagerDashboard", () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ name: "Bia", scope: "actions" })),
+        new Response(JSON.stringify({ user: { name: "Bia", email: "bia@dnj.test", role: "EVENT_MANAGER", scope: "actions" } })),
       )
       .mockResolvedValueOnce(
         new Response(
@@ -286,29 +306,29 @@ describe("ManagerDashboard", () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
     fetchMock
-      .mockResolvedValueOnce(new Response(JSON.stringify({ name: "Bia", scope: "actions" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ user: { name: "Bia", email: "bia@dnj.test", role: "EVENT_MANAGER", scope: "actions" } })))
       .mockResolvedValueOnce(new Response(JSON.stringify({ scope: "actions", actions: { games: [{ id: "g1", name: "Corrida do saco", run: null }] } })))
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: "g1", status: "completed" })));
     render(<ManagerDashboard />);
     await user.click(await screen.findByRole("button", { name: "Encerrar atividade" }));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/activities/g1/conclude", expect.objectContaining({ method: "POST", body: undefined })));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/manager/activities/g1/conclude", expect.objectContaining({ method: "POST", body: undefined })));
   });
 
   it("creates special events through their existing V2 flow", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
     fetchMock
-      .mockResolvedValueOnce(new Response(JSON.stringify({ name: "Nina", scope: "special_events" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ user: { name: "Nina", email: "nina@dnj.test", role: "EVENT_MANAGER", scope: "special_events" } })))
       .mockResolvedValueOnce(new Response(JSON.stringify({ events: [] })))
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: "event-1", title: "Caça ao tesouro" })))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ name: "Nina", scope: "special_events" })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ user: { name: "Nina", email: "nina@dnj.test", role: "EVENT_MANAGER", scope: "special_events" } })))
       .mockResolvedValueOnce(new Response(JSON.stringify({ events: [{ id: "event-1", title: "Caça ao tesouro", status: "draft" }] })));
     render(<ManagerDashboard />);
     expect(await screen.findByRole("heading", { name: "Eventos especiais", level: 1 })).toBeInTheDocument();
     await user.type(screen.getByLabelText("Nome do evento"), "Caça ao tesouro");
     await user.click(screen.getByRole("button", { name: "Criar evento" }));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/v2/manager/special-events", expect.objectContaining({ method: "POST", body: JSON.stringify({ title: "Caça ao tesouro", description: "", durationMinutes: 5, targets: ["app"] }) })));
-    expect(fetchMock).not.toHaveBeenCalledWith("/api/v2/manager/special-events/teaser", expect.anything());
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/manager/special-events", expect.objectContaining({ method: "POST", body: JSON.stringify({ title: "Caça ao tesouro", description: "", durationMinutes: 5, targets: ["app"] }) })));
+    expect(fetchMock).not.toHaveBeenCalledWith("https://api.dnj.test/v2/manager/special-events/teaser", expect.anything());
   });
 
   it("refreshes checked-in participants while a Radicalidade run is open", async () => {
@@ -317,7 +337,7 @@ describe("ManagerDashboard", () => {
       const fetchMock = vi.mocked(fetch);
       fetchMock
         .mockResolvedValueOnce(
-          new Response(JSON.stringify({ name: "Bia", scope: "actions" })),
+          new Response(JSON.stringify({ user: { name: "Bia", email: "bia@dnj.test", role: "EVENT_MANAGER", scope: "actions" } })),
         )
         .mockResolvedValueOnce(
           new Response(
@@ -377,7 +397,7 @@ describe("ManagerDashboard", () => {
       const fetchMock = vi.mocked(fetch);
       fetchMock
         .mockResolvedValueOnce(
-          new Response(JSON.stringify({ name: "Bia", scope: "actions" })),
+          new Response(JSON.stringify({ user: { name: "Bia", email: "bia@dnj.test", role: "EVENT_MANAGER", scope: "actions" } })),
         )
         .mockResolvedValueOnce(
           new Response(
@@ -409,7 +429,7 @@ describe("ManagerDashboard", () => {
       });
 
       const overviewCalls = fetchMock.mock.calls.filter(
-        ([path]) => path === "/api/v2/manager/game-overview",
+        ([path]) => path === "https://api.dnj.test/v2/manager/game-overview",
       );
       expect(overviewCalls).toHaveLength(2);
     } finally {

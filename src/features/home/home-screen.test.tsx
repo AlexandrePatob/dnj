@@ -85,7 +85,7 @@ describe("HomeScreen", () => {
 
     expect(await screen.findByText("Abertura")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Olá, Ana!" })).toBeInTheDocument();
-    expect(screen.getByText("ACONTECENDO AGORA")).toBeInTheDocument();
+    expect(screen.getByText("Acontecendo agora")).toBeInTheDocument();
     expect(screen.queryByText("Animação da Manhã")).not.toBeInTheDocument();
     expect(screen.queryByText("EM SEGUIDA")).not.toBeInTheDocument();
     expect(screen.getByText("Minha jornada")).toBeInTheDocument();

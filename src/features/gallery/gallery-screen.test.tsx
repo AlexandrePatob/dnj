@@ -8,7 +8,7 @@ import { GalleryScreen } from "./gallery-screen";
 vi.mock("@/lib/api/moments", () => ({
   momentsApi: {
     list: async (scope: string) => {
-      const response = await fetch(`/api/v2/moments?scope=${scope}`);
+      const response = await fetch(`https://api.dnj.test/v2/moments?scope=${scope}`);
       if (!response.ok) throw new Error("network");
       return response.json();
     },
@@ -49,7 +49,7 @@ describe("GalleryScreen", () => {
         name: "Não foi possível carregar Momentos",
       }),
     ).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/v2/moments?scope=feed");
+    expect(fetchMock).toHaveBeenNthCalledWith(1, "https://api.dnj.test/v2/moments?scope=feed");
     await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
     expect(
       await screen.findByRole("heading", { name: "Ainda não há momentos" }),

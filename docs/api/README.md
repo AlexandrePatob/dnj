@@ -1,10 +1,10 @@
 # DNJ API - contrato externo V2
 
-> Fonte de verdade: a API HTTP externa definida por `DNJ_V2_UPSTREAM_URL` em `.env.example`.
+> Fonte de verdade: a API HTTP externa definida por `NEXT_PUBLIC_API_URL` em `.env.example` (chamada diretamente pelo navegador com bearer token).
 >
 > O DNJ Game não usa Supabase. Não adicionar novas migrations, clientes, variáveis de ambiente ou Route Handlers baseados em Supabase. Qualquer fluxo novo deve apontar para o contrato HTTP da API externa por meio de `src/lib/api/client.ts`.
 
-O servidor `/api/v2` apenas encaminha chamadas para a API externa V2. Não existem Route Handlers locais de domínio neste projeto.
+Não existe proxy `/api/v2` nem Route Handlers locais de domínio ou sessão neste projeto; as únicas rotas Next são as de Push, que exigem segredo no servidor. Autenticação: `Authorization: Bearer <accessToken>`, refresh via `POST /auth/refresh` com `{ "refreshToken" }` (rotação) e logout via `POST /auth/logout` com o mesmo corpo.
 
 IDs externos são strings, datas são ISO 8601 em UTC, cursores são opacos e ações mutáveis usam `idempotencyKey` UUID quando indicado.
 

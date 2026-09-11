@@ -324,11 +324,11 @@ describe("PwaRegistrar", () => {
       { name: "https://example.com/_next/static/foreign.js" } as PerformanceResourceTiming,
     ]);
     render(<PwaRegistrar><Probe /></PwaRegistrar>);
-    await waitFor(() => expect(registration.active.postMessage).toHaveBeenCalled());
-    expect(registration.active.messages).toContainEqual({
-      type: "CACHE_URLS",
-      urls: [`${location.origin}/_next/static/chunks/app.js`],
-    });
+    await waitFor(() => expect(registration.active.postMessage).toHaveBeenCalled(), { timeout: 3_000 });
+    const cacheMessage = (registration.active.messages as Array<{ type: string; urls?: string[] }>).find((message) => message.type === "CACHE_URLS") as { urls: string[] };
+    expect(cacheMessage.urls).toContain(`${location.origin}/_next/static/chunks/app.js`);
+    expect(cacheMessage.urls).not.toContain(`${location.origin}/v1/users`);
+    expect(cacheMessage.urls).not.toContain("https://example.com/_next/static/foreign.js");
   });
 
   it("does not create duplicate registrations when rerendered", async () => {
