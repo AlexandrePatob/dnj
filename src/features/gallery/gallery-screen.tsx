@@ -410,6 +410,9 @@ export function GalleryScreen({
   const [loadState, setLoadState] = useState<"loading" | "error" | "ready">(
     "loading",
   );
+  const [loadMoreState, setLoadMoreState] = useState<"idle" | "loading" | "error">(
+    "idle",
+  );
   const [attempt, setAttempt] = useState(0);
   const [selected, setSelected] = useState<Moment | null>(null);
   const [composerParticipation, setComposerParticipation] = useState<
@@ -426,6 +429,7 @@ export function GalleryScreen({
         if (active) {
           setPage({ items: value.items, nextCursor: value.nextCursor ?? null });
           setLoadState("ready");
+          setLoadMoreState("idle");
         }
       })
       .catch(() => active && setLoadState("error"));
@@ -442,6 +446,26 @@ export function GalleryScreen({
   function openComposer() {
     setComposerMessage("");
     setComposerParticipation(null);
+  }
+  function loadMore() {
+    const cursor = page.nextCursor;
+    if (!cursor || loadMoreState === "loading") return;
+    const scope = tab === "public" ? "feed" : tab;
+    setLoadMoreState("loading");
+    momentsApi
+      .list(scope as MomentScope, cursor)
+      .then((value) => {
+        setPage((current) =>
+          current.nextCursor === cursor
+            ? {
+                items: [...current.items, ...value.items],
+                nextCursor: value.nextCursor ?? null,
+              }
+            : current,
+        );
+        setLoadMoreState("idle");
+      })
+      .catch(() => setLoadMoreState("error"));
   }
   const tabs = [
     { id: "public" as const, label: "Momentos DNJ" },
@@ -540,15 +564,47 @@ export function GalleryScreen({
                     onChanged={() => setAttempt((value) => value + 1)}
                   />
                 ))}
+                {page.nextCursor && (
+                  <button
+                    type="button"
+                    onClick={loadMore}
+                    disabled={loadMoreState === "loading"}
+                    className="rounded-xl py-3 text-sm font-bold text-white disabled:cursor-wait disabled:opacity-70"
+                    style={{ background: "var(--primary)" }}
+                  >
+                    {loadMoreState === "loading"
+                      ? "Carregando mais momentos..."
+                      : loadMoreState === "error"
+                        ? "Tentar carregar mais momentos"
+                        : "Carregar mais momentos"}
+                  </button>
+                )}
               </div>
             ) : (
-              <PassportGrid
-                moments={page.items}
-                groupView={tab === "group"}
-                socialView
-                onOpen={setSelected}
-                onChanged={() => setAttempt((value) => value + 1)}
-              />
+              <div className="mx-auto flex max-w-sm flex-col gap-4">
+                <PassportGrid
+                  moments={page.items}
+                  groupView={tab === "group"}
+                  socialView
+                  onOpen={setSelected}
+                  onChanged={() => setAttempt((value) => value + 1)}
+                />
+                {page.nextCursor && (
+                  <button
+                    type="button"
+                    onClick={loadMore}
+                    disabled={loadMoreState === "loading"}
+                    className="rounded-xl py-3 text-sm font-bold text-white disabled:cursor-wait disabled:opacity-70"
+                    style={{ background: "var(--primary)" }}
+                  >
+                    {loadMoreState === "loading"
+                      ? "Carregando mais momentos..."
+                      : loadMoreState === "error"
+                        ? "Tentar carregar mais momentos"
+                        : "Carregar mais momentos"}
+                  </button>
+                )}
+              </div>
             )}
           </main>
         </div>

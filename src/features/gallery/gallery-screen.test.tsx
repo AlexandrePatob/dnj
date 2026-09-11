@@ -7,8 +7,8 @@ import { GalleryScreen } from "./gallery-screen";
 
 vi.mock("@/lib/api/moments", () => ({
   momentsApi: {
-    list: async (scope: string) => {
-      const response = await fetch(`https://api.dnj.test/v2/moments?scope=${scope}`);
+    list: async (scope: string, cursor?: string) => {
+      const response = await fetch(`https://api.dnj.test/v2/moments?scope=${scope}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`);
       if (!response.ok) throw new Error("network");
       return response.json();
     },
@@ -234,5 +234,73 @@ describe("GalleryScreen", () => {
       "/participations/current",
       expect.anything(),
     );
+  });
+
+  it("appends cursor pages, shows loading, and hides the button on the final page", async () => {
+    const user = userEvent.setup();
+    let resolveNextPage!: (value: Response) => void;
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          items: [{ id: "newest", placeName: "Palco", imageUrl: "/mock/moments/dnj-feed-01.png" }],
+          nextCursor: "cursor-1",
+        }),
+      } as Response)
+      .mockImplementationOnce(
+        () => new Promise<Response>((resolve) => { resolveNextPage = resolve; }),
+      );
+
+    render(<GalleryScreen animDir="up" />);
+    await screen.findByAltText("Momento em Palco");
+    await user.click(screen.getByRole("button", { name: "Carregar mais momentos" }));
+
+    expect(screen.getByRole("button", { name: "Carregando mais momentos..." })).toBeDisabled();
+    expect(fetch).toHaveBeenLastCalledWith("https://api.dnj.test/v2/moments?scope=feed&cursor=cursor-1");
+
+    resolveNextPage({
+      ok: true,
+      json: async () => ({
+        items: [{ id: "older", placeName: "Capela", imageUrl: "/mock/moments/dnj-feed-01.png" }],
+        nextCursor: null,
+      }),
+    } as Response);
+
+    expect(await screen.findByAltText("Momento em Capela")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /carregar mais momentos/i })).not.toBeInTheDocument();
+  });
+
+  it("retries a failed next page and paginates personal and group moments", async () => {
+    const user = userEvent.setup();
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ items: [{ id: "feed", placeName: "Palco", imageUrl: "/mock/moments/dnj-feed-01.png" }], nextCursor: "feed-cursor" }) } as Response)
+      .mockRejectedValueOnce(new Error("network"))
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ items: [{ id: "feed-older", placeName: "Capela", imageUrl: "/mock/moments/dnj-feed-01.png" }], nextCursor: null }) } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ items: [{ id: "mine", placeName: "Sala", imageUrl: "/mock/moments/dnj-feed-01.png" }], nextCursor: "mine-cursor" }) } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ items: [{ id: "mine-older", placeName: "Sala antiga", imageUrl: "/mock/moments/dnj-feed-01.png" }], nextCursor: null }) } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ items: [{ id: "group", authorName: "Bia", placeName: "Quadra", imageUrl: "/mock/moments/dnj-feed-01.png" }], nextCursor: "group-cursor" }) } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ items: [{ id: "group-older", authorName: "Bia", placeName: "Quadra antiga", imageUrl: "/mock/moments/dnj-feed-01.png" }], nextCursor: null }) } as Response);
+
+    render(<GalleryScreen animDir="up" group="Grupo Esperança" />);
+    await screen.findByAltText("Momento em Palco");
+    await user.click(screen.getByRole("button", { name: "Carregar mais momentos" }));
+    expect(await screen.findByRole("button", { name: "Tentar carregar mais momentos" })).toBeInTheDocument();
+    expect(screen.getByAltText("Momento em Palco")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Tentar carregar mais momentos" }));
+    expect(await screen.findByAltText("Momento em Capela")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Meus Momentos" }));
+    expect(await screen.findByText("Sala")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Carregar mais momentos" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Carregar mais momentos" }));
+    expect(await screen.findByText("Sala antiga")).toBeInTheDocument();
+    expect(fetch).toHaveBeenLastCalledWith("https://api.dnj.test/v2/moments?scope=mine&cursor=mine-cursor");
+
+    await user.click(screen.getByRole("button", { name: "Grupo" }));
+    expect(await screen.findByText("Quadra")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Carregar mais momentos" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Carregar mais momentos" }));
+    expect(await screen.findByText("Quadra antiga")).toBeInTheDocument();
+    expect(fetch).toHaveBeenLastCalledWith("https://api.dnj.test/v2/moments?scope=group&cursor=group-cursor");
   });
 });
