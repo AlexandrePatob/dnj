@@ -295,17 +295,36 @@ function BackdropRanking({ entries, board, clock }: { entries: RankingEntry[]; b
 }
 
 function SideRanking({ entries, board, clock }: { entries: RankingEntry[]; board: "individual" | "groups"; clock: string }) {
+  const places = [entries[1], entries[0], entries[2]];
+  const tones = ["#d9e0e2", "#f3f51b", "#ff9656"];
+
   return <>
-    <time className="absolute right-[7%] top-[3.8%] text-[2.25vw] font-black tabular-nums text-white">{clock}</time>
-    <section aria-label="Pódio" className="absolute inset-x-[14%] top-[53%] space-y-[1.2vw]">
-      {entries.slice(0, 3).map((entry, index) => {
-        const tone = ["#f3f51b", "#d9e0e2", "#ff9656"][index];
-        return <article key={entry.id} className="flex h-[9vw] items-center rounded-[1.6vw] border-[.14vw] px-[1.45vw]" style={{ borderColor: tone, background: index === 0 ? "linear-gradient(100deg,#4f5717e6,#09241de6)" : "#09241de6" }}>
-          <span className="flex h-[4.6vw] w-[4.6vw] shrink-0 items-center justify-center rounded-full border-[.13vw] text-[2vw] font-black" style={{ borderColor: tone, color: tone }}>{index + 1}º</span>
-          <span className="ml-[1.2vw] flex h-[4.2vw] w-[4.2vw] shrink-0 items-center justify-center rounded-full border-[.14vw] bg-[#173a2f]" style={{ borderColor: tone }}><Medal size="52%" color={tone} /></span>
-          <div className="ml-[1.3vw] min-w-0"><h2 className="truncate text-[1.65vw] font-bold text-white">{entry.name}</h2><p className="mt-[.25vw] truncate text-[.75vw] font-semibold uppercase tracking-[.15em] text-white/70">{board === "individual" ? entry.group : `${entry.members ?? 0} participantes`}</p></div>
-          <strong className="ml-auto text-[3.15vw] font-black tabular-nums" style={{ color: tone }}>{entry.points}<small className="ml-[.4vw] text-[.9vw] text-white">PTS</small></strong>
-        </article>;
+    <time className="absolute z-10 text-right font-black tabular-nums text-white" style={{ right: "5.4%", top: "3.35%", fontSize: "2.25cqw", backgroundColor: "#00271c", padding: ".45cqw .5cqw" }}>{clock}</time>
+    <section aria-label="Pódio" className="absolute inset-x-0" style={{ top: "32.5%", height: "21.8%" }}>
+      {places.map((entry, index) => {
+        const center = index === 1;
+        const tone = tones[index];
+        const left = [7.3, 34.8, 65.8][index];
+        const width = center ? 30.5 : 26.3;
+        return (
+          <article
+            key={entry?.id ?? `empty-${index}`}
+            className="absolute text-center"
+            style={{ left: `${left}%`, top: center ? "0" : "7%", width: `${width}%`, height: center ? "100%" : "82%", border: ".16cqw solid", borderRadius: "1.7cqw", padding: "2cqw 1.15cqw 0", borderColor: tone, background: center ? "linear-gradient(145deg,#534f12,#062219)" : "linear-gradient(145deg,#1c392e,#062219)", boxShadow: center ? "0 0 22px #f3f51b88" : undefined }}
+          >
+            {center ? <Crown aria-hidden className="absolute fill-[#f3f51b]/20 text-[#f3f51b]" style={{ left: "50%", transform: "translateX(-50%)", top: "-2.6cqw", height: "3.5cqw", width: "3.5cqw" }} strokeWidth={2.2} /> : null}
+            <span className="absolute flex items-center justify-center rounded-full font-black text-black" style={{ right: "7%", top: "7%", height: "3.3cqw", width: "3.3cqw", fontSize: "1.65cqw", background: tone }}>{index === 0 ? "2º" : center ? "1º" : "3º"}</span>
+            <span className="absolute flex items-center justify-center overflow-hidden rounded-full bg-[#19372e]" style={{ left: "50%", top: "10%", transform: "translateX(-50%)", width: center ? "47%" : "50%", aspectRatio: "1 / 1", border: "2px solid", borderColor: tone, boxShadow: `0 0 12px ${tone}77` }}>
+              {entry?.avatarUrl ? <img src={entry.avatarUrl} alt={`Foto de ${entry.name}`} className="h-full w-full object-cover" /> : entry ? <span className="font-black" style={{ fontSize: center ? "3.3cqw" : "2.8cqw", color: tone }}>{initials(entry.name)}</span> : <span aria-hidden />}
+            </span>
+            <h2 className="absolute left-[7%] right-[7%] truncate font-bold leading-tight text-white" style={{ top: center ? "59%" : "58%", fontSize: center ? "2.2cqw" : "1.85cqw" }}>{entry?.name}</h2>
+            <div className="absolute inset-x-0" style={{ top: center ? "72%" : "71%" }}>
+              <strong className="font-black leading-none tabular-nums" style={{ fontSize: center ? "5cqw" : "4.25cqw", color: center ? "#f3f51b" : "white" }}>{entry?.points}</strong>
+              <small className="ml-[.45cqw] font-bold text-white" style={{ fontSize: "1.5cqw" }}>PTS</small>
+            </div>
+            {center && entry ? <p className="absolute inset-x-[7%] font-bold uppercase tracking-[.15em] text-white/80" style={{ top: "90%", fontSize: ".7cqw" }}>{board === "individual" ? entry.group : `${entry.members ?? 0} participantes`}</p> : null}
+          </article>
+        );
       })}
     </section>
   </>;
@@ -399,14 +418,14 @@ export function LiveRankingDisplay({
     <main
       className={`relative overflow-hidden bg-[#031c16] text-white ${
         format === "side"
-          ? "mx-auto min-h-screen max-w-[1440px] px-8 py-10 md:px-14"
+          ? "mx-auto"
           : isBackdrop
             ? "mx-auto"
             : "min-h-screen px-8 py-10 md:px-14"
       }`}
       style={{
-        ...(format === "side" ? { aspectRatio: "3 / 4" } : isBackdrop ? { aspectRatio: "5 / 2", width: "min(100vw, 250vh)" } : {}),
-        backgroundImage: `url(${isBackdrop ? "/telao-horizontal-ranking-live-v3.png" : format === "side" ? "/telao-vertical-base.png" : "/telao-vertical-reference.png"})`,
+        ...(format === "side" ? { aspectRatio: "3 / 4", width: "min(100vw, 75vh)", containerType: "inline-size", fontSize: "1cqw" } : isBackdrop ? { aspectRatio: "5 / 2", width: "min(100vw, 250vh)" } : {}),
+        backgroundImage: `url(${isBackdrop ? "/telao-horizontal-ranking-live-v3.png" : format === "side" ? "/telao-vertical-ranking-live-v2.png" : "/telao-vertical-reference.png"})`,
         backgroundPosition: "center",
         backgroundSize: "100% 100%",
         backgroundRepeat: "no-repeat",
