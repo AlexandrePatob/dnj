@@ -169,7 +169,7 @@ export function ManagerDashboard() {
     try {
       // The external API restores the session from the stored bearer token
       // and is the only authority on the EVENT_MANAGER role and its scope.
-      if (!authStorage.getAccessToken() && !authStorage.getRefreshToken()) throw new Error("Sessão expirada.");
+      if (!authStorage.getAccessToken()) throw new Error("Sessão expirada.");
       const identity = await authApi.getSession();
       if (identity.user.role !== "EVENT_MANAGER") { authStorage.clearCredentials(); throw new Error("Esta conta não tem acesso a esta área."); }
       const manager = { name: identity.user.name || identity.user.email, email: identity.user.email, scope: readManagerScope(identity.user.scope) };

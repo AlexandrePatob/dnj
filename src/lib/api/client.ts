@@ -4,16 +4,13 @@ type RequestOptions = Omit<RequestInit, "body"> & { body?: unknown; token?: stri
 export type ApiErrorCode = "OFFLINE" | "TIMEOUT" | "NETWORK" | string;
 export class ApiError extends Error { constructor(message: string, public readonly status: number, public readonly details?: unknown, public readonly code?: ApiErrorCode, public readonly requestId?: string) { super(message); this.name = "ApiError"; } }
 let refreshPromise: Promise<boolean> | null = null;
-let currentCsrfToken: string | undefined;
 const mutationAttempts = 3;
-export function setCsrfToken(token?: string) { currentCsrfToken = token || undefined; if (token) authStorage.setCsrfToken(token); }
-const publishedCsrfToken = () => typeof document === "undefined" ? undefined : document.cookie.split(";").map((x) => x.trim()).find((x) => x.startsWith("csrf_token="))?.slice(11);
-const csrfToken = () => publishedCsrfToken() ?? currentCsrfToken ?? authStorage.getCsrfToken();
-// The current API returns the bearer token in JSON and keeps refresh state in its cookie.
-// Retain support for a future JSON refresh token without making it a prerequisite to persist access.
+export function setCsrfToken(token?: string) { if (token) authStorage.setCsrfToken(token); }
+// The API's csrf cookie is scoped to its own origin, so the SPA must use the
+// matching csrfToken returned by the identity-session response.
+const csrfToken = () => authStorage.getCsrfToken();
 const rememberCredentials = (data: unknown) => {
   if (isStoredCredentials(data)) authStorage.setAccessToken(data.accessToken);
-  if (data && typeof data === "object" && "refreshToken" in data && typeof data.refreshToken === "string" && data.refreshToken) authStorage.setCredentials({ accessToken: authStorage.getAccessToken() ?? "", refreshToken: data.refreshToken });
   if (data && typeof data === "object" && "csrfToken" in data && typeof data.csrfToken === "string") setCsrfToken(data.csrfToken);
 };
 async function requestOnce<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -24,8 +21,7 @@ async function requestOnce<T>(path: string, options: RequestOptions = {}): Promi
 }
 // Rotates the cookie session once for all concurrent 401s. A rejected refresh drops local credentials.
 async function refreshSession(): Promise<boolean> {
-  const refreshToken = authStorage.getRefreshToken();
-  try { await requestOnce("/auth/refresh", { method: "POST", ...(refreshToken ? { body: { refreshToken } } : {}), token: "", refreshOnUnauthorized: false }); return true; }
+  try { await requestOnce("/auth/refresh", { method: "POST", token: "", refreshOnUnauthorized: false }); return true; }
   catch (error) { if (error instanceof ApiError && error.status !== 0 && error.status !== 408) authStorage.clearCredentials(); return false; }
 }
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> { try { return await requestOnce<T>(path, options); } catch (error) { if (!(error instanceof ApiError) || error.status !== 401 || path === "/auth/refresh" || options.refreshOnUnauthorized === false) throw error; refreshPromise ??= refreshSession().finally(() => { refreshPromise = null; }); if (!(await refreshPromise)) throw error; return requestOnce<T>(path, { ...options, token: undefined }); } }

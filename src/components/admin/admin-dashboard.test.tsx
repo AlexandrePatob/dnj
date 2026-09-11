@@ -247,7 +247,7 @@ describe("AdminDashboard V2", () => {
     await waitFor(() => expect(queueConfig.updateQueueConfig).toHaveBeenCalledWith({ isQueueOpen: false }));
   });
 
-  it("revokes the refresh token on logout, clears credentials and hides unsupported panels", async () => {
+  it("revokes the cookie session on logout, clears credentials and hides unsupported panels", async () => {
     const onExit = vi.fn();
     authStorage.setCredentials({ accessToken: "admin-access", refreshToken: "admin-refresh" });
     render(<AdminDashboard session={{ email: "admin@dnj.test", name: "Admin DNJ" }} onExit={onExit} />);
@@ -256,12 +256,11 @@ describe("AdminDashboard V2", () => {
     expect(screen.queryByRole("button", { name: "Participantes" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Sair" }));
     await waitFor(() => expect(onExit).toHaveBeenCalledOnce());
-    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/auth/logout", expect.objectContaining({ method: "POST", body: JSON.stringify({ refreshToken: "admin-refresh" }) }));
+    expect(fetchMock).toHaveBeenCalledWith("https://api.dnj.test/v2/auth/logout", expect.objectContaining({ method: "POST", body: undefined, credentials: "include" }));
     const logoutInit = fetchMock.mock.calls.find(([url]) => url === "https://api.dnj.test/v2/auth/logout")?.[1] as RequestInit;
     expect(logoutInit.headers).not.toHaveProperty("Authorization");
-    expect(logoutInit).not.toHaveProperty("credentials");
+    expect(logoutInit).toHaveProperty("credentials", "include");
     expect(authStorage.getAccessToken()).toBeNull();
-    expect(authStorage.getRefreshToken()).toBeNull();
   });
 
   it("creates spaces and activities with documented V2 payloads", async () => {
