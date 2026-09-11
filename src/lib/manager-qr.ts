@@ -2,7 +2,9 @@ import QRCode from "qrcode";
 import dnjLogo from "../../Logo_DNJ_semsombra.png";
 
 const QR_SIZE = 1920;
-const LABEL_HEIGHT = 330;
+const LABEL_HEIGHT = 450;
+const LABEL_MAX_WIDTH = QR_SIZE - 120;
+const LABEL_FONT_SIZE = 150;
 
 /** Generates the DNJ QR artwork used by operational screens. */
 export async function qrImageUrl(payload: string, label?: string) {
@@ -39,10 +41,29 @@ export async function qrImageUrl(payload: string, label?: string) {
 
   if (label?.trim()) {
     context.fillStyle = "#102523";
-    context.font = '700 163px "Space Grotesk", sans-serif';
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillText(label.trim().slice(0, 28), QR_SIZE / 2, QR_SIZE + LABEL_HEIGHT / 2);
+    const words = label.trim().split(/\s+/);
+    let fontSize = LABEL_FONT_SIZE;
+    let lines: string[] = [];
+    do {
+      context.font = `700 ${fontSize}px "Space Grotesk", sans-serif`;
+      lines = [];
+      for (const word of words) {
+        const candidate = lines.length ? `${lines.at(-1)} ${word}` : word;
+        if (!lines.length || context.measureText(candidate).width <= LABEL_MAX_WIDTH) {
+          lines.length ? (lines[lines.length - 1] = candidate) : lines.push(word);
+        } else {
+          lines.push(word);
+        }
+      }
+      fontSize -= 8;
+    } while (lines.length > 3 && fontSize >= 72);
+    const actualFontSize = Math.max(fontSize + 8, 72);
+    context.font = `700 ${actualFontSize}px "Space Grotesk", sans-serif`;
+    const lineHeight = actualFontSize * 0.9;
+    const firstLineY = QR_SIZE + LABEL_HEIGHT / 2 - (lines.length - 1) * lineHeight / 2;
+    lines.forEach((line, index) => context.fillText(line, QR_SIZE / 2, firstLineY + index * lineHeight));
   }
 
   return canvas.toDataURL("image/png");

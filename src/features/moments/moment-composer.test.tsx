@@ -68,13 +68,39 @@ describe("MomentComposer", () => {
     await user.click(
       await screen.findByRole("button", { name: "Capturar foto" }),
     );
-    await user.click(screen.getByRole("button", { name: "Publicar momento" }));
+    await user.click(screen.getByRole("button", { name: "Publicar" }));
     await waitFor(() => expect(publishFreeMoment).toHaveBeenCalledTimes(1));
     expect(publishFreeMoment.mock.calls[0][0]).toMatchObject({
       publishConsent: true,
     });
     expect(screen.getByText("Publicação concluída.")).toBeInTheDocument();
     expect(onCreated).not.toHaveBeenCalled();
+  });
+
+  it("treats a free moment with zero points as a plain success", async () => {
+    const user = userEvent.setup();
+    publishFreeMoment.mockResolvedValue({ id: "moment-1", pointsAwarded: 0 });
+    render(<MomentComposer onClose={vi.fn()} onCreated={vi.fn()} />);
+    await user.click(await screen.findByRole("button", { name: "Capturar foto" }));
+    await user.click(screen.getByRole("button", { name: "Publicar" }));
+
+    await waitFor(() =>
+      expect(screen.getByText("Publicação concluída.")).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/não está elegível para pontuação/)).not.toBeInTheDocument();
+  });
+
+  it("warns when a challenge moment is published without points", async () => {
+    const user = userEvent.setup();
+    publishChallengeMoment.mockResolvedValue({ id: "moment-1", pointsAwarded: 0 });
+    render(<MomentComposer mode="challenge" onClose={vi.fn()} onCreated={vi.fn()} />);
+    await user.click(await screen.findByRole("button", { name: "Capturar foto" }));
+    await user.click(screen.getByRole("button", { name: "Publicar" }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/não está elegível para pontuação/)).toBeInTheDocument(),
+    );
+    expect(publishChallengeMoment).toHaveBeenCalledTimes(1);
   });
 
   it("leaves an explicit retry action after a safe publish failure without duplicating the request", async () => {
@@ -87,7 +113,7 @@ describe("MomentComposer", () => {
       await screen.findByRole("button", { name: "Capturar foto" }),
     );
     const publish = screen.getByRole("button", {
-      name: "Publicar momento",
+      name: "Publicar",
     });
     await user.click(publish);
     await waitFor(() =>
@@ -97,7 +123,7 @@ describe("MomentComposer", () => {
     );
     expect(publishFreeMoment).toHaveBeenCalledTimes(1);
     expect(
-      screen.getByRole("button", { name: "Publicar momento" }),
+      screen.getByRole("button", { name: "Publicar" }),
     ).toBeEnabled();
   });
 
@@ -109,7 +135,7 @@ describe("MomentComposer", () => {
     );
     render(<MomentComposer onClose={vi.fn()} onCreated={vi.fn()} />);
     await user.click(await screen.findByRole("button", { name: "Capturar foto" }));
-    const publish = screen.getByRole("button", { name: "Publicar momento" });
+    const publish = screen.getByRole("button", { name: "Publicar" });
     await user.click(publish);
     await user.click(publish);
 
