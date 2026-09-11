@@ -244,9 +244,9 @@ export function LiveRankingDisplay({
     const load = async () => {
       try {
         const [individualResponse, groupsResponse, eventResponse] = await Promise.all([
-          fetch(`${env.apiBaseUrl}/rankings?scope=individual&page=1`, { cache: "no-store" }),
-          fetch(`${env.apiBaseUrl}/rankings?scope=groups&page=1`, { cache: "no-store" }),
-          fetch(`${env.apiBaseUrl}/live-display?target=${target}`, { cache: "no-store" }),
+          fetch(`${env.apiUrl}/rankings?scope=individual&page=1`, { cache: "no-store" }),
+          fetch(`${env.apiUrl}/rankings?scope=groups&page=1`, { cache: "no-store" }),
+          fetch(`${env.apiUrl}/live-display?target=${target}`, { cache: "no-store" }),
         ]);
         if (![individualResponse, groupsResponse, eventResponse].every((response) => response.ok))
           throw new Error("display unavailable");

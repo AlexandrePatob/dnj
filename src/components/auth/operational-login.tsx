@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/api/auth";
+import { authStorage } from "@/lib/auth-storage";
 import { env } from "@/lib/env";
 import type { ApiUserRole } from "@/lib/api/roles";
 import styles from "./operational-login.module.css";
@@ -13,10 +14,10 @@ declare global {
   }
 }
 
-type Props = { area: string; role: ApiUserRole; sessionPath: string; destination: string };
+type Props = { area: string; role: ApiUserRole; destination: string };
 const showEmailDebugCode = process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SHOW_EMAIL_DEBUG_CODE === "true";
 
-export function OperationalLogin({ area, role, sessionPath, destination }: Props) {
+export function OperationalLogin({ area, role, destination }: Props) {
   const router = useRouter();
   const googleButton = useRef<HTMLDivElement>(null);
   const [email, setEmail] = useState("");
@@ -26,19 +27,26 @@ export function OperationalLogin({ area, role, sessionPath, destination }: Props
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
 
-  const finish = useCallback(async (accessToken: string, returnedRole: ApiUserRole) => {
-    if (returnedRole !== role) throw new Error("Esta conta não tem acesso a esta área.");
-    const response = await fetch(sessionPath, { method: "POST", cache: "no-store", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accessToken }) });
-    if (!response.ok) throw new Error("Não foi possível liberar o acesso a esta área.");
+  // The API client already persisted the token pair; only the role gate is
+  // local. A wrong role must not leave usable operational credentials behind.
+  const finish = useCallback(async (returnedRole: ApiUserRole) => {
+    if (returnedRole !== role) { await authApi.logout(); authStorage.clearCredentials(); throw new Error("Esta conta não tem acesso a esta área."); }
     router.replace(destination);
-  }, [destination, role, router, sessionPath]);
+  }, [destination, role, router]);
 
   const signInWithGoogle = useCallback(async (idToken: string) => {
     setPending(true); setError("");
-    try { const identity = await authApi.loginWithGoogle(idToken); await finish(identity.accessToken, identity.user.role); }
+    try { const identity = await authApi.loginWithGoogle(idToken); await finish(identity.user.role); }
     catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível entrar."); }
     finally { setPending(false); }
   }, [finish]);
+
+  useEffect(() => {
+    if (!authStorage.hasSession()) return;
+    let active = true;
+    void authApi.getSession().then((identity) => { if (active && identity.user.role === role) router.replace(destination); }).catch(() => undefined);
+    return () => { active = false; };
+  }, [destination, role, router]);
 
   useEffect(() => {
     if (!env.googleClientId || !googleButton.current) return;
@@ -62,7 +70,7 @@ export function OperationalLogin({ area, role, sessionPath, destination }: Props
         setCodeSent(true);
         return;
       }
-      const identity = await authApi.verifyCode(email, code); await finish(identity.accessToken, identity.user.role);
+      const identity = await authApi.verifyCode(email, code); await finish(identity.user.role);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível entrar."); }
     finally { setPending(false); }
   }

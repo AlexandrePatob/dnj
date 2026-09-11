@@ -4,6 +4,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { authStorage } from "@/lib/auth-storage";
 import { storage } from "@/lib/storage";
 import type { AuthSession } from "@/types/domain";
 import { AppShell, BottomNav, TopBar } from "./layout/dnj-layout";
@@ -87,10 +88,12 @@ describe("DnjApp session restoration", () => {
     expect(await screen.findByRole("heading", { name: "Mapa do evento" })).toBeInTheDocument();
   });
 
-  it("bootstraps identity from the V2 session endpoint", async () => {
+  it("bootstraps identity from the external session endpoint with the stored bearer token", async () => {
+    authStorage.setCredentials({ accessToken: "restored-token", refreshToken: "refresh-token" });
     render(<DnjApp />);
     expect(await screen.findByText(/Ana!/)).toBeInTheDocument();
-    expect(fetch).toHaveBeenCalledWith("/api/v2/auth/session", expect.anything());
+    expect(fetch).toHaveBeenCalledWith("https://api.dnj.test/v2/auth/session", expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer restored-token" }) }));
+    expect((vi.mocked(fetch).mock.calls[0][1] as RequestInit)).not.toHaveProperty("credentials");
     expect(storage.getSession()?.identityToken).toBe("restored-token");
     expect(storage.getSession()?.user.avatarUrl).toBe("https://images.example/ana.jpg");
     expect(localStorage.getItem("dnj.identity-token.v1")).toBeNull();

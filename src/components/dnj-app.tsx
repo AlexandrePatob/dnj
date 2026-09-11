@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { authApi } from "@/lib/api/auth";
+import { authStorage } from "@/lib/auth-storage";
 import { ApiError } from "@/lib/api/client";
 import { mapIdentityUser } from "@/lib/api/mappers";
 import { profileApi } from "@/lib/api/profile";
@@ -217,10 +218,9 @@ export function DnjApp() {
     void authApi.getSession().then((identity) => {
       if (disposed) return;
       const apiUser = mapIdentityUser(identity.user);
-      // The session endpoint may have refreshed the short-lived access token.
-      // Keep that token in the in-memory presentation session so every
-      // protected request remains authenticated after a full page reload.
-      const session = { user: apiUser, identityToken: identity.accessToken };
+      // The bearer token lives in authStorage and the API client attaches it
+      // to every request; the presentation session only mirrors it.
+      const session = { user: apiUser, identityToken: authStorage.getAccessToken() ?? "" };
       storage.setSession(session);
       setUser(sessionUserData(session));
       setPrevScreen("login");
@@ -398,7 +398,7 @@ export function DnjApp() {
                 storage.setSession({ ...session, user: updatedUser });
                 setUser((current) => ({ ...current, avatarUrl: updatedUser.avatarUrl }));
               }).catch(() => undefined);
-            }} onLogout={() => { void authApi.logout().catch(() => undefined); storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
+            }} onLogout={() => { void authApi.logout(); storage.clearSession(); clearOfflineSnapshot(); navigate("login"); }} theme={theme} onToggleTheme={toggleTheme} animDir={animDir} />}
           </motion.div>
         </AnimatePresence>}
 

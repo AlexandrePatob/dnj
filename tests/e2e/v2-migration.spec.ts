@@ -12,14 +12,14 @@ test.describe("V2 participant migration journeys", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("dnj.onboarding.2k26", "1"));
     await page.route("**/api/v1/**", (route) => route.abort());
-    await page.route("**/api/v2/auth/session", (route) => route.fulfill({ json: identity }));
-    await page.route("**/api/v2/schedule**", (route) => route.fulfill({ json: { items: [] } }));
+    await page.route("**/v2/auth/session", (route) => route.fulfill({ json: identity }));
+    await page.route("**/v2/schedule**", (route) => route.fulfill({ json: { items: [] } }));
   });
 
   test("bootstraps a valid V2 session and renders an empty Game without V1 calls", async ({ page }) => {
-    await page.route("**/api/v2/game/overview", (route) => route.fulfill({ json: { individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 0 } } }));
-    await page.route("**/api/v2/activity-runs/current", (route) => route.fulfill({ status: 204 }));
-    await page.route("**/api/v2/participations/current", (route) => route.fulfill({ status: 204 }));
+    await page.route("**/v2/game/overview", (route) => route.fulfill({ json: { individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 0 } } }));
+    await page.route("**/v2/activity-runs/current", (route) => route.fulfill({ status: 204 }));
+    await page.route("**/v2/participations/current", (route) => route.fulfill({ status: 204 }));
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /Dia Nacional da Juventude/ })).toBeVisible();
@@ -28,10 +28,10 @@ test.describe("V2 participant migration journeys", () => {
   });
 
   test("opens the QR scanner and keeps gallery on the V2 empty feed", async ({ page }) => {
-    await page.route("**/api/v2/game/overview", (route) => route.fulfill({ json: { individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 0 } } }));
-    await page.route("**/api/v2/activity-runs/current", (route) => route.fulfill({ status: 204 }));
-    await page.route("**/api/v2/participations/current", (route) => route.fulfill({ status: 204 }));
-    await page.route("**/api/v2/moments?scope=feed", (route) => route.fulfill({ json: { items: [], nextCursor: "opaque-next" } }));
+    await page.route("**/v2/game/overview", (route) => route.fulfill({ json: { individual: [], groups: [], pointEntries: [], current: { groupId: null, rankPosition: 0 } } }));
+    await page.route("**/v2/activity-runs/current", (route) => route.fulfill({ status: 204 }));
+    await page.route("**/v2/participations/current", (route) => route.fulfill({ status: 204 }));
+    await page.route("**/v2/moments?scope=feed", (route) => route.fulfill({ json: { items: [], nextCursor: "opaque-next" } }));
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.getByRole("button", { name: "DNJ Game", exact: true }).click();
     const updateToast = page.getByRole("status").filter({ hasText: "Nova versão disponível" });
@@ -50,14 +50,14 @@ test.describe("V2 participant migration journeys", () => {
 
   test("keeps onboarding action visible and searches groups on demand on mobile", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.route("**/api/v2/auth/session", (route) => route.fulfill({
+    await page.route("**/v2/auth/session", (route) => route.fulfill({
       json: {
         user: { ...identity.user, mobilePhone: "", documentMasked: "", group: null, onboardingComplete: false },
         onboardingRequired: true,
       },
     }));
     let groupSearches = 0;
-    await page.route("**/api/v2/groups?search=*", (route) => {
+    await page.route("**/v2/groups?search=*", (route) => {
       groupSearches += 1;
       return route.fulfill({ json: [{ id: "group-1", groupName: "Jovens da Luz" }] });
     });

@@ -24,6 +24,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import { authApi } from "@/lib/api/auth";
 import { apiMutation, apiRequest } from "@/lib/api/client";
 import { qrImageUrl } from "@/lib/manager-qr";
 import { PastoralQueueOverview } from "./pastoral-queue-overview";
@@ -219,10 +220,7 @@ export function AdminDashboard({
   const [activitiesOpen, setActivitiesOpen] = useState(true);
   const [activityKind, setActivityKind] = useState<ActivityKind>("schedule");
   async function signOut() {
-    await fetch("/api/admin/session", {
-      method: "DELETE",
-      credentials: "include",
-    });
+    await authApi.logout();
     onExit();
   }
   return (

@@ -4,15 +4,11 @@
 
 O App Router é mantido como camada de composição e metadados. Para garantir equivalência visual verificável, `DnjApp` preserva neste momento a composição e todas as classes Tailwind do `App.tsx` original. A separação por feature deve ser feita depois, como refatoração puramente mecânica, com comparação visual antes e depois.
 
-O cliente HTTP centraliza URL base, timeout, parsing, cookie, Bearer e normalização de erros. Os contratos externos ficam separados dos tipos de domínio para impedir que mudanças pequenas no backend se espalhem pela UI.
+O cliente HTTP centraliza URL base externa, timeout, parsing, bearer token, refresh único e normalização de erros. Os contratos externos ficam separados dos tipos de domínio para impedir que mudanças pequenas no backend se espalhem pela UI.
 
 ## Sessão
 
-A API atual cria um cookie HttpOnly e também retorna o token no corpo. O cookie é o transporte preferencial. Como ainda não existe um endpoint de sessão (`/users/me`), o frontend persiste temporariamente usuário e token em chaves separadas e versionadas. Quando esse endpoint existir:
-
-1. Remover a persistência do token no `localStorage`.
-2. Buscar o usuário atual no carregamento usando apenas `credentials: include`.
-3. Tratar `401` no cliente HTTP limpando apenas o estado local da sessão.
+A API externa devolve `accessToken` (JWT de 15 minutos) e `refreshToken` (opaco, 30 dias). O frontend persiste os dois em `localStorage` (`src/lib/auth-storage.ts`) e envia `Authorization: Bearer` em toda chamada. Um `401` dispara um único refresh compartilhado entre requisições concorrentes (`POST /auth/refresh` com `{ "refreshToken" }`, rotação do par) e repete a requisição original; se a renovação falhar, as credenciais são removidas e o `401` é propagado. O logout envia o refresh token para revogação e limpa o armazenamento local mesmo com a API indisponível. Não há cookies, CSRF nem sessão no Next — Participante, Admin e Gestor restauram a sessão por `GET /auth/session` e validam o papel retornado.
 
 ## Novos domínios
 

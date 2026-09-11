@@ -21,16 +21,16 @@ const { scannedValidation } = vi.hoisted(() => ({
 vi.mock("@/lib/api/game", () => ({
   gameApi: {
     currentParticipation: async () => {
-      const response = await fetch("/api/v2/participations/current");
+      const response = await fetch("https://api.dnj.test/v2/participations/current");
       return response.status === 204 ? null : response.json();
     },
     overview: async () => {
-      const response = await fetch("/api/v2/game/overview");
+      const response = await fetch("https://api.dnj.test/v2/game/overview");
       return response.json();
     },
     currentRun: async (runId?: string) => {
       const response = await fetch(
-        `/api/v2/activity-runs/current${runId ? `?runId=${runId}` : ""}`,
+        `https://api.dnj.test/v2/activity-runs/current${runId ? `?runId=${runId}` : ""}`,
       );
       return response.status === 204 ? null : response.json();
     },
@@ -444,7 +444,7 @@ describe("GameScreen scanner entry", () => {
       expect(fetchMock).toHaveBeenCalledTimes(4);
       expect(fetchMock).toHaveBeenNthCalledWith(
         4,
-        "/api/v2/activity-runs/current?runId=run-1",
+        "https://api.dnj.test/v2/activity-runs/current?runId=run-1",
       );
       expect(screen.queryByRole("dialog", { name: "Status da partida" })).not.toBeInTheDocument();
     } finally {

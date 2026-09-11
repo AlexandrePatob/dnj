@@ -32,11 +32,14 @@ Os scripts `predev` e `prebuild` geram `public/sw.js` automaticamente. Para test
 Configure `.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=/api/v2
+NEXT_PUBLIC_API_URL=https://ttwkfudhvvhuhp5yvsoydxggum0ictpg.lambda-url.sa-east-1.on.aws/v2
+# API local: NEXT_PUBLIC_API_URL=http://localhost:8081/v2
 DNJ_V2_UPSTREAM_URL=https://ttwkfudhvvhuhp5yvsoydxggum0ictpg.lambda-url.sa-east-1.on.aws/v2
 ```
 
-O frontend usa exclusivamente a API HTTP externa configurada em `DNJ_V2_UPSTREAM_URL`, exposta pelo prefixo `NEXT_PUBLIC_API_URL`. O Next atua somente como proxy de rewrite e camada de apresentação. Não há integração com Supabase, acesso direto a banco, migrations ou credenciais `SUPABASE_*` necessárias para executar a aplicação.
+O navegador chama a API HTTP externa diretamente em `NEXT_PUBLIC_API_URL` (URL pública, já com `/v2`). Não existe proxy `/api/v2` nem sessão/cookie no Next: o cliente central (`src/lib/api/client.ts`) envia `Authorization: Bearer`, guarda `accessToken`/`refreshToken` no `localStorage` e renova a sessão uma única vez em caso de `401` (`POST /auth/refresh` com `{ "refreshToken" }`, rotação do par). Se a renovação falhar, as credenciais são removidas e o `401` é propagado. Participante, Admin e Gestor restauram a sessão por `GET /auth/session` e validam o papel retornado. `DNJ_V2_UPSTREAM_URL` só é usada pelas rotas Next que precisam de segredo no servidor (Push/VAPID). A API precisa liberar a origem do frontend no CORS (`Authorization`, `Content-Type`, `Idempotency-Key`; sem credenciais).
+
+Como o refresh token fica no `localStorage`, a proteção contra XSS é requisito operacional do frontend. Não há integração com Supabase, acesso direto a banco, migrations ou credenciais `SUPABASE_*` necessárias para executar a aplicação.
 
 O frontend implementa os contratos já existentes:
 
