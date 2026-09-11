@@ -3,12 +3,12 @@
  * STORY: reconhecer o perfil, acompanhar evolução e entrar nas atividades.
  * FIRST VIEWPORT: foto/marca/pontos; saudação à esquerda; jornada sobre o mapa.
  * FORM: composição explicitamente escolhida pelo usuário nas referências. */
-.top { position: absolute; inset: 0 0 auto; z-index: 50; height: calc(96px + var(--safe-area-top)); padding: calc(10px + var(--safe-area-top)) 20px 26px; display: flex; align-items: center; justify-content: space-between; background: var(--background) url('/images/participant/header-light.png') center top / 100% auto no-repeat; }
-:global(.dark) .top { background-image: url('/images/participant/header-dark.png'); }
+.top { position: absolute; inset: 0 0 auto; z-index: 50; height: calc(96px + var(--safe-area-top)); padding: calc(10px + var(--safe-area-top)) 20px 26px; display: flex; align-items: center; justify-content: space-between; background-color: var(--background); background-image: linear-gradient(to bottom, transparent 70%, var(--background) 100%), url('/images/participant/header-light.png'); background-position: center top; background-size: 100% 100%, 100% auto; background-repeat: no-repeat; }
+:global(.dark) .top { background-image: linear-gradient(to bottom, transparent 70%, var(--background) 100%), url('/images/participant/header-dark.png'); }
 .homeTop { background: transparent; padding-top: 10px; height: 96px; }
 .avatar { width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%; border: 3px solid white; outline: 2px solid var(--primary); background: #fff4e8; color: #813900; font-weight: 700; overflow: hidden; box-shadow: 0 3px 8px #10290040; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
-.logo { position: absolute; left: 50%; transform: translateX(-50%); height: auto !important; width: 82px !important; max-width: 82px !important; }
+.logo { position: absolute; top: calc(40px + var(--safe-area-top)); left: 50%; z-index: 2; display: grid; place-items: center; transform: translate(-50%, -50%); height: 48px !important; width: 82px !important; max-width: 82px !important; }
 .points { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; max-width: 43%; padding: 8px 12px; border-radius: 28px; background: color-mix(in srgb, var(--primary) 88%, transparent); color: #fff; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; box-shadow: 0 3px 8px #10290030; }
 .points span { overflow-wrap: anywhere; }
 .points svg { flex-shrink: 0; color: #fff0a8; }
