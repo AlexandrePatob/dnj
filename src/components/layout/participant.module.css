@@ -3,7 +3,8 @@
  * STORY: reconhecer o perfil, acompanhar evolução e entrar nas atividades.
  * FIRST VIEWPORT: foto/marca/pontos; saudação à esquerda; jornada sobre o mapa.
  * FORM: composição explicitamente escolhida pelo usuário nas referências. */
-.top { position: absolute; inset: 0 0 auto; z-index: 50; height: calc(96px + var(--safe-area-top)); padding: calc(10px + var(--safe-area-top)) 20px 26px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(to bottom, transparent calc(100% - 24px), var(--background) 100%), url('/images/participant/top.webp') center top / 100% 110% no-repeat; }
+.top { position: absolute; inset: 0 0 auto; z-index: 50; height: calc(96px + var(--safe-area-top)); padding: calc(10px + var(--safe-area-top)) 20px 26px; display: flex; align-items: center; justify-content: space-between; background: var(--background) url('/images/participant/header-light.png') center top / 100% auto no-repeat; }
+:global(.dark) .top { background-image: url('/images/participant/header-dark.png'); }
 .homeTop { background: transparent; padding-top: 10px; height: 96px; }
 .avatar { width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%; border: 3px solid white; outline: 2px solid var(--primary); background: #fff4e8; color: #813900; font-weight: 700; overflow: hidden; box-shadow: 0 3px 8px #10290040; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }

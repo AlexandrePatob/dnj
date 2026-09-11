@@ -104,7 +104,7 @@
 
 /* ── Dark Mode Surface Tokens ── */
 .dark {
-  --background: #0d1a1a;
+  --background: #000;
   --foreground: #f6ffff;
 
   --card: #162626;
@@ -128,6 +128,18 @@
   --sidebar-accent: #1f3333;
   --sidebar-accent-foreground: #f0f8f8;
   --sidebar-border: rgba(52, 209, 209, 0.15);
+}
+
+.dnj-header-art {
+  background-color: var(--background);
+  background-image: url('/images/participant/header-light.png');
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+}
+
+.dark .dnj-header-art {
+  background-image: url('/images/participant/header-dark.png');
 }
 
 @theme inline {
