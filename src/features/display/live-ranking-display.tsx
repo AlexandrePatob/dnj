@@ -319,7 +319,12 @@ export function LiveRankingDisplay({
             ? "px-10 py-8 md:px-20"
             : "px-8 py-10 md:px-14"
       }`}
-      style={format === "side" ? { aspectRatio: "3 / 4" } : isBackdrop ? { aspectRatio: "5 / 2" } : undefined}
+      style={{
+        ...(format === "side" ? { aspectRatio: "3 / 4" } : isBackdrop ? { aspectRatio: "5 / 2" } : {}),
+        backgroundImage: `url(${isBackdrop ? "/telao-horizontal-reference.png" : "/telao-vertical-reference.png"})`,
+        backgroundPosition: "center",
+        backgroundSize: "cover",
+      }}
     >
       <span aria-hidden className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_18%_12%,#0e654a_0,transparent_29%),radial-gradient(circle_at_86%_92%,#0b553f_0,transparent_36%),linear-gradient(118deg,transparent_0_28%,#0a392c_28%_34%,transparent_34%_58%,#0a382b_58%_65%,transparent_65%)]" />
       <span aria-hidden className="pointer-events-none absolute -left-16 bottom-[-4%] h-[34%] w-[32%] rotate-[-12deg] bg-[#07140f] opacity-80 [clip-path:polygon(0_16%,100%_0,76%_100%,0_100%)]" />
