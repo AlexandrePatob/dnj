@@ -2,7 +2,7 @@
 
 import NextImage from "next/image";
 import { useEffect, useState } from "react";
-import { Heart, Plus, Send, Trophy, X } from "lucide-react";
+import { Heart, Plus, Send, Trash2, Trophy, X } from "lucide-react";
 import { BrandSticker } from "@/components/brand/brand-sticker";
 import stickerLogo from "../../../Logo_DNJ_semsombra.png";
 import { OperationFeedback } from "@/components/ui/operation-feedback";
@@ -238,6 +238,95 @@ function LikeButton({
   );
 }
 
+function DeleteMomentButton({ moment, onDeleted }: { moment: Moment; onDeleted: (momentId: string) => void }) {
+  const [deleting, setDeleting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [confirming, setConfirming] = useState(false);
+  async function remove() {
+    if (deleting) return;
+    setDeleting(true);
+    setMessage("");
+    try {
+      await momentsApi.delete(moment.id);
+      onDeleted(moment.id);
+    } catch {
+      setMessage("Não foi possível excluir a foto.");
+      setDeleting(false);
+    }
+  }
+  return (
+    <span className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={() => {
+          setMessage("");
+          setConfirming(true);
+        }}
+        disabled={deleting}
+        aria-label="Excluir foto"
+        className="disabled:opacity-50"
+        style={{ color: "var(--destructive)" }}
+      >
+        <Trash2 size={18} />
+      </button>
+      {confirming && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Confirmar exclusão da foto"
+          className="fixed inset-0 z-[80] flex items-end bg-black/45"
+          onClick={() => !deleting && setConfirming(false)}
+        >
+          <section
+            className="w-full rounded-t-3xl p-5"
+            style={{
+              animation: "fadeUp 220ms cubic-bezier(.22,1,.36,1) both",
+              background: "var(--card)",
+              boxShadow: "0 -12px 30px #0003",
+            }}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full" style={{ background: "var(--border)" }} />
+            <div className="flex items-start gap-3">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl" style={{ background: "var(--destructive-alpha-15, color-mix(in srgb, var(--destructive) 15%, transparent))", color: "var(--destructive)" }}>
+                <Trash2 size={21} />
+              </span>
+              <div>
+                <h2 className="text-xl font-black">Excluir foto?</h2>
+                <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
+                  Esta foto será removida dos seus Momentos e não poderá ser recuperada.
+                </p>
+              </div>
+            </div>
+            {message && <p role="alert" className="mt-4 text-sm font-semibold" style={{ color: "var(--destructive)" }}>{message}</p>}
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setConfirming(false)}
+                className="rounded-xl py-3 text-sm font-bold disabled:opacity-50"
+                style={{ background: "var(--muted)", color: "var(--foreground)" }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => void remove()}
+                aria-label="Confirmar exclusão da foto"
+                className="rounded-xl py-3 text-sm font-bold text-white disabled:opacity-50"
+                style={{ background: "var(--destructive)" }}
+              >
+                {deleting ? "Excluindo..." : "Excluir foto"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+    </span>
+  );
+}
+
 function AuthorAvatar({ moment }: { moment: Moment }) {
   const [failed, setFailed] = useState(false);
   if (!moment.authorAvatarUrl || failed) {
@@ -324,12 +413,14 @@ function PassportGrid({
   socialView = false,
   onOpen,
   onChanged,
+  onDeleted,
 }: {
   moments: Moment[];
   groupView?: boolean;
   socialView?: boolean;
   onOpen: (value: Moment) => void;
   onChanged?: () => void;
+  onDeleted?: (momentId: string) => void;
 }) {
   return (
     <div
@@ -363,7 +454,7 @@ function PassportGrid({
           {socialView && onChanged && !moment.moderationMessage && (
             <div className="mt-2 flex items-center justify-between border-t pt-2" style={{ borderColor: "var(--border)" }}>
               <LikeButton moment={moment} onChanged={onChanged} />
-              <ShareButton moment={moment} />
+              <span className="flex items-center gap-4"><ShareButton moment={moment} />{onDeleted && <DeleteMomentButton moment={moment} onDeleted={onDeleted} />}</span>
             </div>
           )}
           {moment.moderationMessage && (
@@ -588,6 +679,7 @@ export function GalleryScreen({
                   socialView
                   onOpen={setSelected}
                   onChanged={() => setAttempt((value) => value + 1)}
+                  onDeleted={tab === "mine" ? (momentId) => setPage((current) => ({ ...current, items: current.items.filter((item) => item.id !== momentId) })) : undefined}
                 />
                 {page.nextCursor && (
                   <button
