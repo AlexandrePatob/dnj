@@ -66,7 +66,6 @@ export function BottomNav({
         background: "var(--card)",
         borderTop: "1px solid var(--border)",
         height: "var(--bottom-nav-total-height)",
-        paddingBottom: "var(--safe-area-bottom)",
       }}
       initial={{ y: "100%" }}
       animate={{ y: 0 }}

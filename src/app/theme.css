@@ -6,7 +6,8 @@
   /* Keep iPhone gesture clearance without pushing the navigation too far up. */
   --safe-area-bottom: max(0px, calc(env(safe-area-inset-bottom, 0px) - 10px));
   --bottom-nav-height: 68px;
-  --bottom-nav-total-height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+  /* Barra colada no fim da tela: sem folga de safe-area abaixo dos ícones. */
+  --bottom-nav-total-height: var(--bottom-nav-height);
   --main-content-bottom-padding: calc(var(--bottom-nav-total-height) + 24px);
 
   /* ── Brand Palette ── */
