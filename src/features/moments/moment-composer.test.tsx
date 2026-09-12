@@ -158,5 +158,4 @@ describe("MomentComposer", () => {
     ).toBeInTheDocument();
     vi.useRealTimers();
   });
-
 });

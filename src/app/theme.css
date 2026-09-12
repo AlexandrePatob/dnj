@@ -6,7 +6,8 @@
   /* Keep iPhone gesture clearance without pushing the navigation too far up. */
   --safe-area-bottom: max(0px, calc(env(safe-area-inset-bottom, 0px) - 10px));
   --bottom-nav-height: 68px;
-  --bottom-nav-total-height: calc(var(--bottom-nav-height) + var(--safe-area-bottom));
+  /* Barra colada no fim da tela: sem folga de safe-area abaixo dos ícones. */
+  --bottom-nav-total-height: var(--bottom-nav-height);
   --main-content-bottom-padding: calc(var(--bottom-nav-total-height) + 24px);
 
   /* ── Brand Palette ── */
@@ -128,6 +129,13 @@
   --sidebar-accent: #1f3333;
   --sidebar-accent-foreground: #f0f8f8;
   --sidebar-border: rgba(52, 209, 209, 0.15);
+}
+
+/* O fundo do documento (áreas fora do shell: safe-area inferior, overscroll)
+   segue o tema para não aparecer uma faixa clara abaixo da barra no PWA. */
+html:has(.dark),
+html:has(.dark) body {
+  background-color: #000;
 }
 
 .dnj-header-art {
