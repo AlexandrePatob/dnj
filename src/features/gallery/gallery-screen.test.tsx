@@ -23,8 +23,13 @@ vi.mock("@/lib/api/client", () => ({
 }));
 
 vi.mock("@/features/moments/moment-composer", () => ({
-  MomentComposer: () => (
-    <section aria-label="Compartilhar momento">Câmera aberta</section>
+  MomentComposer: ({ onCreated }: { onCreated: (moment: unknown) => void }) => (
+    <section aria-label="Compartilhar momento">
+      Câmera aberta
+      <button type="button" onClick={() => onCreated({ id: "moment-new", pointsAwarded: 20 })}>
+        Publicar mock
+      </button>
+    </section>
   ),
 }));
 
@@ -193,30 +198,52 @@ describe("GalleryScreen", () => {
       .toHaveAttribute("src", "https://images.example/avatar.jpg");
   });
 
-  it("marks photos that scored a Moment challenge without showing a caption", async () => {
+  it("shows the points each photo earned without showing a caption", async () => {
+    const base = {
+      authorName: "Alex",
+      placeName: "Palco",
+      imageUrl: "/mock/moments/dnj-feed-01.png",
+      publicationStatus: "public",
+      moderationStatus: "approved",
+      likesCount: 0,
+      likedByCurrentUser: false,
+    };
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        items: [{
-          id: "moment-challenge",
-          authorName: "Alex",
-          placeName: "Palco",
-          imageUrl: "/mock/moments/dnj-feed-01.png",
-          origin: "challenge",
-          pointsAwarded: 50,
-          publicationStatus: "public",
-          moderationStatus: "approved",
-          likesCount: 0,
-          likedByCurrentUser: false,
-        }],
+        items: [
+          { ...base, id: "moment-challenge", origin: "challenge", pointsAwarded: 50 },
+          { ...base, id: "moment-free", origin: "free", pointsAwarded: 20 },
+          { ...base, id: "moment-staff", origin: "free", pointsAwarded: 0 },
+        ],
         nextCursor: null,
       }),
     } as Response);
 
     render(<GalleryScreen animDir="up" />);
 
-    expect(await screen.findByText("Desafio pontuado")).toBeInTheDocument();
+    expect(await screen.findByText("Desafio +50 pts")).toBeInTheDocument();
+    expect(screen.getByText("Momento +20 pts")).toBeInTheDocument();
+    expect(screen.getAllByText(/pts$/)).toHaveLength(2);
     expect(screen.queryByText(/registrou este momento/i)).not.toBeInTheDocument();
+  });
+
+  it("credits and celebrates the points of a freshly published Moment", async () => {
+    const user = userEvent.setup();
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => emptyPage,
+    } as Response);
+    const onPointsAwarded = vi.fn();
+
+    render(<GalleryScreen animDir="up" onPointsAwarded={onPointsAwarded} />);
+    await screen.findByRole("heading", { name: "Ainda não há momentos" });
+    await user.click(screen.getByRole("button", { name: "Adicionar momento" }));
+    await user.click(await screen.findByRole("button", { name: "Publicar mock" }));
+
+    expect(await screen.findByText("Ganhou 20 pontos")).toBeInTheDocument();
+    expect(screen.getByText("Momento DNJ")).toBeInTheDocument();
+    expect(onPointsAwarded).toHaveBeenCalledWith(20);
   });
 
   it("opens the camera for a free Moment when there is no current participation", async () => {

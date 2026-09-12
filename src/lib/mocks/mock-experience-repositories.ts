@@ -45,6 +45,8 @@ export function createMockExperienceRepositories(options: MockExperienceOptions 
         shareImageUrl: imageUrl,
         moderationStatus: "approved" as const,
         publicationStatus: input.publishConsent ? "public" as const : "private" as const,
+        origin: input.participationId ? "challenge" as const : "free" as const,
+        pointsAwarded: input.participationId ? 30 : 20,
         likesCount: 0,
         likedByCurrentUser: false,
         comments: [],

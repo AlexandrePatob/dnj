@@ -22,10 +22,13 @@ const publishLabels: Record<Exclude<PublishProgress, "success" | "error">, strin
 
 export function MomentComposer({
   mode = "free",
+  points,
   onClose,
   onCreated,
 }: {
   mode?: "free" | "challenge";
+  /** Points this publication is expected to earn, shown before publishing. */
+  points?: number;
   onClose: () => void;
   onCreated: (moment: Moment) => void;
 }) {
@@ -215,14 +218,14 @@ export function MomentComposer({
         window.clearTimeout(publishStatusTimerRef.current);
         publishStatusTimerRef.current = null;
       }
-      // Free moments never award points, so only a challenge publication
-      // that came back with zero points deserves the "not eligible" notice.
+      // Every publication is expected to score (a flat reward for free
+      // moments, the activity's points for a challenge), so both modes end
+      // with the same feedback: the points earned, or the "not eligible" notice.
+      const awarded = moment.pointsAwarded ?? 0;
       setStatus(
-        mode === "challenge" &&
-          moment.pointsAwarded !== undefined &&
-          moment.pointsAwarded <= 0
-          ? "published_without_points"
-          : "Publicação concluída.",
+        awarded > 0
+          ? `Foto publicada! Você ganhou ${awarded} pontos.`
+          : "published_without_points",
       );
       window.setTimeout(() => onCreated(moment), 3_000);
     } catch (error) {
@@ -403,10 +406,12 @@ export function MomentComposer({
               color: "rgb(255 255 255 / 0.9)",
             }}
           >
-            <strong className="block text-sm">Publicar participação</strong>
+            <strong className="block text-sm">
+              {mode === "challenge" ? "Publicar no Desafio Momento" : "Publicar em Momentos"}
+            </strong>
             <span className="mt-1 block" style={{ color: "rgb(255 255 255 / 0.72)" }}>
               Sua foto será compartilhada em Momentos para toda a juventude do
-              DNJ.
+              DNJ{points ? ` e vale +${points} pontos` : ""}.
             </span>
           </p>
           {status === "published_without_points" && (
@@ -417,7 +422,7 @@ export function MomentComposer({
                 color: "var(--muted-foreground)",
               }}
             >
-              Foto publicada, mas esta participação não está elegível para
+              Foto publicada, mas esta publicação não está elegível para
               pontuação.
             </p>
           )}

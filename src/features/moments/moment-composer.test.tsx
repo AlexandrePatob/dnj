@@ -59,25 +59,26 @@ describe("MomentComposer", () => {
           "publishing",
         ])
           onProgress(state);
-        return { id: "moment-1" };
+        return { id: "moment-1", pointsAwarded: 20 };
       },
     );
     const onCreated = vi.fn();
-    render(<MomentComposer onClose={vi.fn()} onCreated={onCreated} />);
+    render(<MomentComposer points={20} onClose={vi.fn()} onCreated={onCreated} />);
 
     await user.click(
       await screen.findByRole("button", { name: "Capturar foto" }),
     );
+    expect(screen.getByText(/vale \+20 pontos/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Publicar" }));
     await waitFor(() => expect(publishFreeMoment).toHaveBeenCalledTimes(1));
     expect(publishFreeMoment.mock.calls[0][0]).toMatchObject({
       publishConsent: true,
     });
-    expect(screen.getByText("Publicação concluída.")).toBeInTheDocument();
+    expect(screen.getByText("Foto publicada! Você ganhou 20 pontos.")).toBeInTheDocument();
     expect(onCreated).not.toHaveBeenCalled();
   });
 
-  it("treats a free moment with zero points as a plain success", async () => {
+  it("shows the not-eligible notice for a free moment without points", async () => {
     const user = userEvent.setup();
     publishFreeMoment.mockResolvedValue({ id: "moment-1", pointsAwarded: 0 });
     render(<MomentComposer onClose={vi.fn()} onCreated={vi.fn()} />);
@@ -85,9 +86,9 @@ describe("MomentComposer", () => {
     await user.click(screen.getByRole("button", { name: "Publicar" }));
 
     await waitFor(() =>
-      expect(screen.getByText("Publicação concluída.")).toBeInTheDocument(),
+      expect(screen.getByText(/não está elegível para pontuação/)).toBeInTheDocument(),
     );
-    expect(screen.queryByText(/não está elegível para pontuação/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Foto publicada!/)).not.toBeInTheDocument();
   });
 
   it("warns when a challenge moment is published without points", async () => {

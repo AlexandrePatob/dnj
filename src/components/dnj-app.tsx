@@ -388,7 +388,7 @@ export function DnjApp() {
             {screen === "map" && <EventMapScreen animDir={animDir} onBack={() => navigate("home")} />}
             {screen === "game"    && <GameScreen user={user} theme={theme} animDir={animDir} momentChallenge={momentChallenge} onMomentCompleted={(challengeId) => completeMomentChallenge(challengeId)} onPointsChange={(points) => setUser((current) => ({ ...current, points }))} />}
             {screen === "queue"   && <QueueScreen user={{ id: user.mobilePhone || user.email, name: user.name }} animDir={animDir} onQueueNotification={handleQueueNotification} />}
-            {screen === "gallery" && <GalleryScreen group={user.group} currentUserName={user.name} currentGroupId={storage.getSession()?.user.group?.id} animDir={animDir} />}
+            {screen === "gallery" && <GalleryScreen group={user.group} currentUserName={user.name} currentGroupId={storage.getSession()?.user.group?.id} animDir={animDir} onPointsAwarded={(points) => setUser((current) => ({ ...current, points: current.points + points }))} />}
             {screen === "account" && <AccountScreen user={user} onAvatarChange={(avatarUrl) => {
               if (!user.id) return;
               storage.setAvatar(user.id, avatarUrl);
