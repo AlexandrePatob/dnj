@@ -325,6 +325,10 @@ describe("GalleryScreen", () => {
     await user.click(await screen.findByRole("button", { name: "Meus Momentos" }));
     await user.click(await screen.findByRole("button", { name: "Excluir foto" }));
 
+    expect(await screen.findByRole("dialog", { name: "Confirmar exclusão da foto" })).toBeInTheDocument();
+    expect(screen.getByText("Esta foto será removida dos seus Momentos e não poderá ser recuperada.")).toBeInTheDocument();
+    expect(momentsApi.delete).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Confirmar exclusão da foto" }));
     expect(momentsApi.delete).toHaveBeenCalledWith("mine-delete");
     expect(screen.queryByAltText("Momento em Capela")).not.toBeInTheDocument();
   });
