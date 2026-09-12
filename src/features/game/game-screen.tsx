@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Award, BookOpen, Camera, Church, Crown, Footprints, Hammer, Info, LockKeyhole, MonitorPlay, QrCode, Send, Sprout, X } from "lucide-react";
+import { Award, BookOpen, Camera, Church, Crown, Footprints, Hammer, Image as ImageIcon, Info, LockKeyhole, MonitorPlay, QrCode, Send, Sprout, X } from "lucide-react";
 import gameLogoDark from "@/assets/brand/DNJGAME_DARK.png";
 import gameLogoLight from "@/assets/brand/DNJGAME_01.png";
 import { MedalBadge, PointIcon } from "@/components/ui/dnj-controls";
@@ -15,6 +15,7 @@ import type {
 import { DNJ_LEVELS, getDnjLevel } from "@/lib/levels";
 import participantStyles from "@/components/layout/participant.module.css";
 import { MomentComposer } from "@/features/moments/moment-composer";
+import { FREE_MOMENT_POINTS } from "@/lib/moments/points";
 import { MomentChallengeCard } from "@/features/moments/moment-challenge-card";
 import type { LiveMomentChallenge } from "@/components/live/live-status-stack";
 import {
@@ -727,6 +728,13 @@ export function GameScreen({
                 </p>
               </div>
               <div className="flex gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl" style={{ background: "var(--primary-alpha-15)", color: "var(--primary)" }}><ImageIcon size={20} /></span>
+                <p className="min-w-0 text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                  <strong className="flex items-center gap-2 text-[var(--foreground)]">Momentos DNJ <span className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white" style={{ background: "var(--primary)" }}>Pontua</span></strong>
+                  <span className="mt-1 block">Toda foto que você publica em Momentos vale {FREE_MOMENT_POINTS} pontos.</span>
+                </p>
+              </div>
+              <div className="flex gap-3">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl" style={{ background: "var(--primary-alpha-15)", color: "var(--primary)" }}><MonitorPlay size={20} /></span>
                 <p className="min-w-0 text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
                   <strong className="flex items-center gap-2 text-[var(--foreground)]">Desafios especiais <span className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white" style={{ background: "var(--primary)" }}>Vale mais</span></strong>
@@ -788,6 +796,7 @@ export function GameScreen({
       {momentOpen && (
         <MomentComposer
           mode="challenge"
+          points={momentChallenge?.points}
           onClose={() => setMomentOpen(false)}
           onCreated={(moment) => {
             setMomentOpen(false);

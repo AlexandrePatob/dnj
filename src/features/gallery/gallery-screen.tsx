@@ -7,6 +7,8 @@ import { BrandSticker } from "@/components/brand/brand-sticker";
 import stickerLogo from "../../../Logo_DNJ_semsombra.png";
 import { OperationFeedback } from "@/components/ui/operation-feedback";
 import { MomentComposer } from "@/features/moments/moment-composer";
+import { QrSuccessCelebration } from "@/features/scanner/qr-success-celebration";
+import { FREE_MOMENT_POINTS } from "@/lib/moments/points";
 import type { AnimDir } from "@/features/app/types";
 import type { GalleryPage, Moment, Participation } from "@/types/experience";
 import { momentsApi, type MomentScope } from "@/lib/api/moments";
@@ -387,13 +389,13 @@ function FeedCard({
           decorative
           className="absolute bottom-3 right-5 drop-shadow-md"
         />
-        {moment.origin === "challenge" && moment.pointsAwarded > 0 && (
+        {moment.pointsAwarded > 0 && (
           <span
             className="absolute left-5 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-black text-white"
             style={{ background: "var(--game)", boxShadow: "0 4px 10px rgba(11, 35, 37, .22)" }}
           >
             <Trophy size={13} aria-hidden="true" />
-            Desafio pontuado
+            {`${moment.origin === "challenge" ? "Desafio" : "Momento"} +${moment.pointsAwarded} pts`}
           </span>
         )}
       </button>
@@ -487,11 +489,14 @@ export function GalleryScreen({
   group = "",
   currentUserName = "",
   currentGroupId = "",
+  onPointsAwarded,
 }: {
   animDir: AnimDir;
   group?: string;
   currentUserName?: string;
   currentGroupId?: string;
+  /** Called with the points a freshly published Moment earned. */
+  onPointsAwarded?: (points: number) => void;
 }) {
   const [tab, setTab] = useState<"public" | "mine" | "group">("public");
   const [page, setPage] = useState<GalleryPage>({
@@ -510,6 +515,7 @@ export function GalleryScreen({
     Participation | null | undefined
   >(undefined);
   const [composerMessage, setComposerMessage] = useState("");
+  const [celebration, setCelebration] = useState<{ points: number; label: string } | null>(null);
   const hasGroup = Boolean(group.trim());
   useEffect(() => {
     let active = true;
@@ -594,7 +600,8 @@ export function GalleryScreen({
               className="mt-1 text-sm"
               style={{ color: "var(--muted-foreground)" }}
             >
-              Memórias que a juventude está criando.
+              Memórias que a juventude está criando. Cada foto publicada vale{" "}
+              {FREE_MOMENT_POINTS} pontos no DNJ Game.
             </p>
             <div
               className="mt-4 flex rounded-xl p-1"
@@ -778,11 +785,26 @@ export function GalleryScreen({
       {composerParticipation !== undefined && (
         <MomentComposer
           mode="free"
+          points={FREE_MOMENT_POINTS}
           onClose={() => setComposerParticipation(undefined)}
-          onCreated={() => {
+          onCreated={(moment) => {
             setComposerParticipation(undefined);
             setAttempt((value) => value + 1);
+            // Same closing as the Moment challenge in the game screen: the
+            // points earned are credited and celebrated right away.
+            if (moment.pointsAwarded > 0) {
+              onPointsAwarded?.(moment.pointsAwarded);
+              setCelebration({ points: moment.pointsAwarded, label: "Momento DNJ" });
+            }
           }}
+        />
+      )}
+      {celebration && (
+        <QrSuccessCelebration
+          points={celebration.points}
+          label={celebration.label}
+          scored
+          onDone={() => setCelebration(null)}
         />
       )}
     </>

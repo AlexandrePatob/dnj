@@ -185,7 +185,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthenticated' }
     post:
       tags: [Participant experience]
-      summary: Uploads and immediately publishes a Moment, awarding its configured points; later moderation may reverse points or remove an inappropriate photo
+      summary: Uploads and immediately publishes a Moment, awarding its points (a flat 20 for a free Moment, the activity's momentPoints for a challenge); later moderation may reverse points or remove an inappropriate photo
       security: [{ participantBearer: [] }]
       requestBody:
         required: true
