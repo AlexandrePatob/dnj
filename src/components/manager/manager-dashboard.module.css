@@ -945,6 +945,7 @@
   .managerConsole { padding: 20px; }
 }
 @media (max-width: 639px) {
+  .queueList { max-block-size: 310px; overflow-y: auto; overscroll-behavior: contain; }
   .intro p { line-height: 1.28; }
   .eventList li {
     grid-template-columns: auto minmax(0, 1fr);
