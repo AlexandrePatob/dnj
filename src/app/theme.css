@@ -130,6 +130,13 @@
   --sidebar-border: rgba(52, 209, 209, 0.15);
 }
 
+/* O fundo do documento (áreas fora do shell: safe-area inferior, overscroll)
+   segue o tema para não aparecer uma faixa clara abaixo da barra no PWA. */
+html:has(.dark),
+html:has(.dark) body {
+  background-color: #000;
+}
+
 .dnj-header-art {
   background-color: var(--background);
   background-image: url('/images/participant/header-light.png');

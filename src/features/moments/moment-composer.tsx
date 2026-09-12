@@ -121,16 +121,16 @@ export function MomentComposer({
     }
   }, [facingMode, stopCamera]);
   const selectCameraZoom = useCallback(async (zoom: CameraZoom) => {
-    const track = streamRef.current?.getVideoTracks()[0];
-    if (!track) return;
-    const capabilities = track.getCapabilities() as MediaTrackCapabilities & {
-      zoom?: { min?: number; max?: number };
-    };
-    if (!capabilities.zoom) return;
-    const min = capabilities.zoom.min ?? zoom;
-    const max = capabilities.zoom.max ?? zoom;
-    const nativeZoom = Math.min(max, Math.max(min, zoom));
     try {
+      const track = streamRef.current?.getVideoTracks?.()[0];
+      if (!track || typeof track.getCapabilities !== "function") return;
+      const capabilities = track.getCapabilities() as MediaTrackCapabilities & {
+        zoom?: { min?: number; max?: number };
+      };
+      if (!capabilities.zoom) return;
+      const min = capabilities.zoom.min ?? zoom;
+      const max = capabilities.zoom.max ?? zoom;
+      const nativeZoom = Math.min(max, Math.max(min, zoom));
       await track.applyConstraints({
         advanced: [{ zoom: nativeZoom } as MediaTrackConstraintSet],
       });
@@ -238,9 +238,10 @@ export function MomentComposer({
     <section
       role="dialog"
       aria-modal="true"
-      className="absolute inset-0 z-30 flex min-h-0 flex-col items-center overflow-y-auto px-0 pb-[var(--bottom-nav-total-height)]"
+      className="absolute inset-x-0 top-0 z-30 flex min-h-0 flex-col items-center overflow-hidden px-0"
       style={{
         background: "var(--background)",
+        bottom: "var(--bottom-nav-total-height)",
         paddingTop: "calc(var(--participant-header-height) + var(--safe-area-top))",
       }}
       aria-label="Compartilhar momento"
@@ -282,7 +283,7 @@ export function MomentComposer({
         </p>
       </div>
       <div
-        className="relative mt-0 h-[calc(100dvh-var(--participant-header-height)-var(--safe-area-top))] min-h-0 w-full shrink-0 overflow-hidden rounded-[2rem] border-2"
+        className="relative mt-0 min-h-0 w-full flex-1 overflow-hidden rounded-[2rem] border-2"
         style={{ background: "#101010", borderColor: "var(--primary)" }}
       >
         <h2
